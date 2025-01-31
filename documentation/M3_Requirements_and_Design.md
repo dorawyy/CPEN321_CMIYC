@@ -49,12 +49,12 @@
     - **Description**: When no session is active, new and existing users use Google Authentication service to start a session.
     - **Primary Actors**: User, Admin
     - **Main success scenario(s)**:
-
-      1. New and existing users click on the Google login button on the App’s login page.
-      2. User is redirected to a page view where the user enters their Google email and password.
-      3. Google Authentication succeeds.
-      4. User is redirected out of the login page and into the app’s main page: The map page.
-
+      <ol>
+        <li>New and existing users click on the Google login button on the App’s login page. </li>
+        <li>User is redirected to a page view where the user enters their Google email and password.</li>
+        <li>Google Authentication succeeds.</li>
+        <li>User is redirected out of the login page and into the app’s main page: The map page.</li>
+      </ol>
     - **Failure scenario(s)**:
       - 2a. Google authentication service is non-responsive.
         - 2a1. Display error message that Google service is non-responsive and show an OK button.
