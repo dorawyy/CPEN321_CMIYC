@@ -529,6 +529,7 @@
   - Non-functional requirements
   - Sequence diagram FR4 and FR5
   - Markdown creation
+  - Reflection
 
 - **Deepan Chakravarthy**:
 
@@ -538,4 +539,8 @@
   - Review sections
 
 - **James Lee**:
-  - (Contributions not specified)
+  - Use case diagram
+  - Main actors and descriptions
+  - Functional Requirements: FR3, FR6
+  - Sequence diagram FR2, FR3
+  - Reviewed all sections
