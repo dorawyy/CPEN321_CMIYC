@@ -49,12 +49,10 @@
     - **Description**: When no session is active, new and existing users use Google Authentication service to start a session.
     - **Primary Actors**: User, Admin
     - **Main success scenario(s)**:
-      <ol>
-        <li>New and existing users click on the Google login button on the App’s login page. </li>
-        <li>User is redirected to a page view where the user enters their Google email and password.</li>
-        <li>Google Authentication succeeds.</li>
-        <li>User is redirected out of the login page and into the app’s main page: The map page.</li>
-      </ol>
+      - 1. New and existing users click on the Google login button on the App’s login page.
+      - 2. User is redirected to a page view where the user enters their Google email and password.
+      - 3. Google Authentication succeeds.
+      - 4. User is redirected out of the login page and into the app’s main page: The map page.
     - **Failure scenario(s)**:
       - 2a. Google authentication service is non-responsive.
         - 2a1. Display error message that Google service is non-responsive and show an OK button.
@@ -65,9 +63,9 @@
   - **FR1_2: Logout**
     - **Primary actor(s)**: User, Admin
     - **Main success scenario(s)**:
-      1. From a profile page, the user clicks logout.
-      2. User logs out successfully.
-      3. User is redirected to the login page.
+      - 1. From a profile page, the user clicks logout.
+      - 2. User logs out successfully.
+      - 3. User is redirected to the login page.
     - **Failure scenario(s)**:
       - 1a. Logout failed; user stays logged in due to network error.
         - 1a1. Display error to logout message and show retry button.
@@ -87,8 +85,8 @@
     - **Description**: Users can add friends by sending friend requests.
     - **Primary actor(s)**: User
     - **Success scenario(s)**:
-      1. User sends a friend request.
-      2. Friend accepts the request, and the connection is established.
+      - 1. User sends a friend request.
+      - 2. Friend accepts the request, and the connection is established.
     - **Failure scenario(s)**:
       - 1a. Friend request fails due to a network error.
         - 1a1. Display an error message.
@@ -102,9 +100,9 @@
     - **Description**: Users can remove friends from their friend list at any time.
     - **Primary actor(s)**: User
     - **Success scenario(s)**:
-      1. User selects a friend to remove.
-      2. The friend is removed from the friend list.
-      3. The user is also removed from the friend’s list.
+      - 1. User selects a friend to remove.
+      - 2. The friend is removed from the friend list.
+      - 3. The user is also removed from the friend’s list.
     - **Failure scenario(s)**:
       - 1a. Removal fails due to a server issue.
         - 1a1. Display an error message.
@@ -118,9 +116,9 @@
     - **Description**: The user can accept or deny friend requests.
     - **Primary actor(s)**: User, Friend
     - **Success scenario(s)**:
-      1. User receives a friend request.
-      2. If the user accepts, that friend is added to their friend list and the friend’s list adds the user.
-      3. If the user denies, the friend request is cleared.
+      - 1. User receives a friend request.
+      - 2. If the user accepts, that friend is added to their friend list and the friend’s list adds the user.
+      - 3. If the user denies, the friend request is cleared.
     - **Failure scenario(s)**:
       - 1a. Accept request fails due to a network issue.
         - 1a1. Display an error message.
@@ -143,24 +141,24 @@
     - **Description**: Users can view their friend’s real-time location.
     - **Primary actor(s)**: User
     - **Main success scenario**:
-      1. The user opens the app.
-      2. The user can scroll and move the map.
-      3. The user sees their friends' locations.
+      - 1. The user opens the app.
+      - 2. The user can scroll and move the map.
+      - 3. The user sees their friends' locations.
     - **Failure scenario(s)**:
       - 1a. Server fails to update friend locations due to a network error.
         - 1a1. Display an error message.
         - 1a2. Retry location fetching.
-      - 2b. Map fails to move in response to the user.
-        - 2b1. Display an error message.
-        - 2b2. Reload the app.
+      - 2a. Map fails to move in response to the user.
+        - 2a1. Display an error message.
+        - 2a2. Reload the app.
 
   - **FR3.2 Log of Invited Activities**
 
     - **Description**: The user can view a log with all the previously invited activities.
     - **Primary actor(s)**: User
     - **Main success scenario**:
-      1. The user switches to the log page.
-      2. The user can scroll up and down the log to see the previous invited activities.
+      - 1. The user switches to the log page.
+      - 2. The user can scroll up and down the log to see the previous invited activities.
     - **Failure scenario(s)**:
       - 1a. Server fails to update the log of previously invited activities.
         - 1a1. Display an error message.
@@ -170,13 +168,13 @@
     - **Description**: The user receives real-time notifications for friend activity status updates.
     - **Primary actor(s)**: User
     - **Main success scenario**:
-      1. User receives a notification for an activity invitation or when entering a radius of a previous activity invitation.
+      - 1. User receives a notification for an activity invitation or when entering a radius of a previous activity invitation.
     - **Failure scenario(s)**:
       - 1a. Notification fails to send due to server issues.
         - 1a1. Log the failure.
         - 1a2. Retry sending the notification.
-      - 2a. Notification is delayed.
-        - 2a1. App displays a message notifying the user of the delay.
+      - 1b. Notification is delayed.
+        - 1b1. App displays a message notifying the user of the delay.
 
 #### **FR4: Broadcast Activity**
 
@@ -192,10 +190,10 @@
     - **Description**: From the Map page, users can enter their activity message and click on broadcast to let all their friends know.
     - **Primary actor(s)**: User
     - **Main success scenarios**:
-      1. The user is on the Map page and sets their activity message.
-      2. User clicks broadcast.
-      3. User’s current activity along with the message “join them” is sent via push notifications to User’s friends.
-      4. User’s friend clicks on push notification and is redirected to the map page and centered to the sender’s location.
+      - 1. The user is on the Map page and sets their activity message.
+      - 2. User clicks broadcast.
+      - 3. User’s current activity along with the message “join them” is sent via push notifications to User’s friends.
+      - 4. User’s friend clicks on push notification and is redirected to the map page and centered to the sender’s location.
     - **Failure scenarios**:
       - 2a. Broadcast fails due to a network error.
         - 2a1. Display network error message and show retry button.
@@ -207,9 +205,9 @@
     - **Description**: When User broadcasts activity, a new log entry will be added to all friends’ log pages.
     - **Primary actor(s)**: User
     - **Main success scenarios**:
-      1. User clicks on the broadcast with a set activity message.
-      2. Every User’s friends’ log list is updated with a new entry.
-      3. The new entry contains the broadcaster’s name, activity message, and location.
+      - 1. User clicks on the broadcast with a set activity message.
+      - 2. Every User’s friends’ log list is updated with a new entry.
+      - 3. The new entry contains the broadcaster’s name, activity message, and location.
     - **Failure scenarios**:
       - 1a. Sending log entry fails due to a network error.
         - 1a1. App retries sending the log message 5 times without notifying the user.
@@ -229,9 +227,9 @@
     - **Description**: Users can edit their personal details, such as name, bio, and contact information, to keep their profile up to date.
     - **Primary actor(s)**: User
     - **Main success scenario**:
-      1. Users navigate to their profile settings pages.
-      2. Users edit their personal information (e.g., name, bio, contact details).
-      3. Changes are saved and reflected in the user’s profile.
+      - 1. Users navigate to their profile settings pages.
+      - 2. Users edit their personal information (e.g., name, bio, contact details).
+      - 3. Changes are saved and reflected in the user’s profile.
     - **Failure scenario(s)**:
       - 1a. Profile update fails due to a network issue.
         - 1a1. App displays an error message.
@@ -243,9 +241,9 @@
     - **Description**: Users can upload or update their profile picture to personalize their account.
     - **Primary actor(s)**: User
     - **Main success scenario**:
-      1. User selects a new profile photo from their device.
-      2. The app uploads and processes the image.
-      3. The new profile photo is updated and displayed in the user’s profile.
+      - 1. User selects a new profile photo from their device.
+      - 2. The app uploads and processes the image.
+      - 3. The new profile photo is updated and displayed in the user’s profile.
     - **Failure scenario(s)**:
       - 1a. Image upload fails due to a network issue.
         - 1a1. App displays an error message and allows retrying.
@@ -266,9 +264,9 @@
     - **Description**: Admins can permanently ban users who engage in harmful behavior, ensuring a safe environment.
     - **Primary actor(s)**: Admin
     - **Main success scenarios**:
-      1. Admin selects a user to ban from the system.
-      2. The user is banned, preventing them from logging in or accessing the app.
-      3. The system notifies the banned user of their status.
+      - 1. Admin selects a user to ban from the system.
+      - 2. The user is banned, preventing them from logging in or accessing the app.
+      - 3. The system notifies the banned user of their status.
     - **Failure scenarios**:
       - 1a. Ban action fails due to a server issue.
         - 1a1. System logs the failure and retries the operation.
@@ -280,10 +278,10 @@
     - **Description**: Admins can temporarily restrict users by limiting their actions, such as posting status updates or sending friend invitations.
     - **Primary actor(s)**: Admin
     - **Main success scenarios**:
-      1. Admin selects a user to restrict.
-      2. Restrictions (e.g., disabling location sharing, preventing friend requests) are applied.
-      3. The restricted user is notified of their limited access.
-      4. Admin can later remove restrictions if necessary.
+      - 1. Admin selects a user to restrict.
+      - 2. Restrictions (e.g., disabling location sharing, preventing friend requests) are applied.
+      - 3. The restricted user is notified of their limited access.
+      - 4. Admin can later remove restrictions if necessary.
     - **Failure scenarios**:
       - 1a. Restriction fails due to a system error.
         - 1a1. System logs the failure and retries applying the restriction.
