@@ -67,8 +67,8 @@
       2. User logs out successfully.
       3. User is redirected to the login page.
     - **Failure scenario(s)**:
-      - 5a. Logout failed; user stays logged in due to network error.
-        - 5a1. Display error to logout message and show retry button.
+      - 1a. Logout failed; user stays logged in due to network error.
+        - 1a1. Display error to logout message and show retry button.
 
 #### **FR2: Manage Friends**
 
@@ -301,10 +301,6 @@
    - **Description**: The backend must handle at least 1000 concurrent users.
    - **Justification**: Scalability is essential for supporting a growing user base.
 
-3. **NFR3: Compatibility**
-   - **Description**: The app should be compatible with Android devices running Android 12 (API 31) and above.
-   - **Justification**: Ensures broad accessibility for users.
-
 ---
 
 ## 4. Design Specification
@@ -371,7 +367,7 @@
      - **Purpose**: Stores `userID`, `Name`, `List of friends`, `userPhoto`, and `Last known location`.
      - **Reason**: We need a persistent store of User information and their friends. This data should not be lost when the server is restarted.
    - **Activity Logs Table**
-     - **Purpose**: Stores event logs for every user.
+     - **Purpose**: We need a persistent store for every user, the event logs they receive
      - **Reason**: Activity logs are ground truth and should persist between server restarts.
 
 ---
