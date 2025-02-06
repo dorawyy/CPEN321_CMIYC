@@ -1,16 +1,11 @@
 package com.example.cmiyc
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.LaunchedEffect
 import com.example.cmiyc.ui.theme.CMIYCTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,29 +14,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CMIYCTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                LaunchedEffect(Unit) {
+                    startActivity(Intent(this@MainActivity, HomeActivity::class.java))
+                    finish() // Close MainActivity so user can't go back
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CMIYCTheme {
-        Greeting("Android")
     }
 }
