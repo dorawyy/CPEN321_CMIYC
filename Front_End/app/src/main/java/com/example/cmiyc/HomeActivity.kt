@@ -1,48 +1,40 @@
 package com.example.cmiyc
 
 import android.annotation.SuppressLint
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.cmiyc.ui.theme.CMIYCTheme
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
-import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
+import com.mapbox.maps.logD
 import com.mapbox.maps.plugin.PuckBearing
-import com.mapbox.maps.plugin.animation.MapAnimationOptions
+import com.mapbox.maps.plugin.annotation.annotations
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
-
 
 class HomeActivity : ComponentActivity() {
     companion object {
@@ -68,35 +60,35 @@ class HomeActivity : ComponentActivity() {
 
     @Composable
     fun HomeScreen() {
-        var showDialog = remember { mutableStateOf(false)};
-        var userInput  = remember { mutableStateOf("")};
+        var showDialog = remember { mutableStateOf(false) }
+        var userInput = remember { mutableStateOf("") }
 
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Wrap the Button in a Box and apply padding to Box
             Box(
                 Modifier.weight(1f)
             ) {
                 Map()
             }
 
-
-            // Wrap the Button in a Box and apply padding to Box
             Box(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp)
             ) {
                 Button(
                     onClick = { showDialog.value = true },
-                    modifier = Modifier.fillMaxWidth().padding(16.dp) // Ensures button width matches parent
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
                     Text("Click Me")
                 }
             }
 
-            // Show input popup when showDialog is true
             if (showDialog.value) {
                 Log.d(TAG, "Dialog Open")
                 AlertDialog(
@@ -114,8 +106,6 @@ class HomeActivity : ComponentActivity() {
                     confirmButton = {
                         Button(onClick = {
                             showDialog.value = false
-                            // Handle input submission (e.g., save value, update UI, etc.)
-
                             Log.d(TAG, "Set Status " + userInput.value)
                         }) {
                             Text("Update")
@@ -134,15 +124,16 @@ class HomeActivity : ComponentActivity() {
     @Composable
     fun Map() {
         val mapViewportState = rememberMapViewportState()
+        val mapView = remember { MapView(this@HomeActivity) }
+        val pointAnnotationManager = remember { mapView.annotations.createPointAnnotationManager() }
 
-        // Function to set the map to a preset location (e.g., coordinates for a city or place)
         fun setPresetLocation() {
-            val presetLocation = Point.fromLngLat(-73.9857, 40.7484) // Example: Coordinates for Times Square, NYC
-            mapViewportState.flyTo(
+            val presetLocation = Point.fromLngLat(-123.23612571995412, 49.25505567088336)
+            mapViewportState.setCameraOptions(
                 cameraOptions {
                     center(presetLocation)
-                },
-                MapAnimationOptions.mapAnimationOptions { duration(5000) }
+                    zoom(14.0)
+                }
             )
             Log.d(TAG, "Setting map to preset location: $presetLocation")
         }
@@ -152,59 +143,92 @@ class HomeActivity : ComponentActivity() {
             Log.d(TAG, "Setting map to user location")
         }
 
-        var permissionsListener: PermissionsListener = object : PermissionsListener {
-            override fun onExplanationNeeded(permissionsToExplain: List<String>) {
+        fun fetchFriendLocations() {
+            Log.d(TAG, "Add Friend Annotation")
+            val userLocations = listOf(
+                Point.fromLngLat(-123.25041000865335, 49.26524685838906),
+                Point.fromLngLat(-123.24543004678874, 49.254817878891814)
+            )
 
+            userLocations.forEach { location ->
+                val pointAnnotationOptions = PointAnnotationOptions()
+                    .withPoint(location)
+                    .withIconImage("red_marker")
+                pointAnnotationManager.create(pointAnnotationOptions)
             }
 
-            override fun onPermissionResult(granted: Boolean) {
-                if (granted) {
-                    // Permission sensitive logic called here, such as activating the Maps SDK's LocationComponent to show the device's location
-                    Log.d(TAG, "Location Permission Granted")
-                    setPuckLocation()
-                } else {
-
-                    // User denied the permission
-                    Log.d(TAG, "Location Permission Denied")
-                    setPresetLocation();
-                }
+            pointAnnotationManager.addClickListener { annotation ->
+                Log.d(TAG, "Marker clicked: ${annotation.point}")
+                true
             }
         }
-
-        if (PermissionsManager.areLocationPermissionsGranted(this)) {
-            // Permission sensitive logic called here, such as activating the Maps SDK's LocationComponent to show the device's location
-            Log.d(TAG, "Location Permission Already Granted")
-        } else {
-            permissionsManager = PermissionsManager(permissionsListener)
-            permissionsManager.requestLocationPermissions(this)
-        }
-
 
         MapboxMap(
             mapViewportState = mapViewportState,
             modifier = Modifier.fillMaxSize()
-
         ) {
             MapEffect(Unit) { mapView ->
+                // Set up the location component
                 mapView.location.updateSettings {
                     locationPuck = createDefault2DPuck(withBearing = true)
                     enabled = true
                     puckBearing = PuckBearing.COURSE
                     puckBearingEnabled = true
                 }
-                mapViewportState.transitionToFollowPuckState()
+            }
+
+            CircleAnnotation(
+                Point.fromLngLat(-123.25041000865335, 49.26524685838906),
+            ) {
+                interactionsState.onClicked {
+                    Toast.makeText(
+                        this@HomeActivity,
+                        "Clicked on single Circle Annotation: $it",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    true
+                }
+                    .onLongClicked {
+                        Toast.makeText(
+                            this@HomeActivity,
+                            "Long Clicked on single Circle Annotation: $it",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        true
+                    }
+                    .onDragged {
+                        logD(
+                            TAG,
+                            "Dragging single Circle Annotation: $it",
+                        )
+                    }
+                circleRadius = 20.0
+                circleColor = Color.Blue
             }
         }
-    }
 
+        val permissionsListener = object : PermissionsListener {
+            override fun onExplanationNeeded(permissionsToExplain: List<String>) {}
 
-    @Preview(showBackground = true)
-    @Composable
-    fun HomePage() {
-        CMIYCTheme {
-            HomeScreen()
+            override fun onPermissionResult(granted: Boolean) {
+                if (granted) {
+                    Log.d(TAG, "Location Permission Granted")
+                    setPuckLocation()
+                } else {
+                    Log.d(TAG, "Location Permission Denied")
+                    setPresetLocation()
+                }
+            }
         }
+
+        if (PermissionsManager.areLocationPermissionsGranted(this)) {
+            Log.d(TAG, "Location Permission Already Granted")
+            setPuckLocation()
+        } else {
+            permissionsManager = PermissionsManager(permissionsListener)
+            permissionsManager.requestLocationPermissions(this)
+        }
+
+        fetchFriendLocations()
     }
 }
-
-
