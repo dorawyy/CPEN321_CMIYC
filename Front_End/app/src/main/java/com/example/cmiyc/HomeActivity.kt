@@ -42,6 +42,7 @@ import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
 import kotlinx.coroutines.delay
+import kotlin.random.Random
 
 
 class HomeActivity : ComponentActivity() {
@@ -163,30 +164,39 @@ class HomeActivity : ComponentActivity() {
     }
 
     // Simulate a POST request that returns friend locations as JSON.
-// In a real scenario, you would use Retrofit/OkHttp along with a JSON parser.
+    // In a real scenario, you would use Retrofit/OkHttp along with a JSON parser.
     private suspend fun fetchFriendLocationsFromServer(): List<FriendLocation> {
         delay(2000L) // Simulate network delay
-        // Simulated JSON parsing: here we directly create sample data.
-        return listOf(
-            FriendLocation(
-                userId = "user1",
-                name = "Alice",
-                status = "Online",
-                point = Point.fromLngLat(-123.25041000865335, 49.26524685838906)
-            ),
-            FriendLocation(
-                userId = "user2",
-                name = "Bob",
-                status = "Busy",
-                point = Point.fromLngLat(-123.251, 49.265)
-            ),
-            FriendLocation(
-                userId = "user3",
-                name = "Carol",
-                status = "Away",
-                point = Point.fromLngLat(-123.250, 49.2655)
-            )
+
+        // Base coordinates for friends.
+        val baseLocations = listOf(
+            Triple("user1", "Alice", Point.fromLngLat(-123.25041000865335, 49.26524685838906)),
+            Triple("user2", "Bob", Point.fromLngLat(-123.251, 49.265)),
+            Triple("user3", "Carol", Point.fromLngLat(-123.250, 49.2655))
         )
+
+        // Create friend locations with a slight random offset.
+        return baseLocations.map { (userId, name, basePoint) ->
+            FriendLocation(
+                userId = userId,
+                name = name,
+                status = when (userId) {
+                    "user1" -> "Online"
+                    "user2" -> "Busy"
+                    "user3" -> "Away"
+                    else -> "Offline"
+                },
+                point = randomNearbyPoint(basePoint)
+            )
+        }
+    }
+
+    // Helper function to generate a nearby point by adding a small random offset.
+// The offset value determines how far (in degrees) the point can vary.
+    fun randomNearbyPoint(base: Point, offset: Double = 0.001): Point {
+        val randomLon = base.longitude() + (Random.nextDouble() * 2 - 1) * offset
+        val randomLat = base.latitude() + (Random.nextDouble() * 2 - 1) * offset
+        return Point.fromLngLat(randomLon, randomLat)
     }
 
     @Composable
@@ -200,7 +210,10 @@ class HomeActivity : ComponentActivity() {
 
         // Simulate fetching friend locations when the composable enters composition.
         LaunchedEffect(Unit) {
-            friendLocations.value = fetchFriendLocationsFromServer()
+            while (true) {
+                friendLocations.value = fetchFriendLocationsFromServer()
+                delay(5000L) // wait for 5 seconds before fetching again
+            }
         }
 
         fun setPresetLocation() {
