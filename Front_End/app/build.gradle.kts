@@ -41,6 +41,15 @@ android {
 
 dependencies {
 
+    implementation("androidx.work:work-runtime:2.9.1")
+    // Import the BoM for the Firebase platform
+    implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
+
+    // Add the dependencies for the Firebase Cloud Messaging and Analytics libraries
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-analytics")
+    implementation(libs.firebase.firestore.ktx)
     val composeBom = platform("androidx.compose:compose-bom:2025.01.01")
     implementation(composeBom)
     androidTestImplementation(composeBom)
