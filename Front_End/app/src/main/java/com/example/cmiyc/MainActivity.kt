@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             CMIYCTheme {
                 LaunchedEffect(Unit) {
-                    startActivity(Intent(this@MainActivity, HomeActivity::class.java))
+                    startActivity(Intent(this@MainActivity, LoginActivity::class.java))
                     finish() // Close MainActivity so user can't go back
                 }
             }
