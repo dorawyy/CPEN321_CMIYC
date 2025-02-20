@@ -27,16 +27,14 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        println("onMessageReceived")
-
         // Check if message contains a notification payload.
         remoteMessage.notification?.let {
             Log.d(TAG, "Message Notification Body: ${it.body}")
-            sendNotification(it.body ?: "New message")
+            sendNotification(it.title ?: "New Message", it.body ?: "New message")
         }
     }
 
-    private fun sendNotification(messageBody: String) {
+    private fun sendNotification(messageTitle: String, messageBody: String) {
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val requestCode = 0
@@ -51,13 +49,26 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("FCM Message")
+            .setContentTitle(messageTitle)
             .setContentText(messageBody)
             .setAutoCancel(true)
             .setSound(defaultSoundUri)
             .setContentIntent(pendingIntent)
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                "Default Channel",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Default notification channel"
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
 
         val notificationId = 0
         notificationManager.notify(notificationId, notificationBuilder.build())
