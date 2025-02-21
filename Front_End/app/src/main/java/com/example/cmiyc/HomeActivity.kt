@@ -202,8 +202,6 @@ class HomeActivity : ComponentActivity() {
     @Composable
     fun Map() {
         val mapViewportState = rememberMapViewportState()
-        val mapView = remember { MapView(this@HomeActivity) }
-        val pointAnnotationManager = remember { mapView.annotations.createPointAnnotationManager() }
 
         // Set up a state to hold friend locations from our fake POST request.
         val friendLocations = remember { mutableStateOf<List<FriendLocation>>(emptyList()) }
@@ -217,7 +215,7 @@ class HomeActivity : ComponentActivity() {
         }
 
         fun setPresetLocation() {
-            val presetLocation = Point.fromLngLat(-123.23612571995412, 49.25505567088336)
+            val presetLocation = Point.fromLngLat(-123.248920744121, 49.26136029073071)
             mapViewportState.setCameraOptions(
                 cameraOptions {
                     center(presetLocation)
@@ -271,6 +269,16 @@ class HomeActivity : ComponentActivity() {
                     enabled = true
                     puckBearing = PuckBearing.COURSE
                     puckBearingEnabled = true
+                }
+
+                mapView.location.addOnIndicatorPositionChangedListener { point ->
+                    mapViewportState.setCameraOptions(
+                        cameraOptions {
+                            center(point)
+                            zoom(14.0)
+                        }
+                    )
+                    Log.d(TAG, "User location updated: $point")
                 }
             }
 
