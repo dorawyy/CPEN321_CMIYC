@@ -8,6 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.cmiyc.ui.screens.FriendsScreen
 import com.example.cmiyc.ui.screens.HomeScreen
 import com.example.cmiyc.ui.screens.LoginScreen
 import com.mapbox.android.core.permissions.PermissionsListener
@@ -74,6 +75,9 @@ fun AppNavigation(
                 onNavigateToLog = {
                     navController.navigate(Screen.Log.route)
                 },
+                onNavigateToFriends = {
+                    navController.navigate(Screen.Friends.route)
+                },
             )
         }
 
@@ -93,12 +97,12 @@ fun AppNavigation(
 //            )
 //        }
 //
-//        composable(Screen.Friends.route) {
-//            FriendsScreen(
-//                onNavigateBack = {
-//                    navController.popBackStack()
-//                }
-//            )
-//        }
+        composable(Screen.Friends.route) {
+            FriendsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.cmiyc.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +20,7 @@ import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportS
 fun HomeScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToLog: () -> Unit,
+    onNavigateToFriends: () -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -40,6 +42,12 @@ fun HomeScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onNavigateToFriends) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.friends_svg),
+                            contentDescription = "Friends"
+                        )
+                    }
                     IconButton(onClick = onNavigateToProfile) {
                         Icon(
                             painter = painterResource(id = R.drawable.user_profile_icon),
