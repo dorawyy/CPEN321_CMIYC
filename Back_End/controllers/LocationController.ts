@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { client } from "../services";
-import { ObjectId } from "mongodb";
 
 export class LocationController {
     // Used to get all locations of all users.

@@ -11,7 +11,7 @@ export class UserController {
 
     // Used to get a user profile by its ID.
     async getUserProfile(req: Request, res: Response, nextFunction: NextFunction) {
-        const userProfile = await client.db("cmiyc").collection("users").findOne({ _id: new ObjectId(req.params.id) });
+        const userProfile = await client.db("cmiyc").collection("users").findOne({ userID: req.params.userID });
         if (userProfile) {
             res.send(userProfile);
         } else {
@@ -21,7 +21,7 @@ export class UserController {
 
     // Used to update user profile information, including name, email, profile picture, and status.
     async updateUserProfile(req: Request, res: Response, nextFunction: NextFunction) {
-        const updatedUserProfile = await client.db("cmiyc").collection("users").replaceOne({ _id: new ObjectId(req.params.id) }, req.body);
+        const updatedUserProfile = await client.db("cmiyc").collection("users").replaceOne({ userID: req.params.userID }, req.body);
         if (!updatedUserProfile.acknowledged || updatedUserProfile.modifiedCount == 0) {
             res.status(404).send("User profile not found");
         } else {
