@@ -2,12 +2,27 @@ package com.example.cmiyc.repository
 
 import com.example.cmiyc.api.ApiClient
 import com.example.cmiyc.data.Friend
+import com.example.cmiyc.data.FriendRequest
 import com.example.cmiyc.repositories.UserRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class FriendsRepository(
     private val userRepository: UserRepository
 ) {
     private val api = ApiClient.apiService
+
+    suspend fun getFriendRequests(): List<FriendRequest> {
+        return api.getFriendRequests()
+    }
+
+    suspend fun acceptFriendRequest(requestId: String) {
+        api.respondToFriendRequest(requestId, "accept")
+    }
+
+    suspend fun denyFriendRequest(requestId: String) {
+        api.respondToFriendRequest(requestId, "deny")
+    }
 
     suspend fun getFriends(): List<Friend> {
         val userId = userRepository.getCurrentUserId()

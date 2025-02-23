@@ -1,6 +1,7 @@
 package com.example.cmiyc.api
 
 import com.example.cmiyc.data.Friend
+import com.example.cmiyc.data.FriendRequest
 import com.example.cmiyc.data.User
 import com.mapbox.geojson.Point
 import retrofit2.Call
@@ -49,6 +50,15 @@ interface ApiService {
         @Path("userId") userId: String,
         @Body location: LocationUpdateRequest
     ): Response<Unit>
+
+    @GET("friend-requests")
+    suspend fun getFriendRequests(): List<FriendRequest>
+
+    @POST("friend-requests/{requestId}/respond")
+    suspend fun respondToFriendRequest(
+        @Path("requestId") requestId: String,
+        @Query("action") action: String
+    )
 }
 
 interface _MockApiService {
@@ -57,6 +67,8 @@ interface _MockApiService {
     suspend fun sendFriendRequest(userId: String, targetUserId: String): Response<Unit>
     suspend fun removeFriend(userId: String, targetUserId: String): Response<Unit>
     suspend fun updateUserLocation(userId: String, location: LocationUpdateRequest): Response<Unit>
+    abstract fun getFriendRequests(): List<FriendRequest>
+    abstract fun respondToFriendRequest(requestId: String, s: String): Response<Unit>
 }
 
 private fun randomNearbyPoint(base: Point, offset: Double = 0.001): Point {
@@ -131,5 +143,26 @@ class MockApiService : _MockApiService {
         // Simulate success
         println("Updating location on Server for user $userId: $location")
         return Response.success(Unit)
+    }
+
+    override fun getFriendRequests(): List<FriendRequest> {
+        return listOf(
+            FriendRequest(
+                requestId = "request1",
+                userId = "user1",
+                displayName = "Alice Smith 2",
+                timestamp = System.currentTimeMillis()
+            ),
+            FriendRequest(
+                requestId = "request2",
+                userId = "user2",
+                displayName = "Bob Johnson 2",
+                timestamp = System.currentTimeMillis()
+            )
+        )
+    }
+
+    override fun respondToFriendRequest(requestId: String, s: String): Response<Unit> {
+        return Response.success(Unit);
     }
 }
