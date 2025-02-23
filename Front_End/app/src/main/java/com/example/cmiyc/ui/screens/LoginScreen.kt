@@ -10,9 +10,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.cmiyc.location.LocationManager
+import com.example.cmiyc.repositories.UserRepository
 import com.example.cmiyc.ui.theme.CMIYCTheme
 import com.example.cmiyc.ui.viewmodels.LoginState
 import com.example.cmiyc.ui.viewmodels.LoginViewModel
+import com.example.cmiyc.ui.viewmodels.LoginViewModelFactory
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -20,9 +23,21 @@ import com.google.android.gms.common.api.ApiException
 @Composable
 fun LoginScreen(
     onLoginSuccess: (String, String, String) -> Unit,
-    viewModel: LoginViewModel = viewModel()
 ) {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
+    val locationManager = remember {
+        LocationManager(
+            context = context,
+            userRepository = UserRepository
+        )
+    }
+
+    val viewModel: LoginViewModel = viewModel(
+        factory = LoginViewModelFactory(
+            userRepository = UserRepository,
+            locationManager = locationManager
+        )
+    )
     val loginState by viewModel.loginState.collectAsState()
 
     val launcher = rememberLauncherForActivityResult(
@@ -45,7 +60,6 @@ fun LoginScreen(
         when (val state = loginState) {
             is LoginState.Success -> {
                 onLoginSuccess(state.email, state.displayName, state.idToken)
-                viewModel.resetState()
             }
             else -> {}
         }

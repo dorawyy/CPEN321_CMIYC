@@ -6,7 +6,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.example.cmiyc.R
-import com.example.cmiyc.ui.viewmodels.FriendLocation
+import com.example.cmiyc.data.Friend
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
@@ -21,7 +21,7 @@ import com.mapbox.maps.plugin.locationcomponent.location
 fun MapComponent(
     context: Context,
     mapViewportState: MapViewportState,
-    friendLocations: List<FriendLocation>,
+    friends: List<Friend>,
     modifier: Modifier = Modifier
 ) {
     MapboxMap(
@@ -51,19 +51,21 @@ fun MapComponent(
             painter = painterResource(id = R.drawable.default_user_icon)
         )
 
-        friendLocations.forEach { friend ->
-            PointAnnotation(point = friend.point) {
-                interactionsState.onClicked {
-                    Toast.makeText(
-                        context,
-                        "Clicked on ${friend.name}'s annotation",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    true
+        friends.forEach { friend ->
+            friend.location?.let { location ->
+                PointAnnotation(point = location) {
+                    interactionsState.onClicked {
+                        Toast.makeText(
+                            context,
+                            "Clicked on ${friend.name}'s annotation",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        true
+                    }
+                    iconImage = defaultUserIcon
+                    textField = "${friend.name}\n${friend.status}"
+                    textOffset = listOf(0.0, 5.0)
                 }
-                iconImage = defaultUserIcon
-                textField = "${friend.name}\n${friend.status}"
-                textOffset = listOf(0.0, 5.0)
             }
         }
     }

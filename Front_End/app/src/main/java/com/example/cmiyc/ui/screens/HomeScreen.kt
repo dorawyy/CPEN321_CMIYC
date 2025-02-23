@@ -11,8 +11,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cmiyc.R
+import com.example.cmiyc.repositories.UserRepository
+import com.example.cmiyc.repository.FriendsRepository
 import com.example.cmiyc.ui.components.MapComponent
 import com.example.cmiyc.ui.viewmodels.HomeViewModel
+import com.example.cmiyc.ui.viewmodels.HomeViewModelFactory
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -21,12 +24,19 @@ fun HomeScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToLog: () -> Unit,
     onNavigateToFriends: () -> Unit,
-    viewModel: HomeViewModel = viewModel()
 ) {
+    val friendsRepository = remember { FriendsRepository(UserRepository) }
+
+    val viewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(
+            userRepository = UserRepository,
+            friendsRepository = friendsRepository
+        )
+    )
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
     var userInput by remember { mutableStateOf("") }
-    val friendLocations by viewModel.friendLocations.collectAsState()
+    val state by viewModel.state.collectAsState()
     val mapViewportState = rememberMapViewportState()
 
     Scaffold(
@@ -69,7 +79,7 @@ fun HomeScreen(
                 MapComponent(
                     context = context,
                     mapViewportState = mapViewportState,
-                    friendLocations = friendLocations,
+                    friends = state.friends,
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -104,7 +114,8 @@ fun HomeScreen(
                 confirmButton = {
                     Button(onClick = {
                         showDialog = false
-                        // Handle status update
+                        viewModel.updateStatus(userInput)
+                        userInput = ""
                     }) {
                         Text("Update")
                     }
@@ -112,6 +123,20 @@ fun HomeScreen(
                 dismissButton = {
                     Button(onClick = { showDialog = false }) {
                         Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        // Error handling
+        state.error?.let { error ->
+            AlertDialog(
+                onDismissRequest = { viewModel.clearError() },
+                title = { Text("Error") },
+                text = { Text(error) },
+                confirmButton = {
+                    Button(onClick = { viewModel.clearError() }) {
+                        Text("OK")
                     }
                 }
             )

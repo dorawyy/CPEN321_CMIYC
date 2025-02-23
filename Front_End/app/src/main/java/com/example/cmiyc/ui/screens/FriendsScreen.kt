@@ -10,16 +10,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.cmiyc.repositories.UserRepository
+import com.example.cmiyc.repository.FriendsRepository
 import com.example.cmiyc.ui.components.FriendItem
 import com.example.cmiyc.ui.components.SearchBar
 import com.example.cmiyc.ui.viewmodels.FriendsViewModel
+import com.example.cmiyc.ui.viewmodels.FriendsViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendsScreen(
     onNavigateBack: () -> Unit,
-    viewModel: FriendsViewModel = viewModel()
 ) {
+    val friendsRepository = remember { FriendsRepository(UserRepository) }
+
+    val viewModel: FriendsViewModel = viewModel(
+        factory = FriendsViewModelFactory(
+            userRepository = UserRepository,
+            friendsRepository = friendsRepository
+        )
+    )
+
     val state by viewModel.state.collectAsState()
 
     Scaffold(
@@ -63,7 +74,7 @@ fun FriendsScreen(
                             FriendItem(
                                 friend = friend,
                                 isFriend = false,
-                                onAddFriend = { viewModel.addFriend(friend) },
+                                onAddFriend = { viewModel.addFriend(friend.userId) },
                                 onRemoveFriend = { /* Not needed here */ }
                             )
                         }
@@ -73,7 +84,7 @@ fun FriendsScreen(
                                 friend = friend,
                                 isFriend = true,
                                 onAddFriend = { /* Not needed here */ },
-                                onRemoveFriend = { viewModel.removeFriend(friend) }
+                                onRemoveFriend = { viewModel.removeFriend(friend.userId) }
                             )
                         }
                     }
