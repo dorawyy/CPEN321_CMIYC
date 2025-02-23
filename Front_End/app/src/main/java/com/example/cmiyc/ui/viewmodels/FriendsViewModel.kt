@@ -4,12 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.cmiyc.data.Friend
+import com.example.cmiyc.data.FriendRequest
 import com.example.cmiyc.data.User
 import com.example.cmiyc.repositories.UserRepository
 import com.example.cmiyc.repository.FriendsRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class FriendsViewModelFactory(
@@ -33,11 +37,28 @@ class FriendsViewModel(
     private val _state = MutableStateFlow(FriendsScreenState())
     val state: StateFlow<FriendsScreenState> = _state
 
+    private var pollingJob: Job? = null
+
     init {
         loadFriends()
+        startPeriodicUpdates()
+        startPollingFriendRequests()
     }
 
-    fun loadFriends() {
+    fun updateState(update: (FriendsScreenState) -> FriendsScreenState) {
+        _state.update(update)
+    }
+
+    private fun startPeriodicUpdates() {
+        viewModelScope.launch {
+            while (true) {
+                delay(1000) // Update every 30 seconds
+                loadFriends()
+            }
+        }
+    }
+
+    private fun loadFriends() {
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isLoading = true) }
@@ -53,6 +74,58 @@ class FriendsViewModel(
                     isLoading = false
                 )}
             }
+        }
+    }
+
+    fun refresh() {
+        loadFriends()
+    }
+
+    private fun startPollingFriendRequests() {
+        pollingJob = viewModelScope.launch {
+            while (isActive) {
+                try {
+                    val requests = friendsRepository.getFriendRequests()
+                    _state.update { it.copy(friendRequests = requests) }
+                } catch (e: Exception) {
+                    _state.update { it.copy(error = "Failed to fetch friend requests: ${e.message}") }
+                }
+                delay(1000)
+            }
+        }
+    }
+
+    fun acceptRequest(requestId: String) {
+        viewModelScope.launch {
+            try {
+                friendsRepository.acceptFriendRequest(requestId)
+                // Refresh both friends list and requests
+                loadFriends()
+                refreshFriendRequests()
+            } catch (e: Exception) {
+                _state.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    fun denyRequest(requestId: String) {
+        viewModelScope.launch {
+            try {
+                friendsRepository.denyFriendRequest(requestId)
+                // Refresh requests
+                refreshFriendRequests()
+            } catch (e: Exception) {
+                _state.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    private suspend fun refreshFriendRequests() {
+        try {
+            val requests = friendsRepository.getFriendRequests()
+            _state.update { it.copy(friendRequests = requests) }
+        } catch (e: Exception) {
+            _state.update { it.copy(error = e.message) }
         }
     }
 
@@ -121,8 +194,10 @@ class FriendsViewModel(
 data class FriendsScreenState(
     val friends: List<Friend> = emptyList(),
     val searchResults: List<Friend> = emptyList(),
+    val friendRequests: List<FriendRequest> = emptyList(),
     val searchQuery: String = "",
     val isLoading: Boolean = false,
     val isSearching: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val showRequestsDialog: Boolean = false
 )
