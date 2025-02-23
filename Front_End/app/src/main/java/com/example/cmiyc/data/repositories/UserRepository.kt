@@ -2,6 +2,7 @@ package com.example.cmiyc.repositories
 
 import com.example.cmiyc.api.ApiClient
 import com.example.cmiyc.api.LocationUpdateRequest
+import com.example.cmiyc.data.Log
 import com.example.cmiyc.data.User
 import com.mapbox.geojson.Point
 import kotlinx.coroutines.*
@@ -15,6 +16,9 @@ object UserRepository {
 
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser
+
+    private val _logs = MutableStateFlow<List<Log>>(emptyList())
+    val logs: StateFlow<List<Log>> = _logs
 
     // Queue for pending location updates
     private val locationUpdateQueue = ConcurrentLinkedQueue<LocationUpdateRequest>()
@@ -97,6 +101,20 @@ object UserRepository {
 
     fun clearCurrentUser() {
         _currentUser.value = null
+    }
+
+    fun refreshLogs() {
+        try {
+            val userId = _currentUser.value?.userId ?: return
+            val updatedLogs = api.getLogs(userId)
+            _logs.value = updatedLogs
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    fun getLogs(): List<Log> {
+        return _logs.value
     }
 
     suspend fun signOut() {
