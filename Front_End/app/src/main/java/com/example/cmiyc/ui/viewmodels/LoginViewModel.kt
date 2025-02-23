@@ -3,7 +3,7 @@ package com.example.cmiyc.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.cmiyc.data.UserCredentials
+import com.example.cmiyc.data.User
 import com.example.cmiyc.location.LocationManager
 import com.example.cmiyc.repositories.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +30,7 @@ class LoginViewModel(
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Initial)
     val loginState: StateFlow<LoginState> = _loginState
 
-    fun handleSignInResult(email: String?, displayName: String?, idToken: String?) {
+    fun handleSignInResult(email: String?, displayName: String?, idToken: String?, photoUrl: String?) {
         if (email == null || displayName == null || idToken == null) {
             _loginState.value = LoginState.Error("Sign in failed: Missing credentials")
             return
@@ -39,10 +39,12 @@ class LoginViewModel(
         viewModelScope.launch {
             try {
                 // Create user credentials
-                val credentials = UserCredentials(
+                val credentials = User(
                     email = email,
                     displayName = displayName,
-                    userId = idToken
+                    userId = idToken,
+                    photoUrl = photoUrl,
+                    currentLocation = null,
                 )
 
                 // Save user credentials and user
@@ -54,7 +56,8 @@ class LoginViewModel(
                 _loginState.value = LoginState.Success(
                     email = email,
                     displayName = displayName,
-                    idToken = idToken
+                    idToken = idToken,
+                    photoUrl = photoUrl,
                 )
             } catch (e: Exception) {
                 _loginState.value = LoginState.Error("Login failed: ${e.message}")
@@ -67,7 +70,6 @@ class LoginViewModel(
         viewModelScope.launch {
             try {
                 // Clear user credentials
-                userRepository.clearUserCredentials()
                 userRepository.clearCurrentUser()
                 _loginState.value = LoginState.Initial
             } catch (e: Exception) {
@@ -86,7 +88,8 @@ sealed class LoginState {
     data class Success(
         val email: String,
         val displayName: String,
-        val idToken: String
+        val idToken: String,
+        val photoUrl: String? = null
     ) : LoginState()
     data class Error(val message: String) : LoginState()
 }

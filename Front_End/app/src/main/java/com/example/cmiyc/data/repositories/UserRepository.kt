@@ -3,7 +3,6 @@ package com.example.cmiyc.repositories
 import com.example.cmiyc.api.ApiClient
 import com.example.cmiyc.api.LocationUpdateRequest
 import com.example.cmiyc.data.User
-import com.example.cmiyc.data.UserCredentials
 import com.mapbox.geojson.Point
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -13,9 +12,6 @@ import kotlin.time.Duration.Companion.seconds
 object UserRepository {
     private val api = ApiClient.apiService
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
-    private val _currentUserCredentials = MutableStateFlow<UserCredentials?>(null)
-    val currentUserCredentials: StateFlow<UserCredentials?> = _currentUserCredentials
 
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser
@@ -79,17 +75,16 @@ object UserRepository {
     }
 
     fun isAuthenticated(): Boolean {
-        return _currentUserCredentials.value != null
+        return _currentUser.value != null
     }
 
     fun getCurrentUserId(): String {
-        return currentUserCredentials.value?.userId
+        return currentUser.value?.userId
             ?: throw Exception("User not authenticated")
     }
 
-    fun setCurrentUser(credentials: UserCredentials) {
-        _currentUserCredentials.value = credentials
-        _currentUser.value = User(credentials.userId, credentials.email, credentials.displayName)
+    fun setCurrentUser(credentials: User) {
+        _currentUser.value = User(credentials.userId, credentials.email, credentials.displayName, credentials.photoUrl)
     }
 
     fun updateUserLocation(location: Point) {
@@ -100,12 +95,18 @@ object UserRepository {
         locationUpdateQueue.offer(request)
     }
 
-    fun clearUserCredentials() {
-        _currentUserCredentials.value = null
-    }
-
     fun clearCurrentUser() {
         _currentUser.value = null
+    }
+
+    suspend fun signOut() {
+        withContext(Dispatchers.IO) {
+            try {
+                clearCurrentUser()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
     }
 
     fun cleanup() {

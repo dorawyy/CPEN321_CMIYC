@@ -12,6 +12,7 @@ import com.example.cmiyc.repositories.UserRepository
 import com.example.cmiyc.ui.screens.FriendsScreen
 import com.example.cmiyc.ui.screens.HomeScreen
 import com.example.cmiyc.ui.screens.LoginScreen
+import com.example.cmiyc.ui.screens.ProfileScreen
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 
@@ -82,13 +83,19 @@ fun AppNavigation(
             )
         }
 
-//        composable(Screen.Profile.route) {
-//            ProfileScreen(
-//                onNavigateBack = {
-//                    navController.popBackStack()
-//                }
-//            )
-//        }
+        composable(Screen.Profile.route) {
+            ProfileScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onSignedOut = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
 //
 //        composable(Screen.Log.route) {
 //            LogScreen(
