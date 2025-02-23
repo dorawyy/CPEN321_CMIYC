@@ -2,6 +2,7 @@ package com.example.cmiyc.api
 
 import com.example.cmiyc.data.Friend
 import com.example.cmiyc.data.FriendRequest
+import com.example.cmiyc.data.Log
 import com.example.cmiyc.data.User
 import com.mapbox.geojson.Point
 import retrofit2.Call
@@ -59,6 +60,12 @@ interface ApiService {
         @Path("requestId") requestId: String,
         @Query("action") action: String
     )
+
+    @GET("users/{userId}/logs")
+    suspend fun getLogs(
+        @Path("userId") userId: String
+    ): List<Log>
+
 }
 
 interface _MockApiService {
@@ -69,6 +76,7 @@ interface _MockApiService {
     suspend fun updateUserLocation(userId: String, location: LocationUpdateRequest): Response<Unit>
     abstract fun getFriendRequests(): List<FriendRequest>
     abstract fun respondToFriendRequest(requestId: String, s: String): Response<Unit>
+    abstract fun getLogs(userId: String): List<Log>
 }
 
 private fun randomNearbyPoint(base: Point, offset: Double = 0.001): Point {
@@ -164,5 +172,22 @@ class MockApiService : _MockApiService {
 
     override fun respondToFriendRequest(requestId: String, s: String): Response<Unit> {
         return Response.success(Unit);
+    }
+
+    override fun getLogs(userId: String): List<Log> {
+        return listOf(
+            Log(
+                sender = "Alice",
+                senderLocation = Point.fromLngLat(-123.25041000865335, 49.26524685838906),
+                activity = "Gym",
+                timestamp = System.currentTimeMillis()
+            ),
+            Log(
+                sender = "Bob",
+                senderLocation = Point.fromLngLat(-123.251, 49.265),
+                activity = "Work",
+                timestamp = System.currentTimeMillis()
+            )
+        )
     }
 }
