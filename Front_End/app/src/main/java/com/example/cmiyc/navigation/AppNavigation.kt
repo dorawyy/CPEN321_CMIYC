@@ -8,6 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.cmiyc.repositories.UserRepository
 import com.example.cmiyc.ui.screens.FriendsScreen
 import com.example.cmiyc.ui.screens.HomeScreen
 import com.example.cmiyc.ui.screens.LoginScreen
@@ -25,7 +26,7 @@ sealed class Screen(val route: String) {
 @Composable
 fun AppNavigation(
     startDestination: String = Screen.Login.route,
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
 ) {
     val context = LocalContext.current
 

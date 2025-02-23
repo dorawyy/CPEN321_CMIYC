@@ -1,22 +1,35 @@
 package com.example.cmiyc.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.cmiyc.data.Friend
+import com.example.cmiyc.data.User
+import com.example.cmiyc.repositories.UserRepository
+import com.example.cmiyc.repository.FriendsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class FriendsScreenState(
-    val friends: List<Friend> = emptyList(),
-    val searchQuery: String = "",
-    val searchResults: List<Friend> = emptyList(),
-    val isSearching: Boolean = false,
-    val isLoading: Boolean = false,
-    val error: String? = null
-)
+class FriendsViewModelFactory(
+    private val userRepository: UserRepository,
+    private val friendsRepository: FriendsRepository
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(FriendsViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return FriendsViewModel(userRepository, friendsRepository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
 
-class FriendsViewModel : ViewModel() {
+class FriendsViewModel(
+    private val userRepository: UserRepository,
+    private val friendsRepository: FriendsRepository
+) : ViewModel() {
+
     private val _state = MutableStateFlow(FriendsScreenState())
     val state: StateFlow<FriendsScreenState> = _state
 
@@ -24,83 +37,78 @@ class FriendsViewModel : ViewModel() {
         loadFriends()
     }
 
-    private fun loadFriends() {
+    fun loadFriends() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
             try {
-                // TODO: Replace with actual API call
-                val friendsList = listOf(
-                    Friend("1", "Ahri", "Ahri@example.com", "Online"),
-                    Friend("2", "Gwen", "Gwen@example.com", "Offline"),
-                    Friend("3", "Camille", "Camille@example.com", "Away")
-                )
+                _state.update { it.copy(isLoading = true) }
+                val friends = friendsRepository.getFriends()
                 _state.update { it.copy(
-                    friends = friendsList,
-                    isLoading = false
-                ) }
+                    friends = friends,
+                    isLoading = false,
+                    error = null
+                )}
             } catch (e: Exception) {
                 _state.update { it.copy(
-                    error = "Failed to load friends: ${e.message}",
+                    error = e.message,
                     isLoading = false
-                ) }
+                )}
             }
         }
     }
 
     fun searchFriends(query: String) {
         viewModelScope.launch {
-            _state.update { it.copy(
-                searchQuery = query,
-                isSearching = query.isNotEmpty()
-            ) }
+            try {
+                _state.update { it.copy(
+                    searchQuery = query,
+                    isSearching = true
+                )}
 
-            if (query.isNotEmpty()) {
-                try {
-                    // TODO: Replace with actual API call
-                    val results = listOf(
-                        Friend("4", "Darius", "Darius@example.com"),
-                        Friend("5", "Garen", "Garen@example.com")
-                    ).filter {
-                        it.name.contains(query, ignoreCase = true) ||
-                                it.email.contains(query, ignoreCase = true)
-                    }
-                    _state.update { it.copy(searchResults = results) }
-                } catch (e: Exception) {
-                    _state.update { it.copy(error = "Search failed: ${e.message}") }
+                if (query.isNotEmpty()) {
+                    val results = friendsRepository.searchUsers(query)
+                    _state.update { it.copy(
+                        searchResults = results,
+                        isSearching = true,
+                        error = null
+                    )}
+                } else {
+                    _state.update { it.copy(
+                        searchResults = emptyList(),
+                        isSearching = false
+                    )}
                 }
-            } else {
-                _state.update { it.copy(searchResults = emptyList()) }
+            } catch (e: Exception) {
+                _state.update { it.copy(
+                    error = e.message,
+                    isSearching = false
+                )}
             }
         }
     }
 
-    fun addFriend(friend: Friend) {
+    fun addFriend(targetUserId: String) {
         viewModelScope.launch {
             try {
-                // TODO: Replace with actual API call
-                _state.update { currentState ->
-                    currentState.copy(
-                        friends = currentState.friends + friend,
-                        searchResults = currentState.searchResults - friend
+                friendsRepository.sendFriendRequest(targetUserId)
+                _state.update { state ->
+                    state.copy(
+                        searchResults = state.searchResults.filter { it.userId != targetUserId },
+                        error = null
                     )
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(error = "Failed to add friend: ${e.message}") }
+                _state.update { it.copy(error = e.message) }
             }
         }
     }
 
-    fun removeFriend(friend: Friend) {
+    fun removeFriend(targetUserId: String) {
         viewModelScope.launch {
             try {
-                // TODO: Replace with actual API call
-                _state.update { currentState ->
-                    currentState.copy(
-                        friends = currentState.friends - friend
-                    )
-                }
+                friendsRepository.removeFriend(targetUserId)
+                loadFriends() // Reload friends list after removal
             } catch (e: Exception) {
-                _state.update { it.copy(error = "Failed to remove friend: ${e.message}") }
+                _state.update { it.copy(error = e.message) }
             }
         }
     }
@@ -110,9 +118,11 @@ class FriendsViewModel : ViewModel() {
     }
 }
 
-data class Friend(
-    val userId: String,
-    val name: String,
-    val email: String,
-    val status: String = "Offline"
+data class FriendsScreenState(
+    val friends: List<Friend> = emptyList(),
+    val searchResults: List<Friend> = emptyList(),
+    val searchQuery: String = "",
+    val isLoading: Boolean = false,
+    val isSearching: Boolean = false,
+    val error: String? = null
 )
