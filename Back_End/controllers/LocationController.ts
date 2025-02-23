@@ -3,18 +3,21 @@ import { client } from "../services";
 import { ObjectId } from "mongodb";
 
 export class LocationController {
+    // Used to get all locations of all users.
     async getLocations(req: Request, res: Response, nextFunction: NextFunction) {
         const locations = await client.db("cmiyc").collection("locations").find().toArray();
         res.send(locations);
     }
 
-    async postLocation(req: Request, res: Response, nextFunction: NextFunction) {
+    // Used to add a location with a user ID and a location object containing latitude and longitude.
+    async postUserLocation(req: Request, res: Response, nextFunction: NextFunction) {
         const createdLocation = await client.db("cmiyc").collection("locations").insertOne(req.body);
         res.status(200).send("Location added: " + createdLocation.insertedId);
     }
     
-    async getLocation(req: Request, res: Response, nextFunction: NextFunction) {
-        const location = await client.db("cmiyc").collection("locations").findOne({ _id: new ObjectId(req.params.id) });
+    // Used to get a location by the user ID.
+    async getUserLocation(req: Request, res: Response, nextFunction: NextFunction) {
+        const location = await client.db("cmiyc").collection("locations").findOne({ userID: req.params.userID });
         if (location) {
             res.send(location);
             
@@ -23,39 +26,23 @@ export class LocationController {
         }
     }
 
-    async updateLocation(req: Request, res: Response, nextFunction: NextFunction) {
-        const updateLocation = await client.db("cmiyc").collection("locations").replaceOne({ _id: new ObjectId(req.params.id) }, req.body);
-        if (!updateLocation.acknowledged || updateLocation.modifiedCount == 0) {
+    // Used to update a location by the user ID.
+    async updateUserLocation(req: Request, res: Response, nextFunction: NextFunction) {
+        const updatedLocation = await client.db("cmiyc").collection("locations").replaceOne({ userID: req.params.userID }, req.body);
+        if (!updatedLocation.acknowledged || updatedLocation.modifiedCount == 0) {
             res.status(404).send("Location not found");
         } else {
             res.send("Location updated");
         }
     }
 
-    async deleteLocation(req: Request, res: Response, nextFunction: NextFunction) {
-        const deleteLocation = await client.db("cmiyc").collection("locations").deleteOne({ _id: new ObjectId(req.params.id) });
+    async deleteUserLocation(req: Request, res: Response, nextFunction: NextFunction) {
+        const deletedLocation = await client.db("cmiyc").collection("locations").deleteOne({ userID: req.params.userID });
         
-        if (!deleteLocation.acknowledged || deleteLocation.deletedCount == 0) {
+        if (!deletedLocation.acknowledged || deletedLocation.deletedCount == 0) {
             res.status(404).send("Location not found");
         } else {
             res.send("Location deleted");
-        }
-    }
-
-    async getNearbyFriends(req: Request, res: Response, nextFunction: NextFunction) {
-        const location = await client.db("cmiyc").collection("locations").findOne({ id: req.params.locationId });
-        if (location) {
-            const friends = await client.db("cmiyc").collection("locations").find({
-                location: {
-                    $near: {
-                        $geometry: location.location,
-                        $maxDistance: 1000
-                    }
-                }
-            }).toArray();
-            res.send(friends);
-        } else {
-            res.status(404).send("Location not found");
         }
     }
 }
