@@ -1,4 +1,5 @@
-import {LocationController} from "../controllers/LocationController";
+import { LocationController } from "../controllers/LocationController";
+import { body } from "express-validator";
 
 const controller = new LocationController();
 
@@ -11,27 +12,35 @@ export const LocationRoutes = [
     {
         method: "post",
         route: "/location",
-        action: controller.postLocation,
-        validation: []
+        action: controller.postUserLocation,
+        validation: [
+            body("userID").notEmpty().isString(),
+            body("location").notEmpty()
+        ]
     },
     {
         method: "get",
-        route: "/location/:id",
-        action: controller.getLocation,
+        route: "/location/:userID",
+        action: controller.getUserLocation,
+        validation: [
+            body("userID").notEmpty().isString()
+        ]
     },
     {
         method: "put",
-        route: "/location/:id",
-        action: controller.updateLocation,
+        route: "/location/:userID",
+        action: controller.updateUserLocation,
+        validation: [
+            body("userID").notEmpty().isString(),
+            body("location").notEmpty()
+        ]
     },
     {
         method: "delete",
-        route: "/location/:id",
-        action: controller.deleteLocation,
+        route: "/location/:userID",
+        action: controller.deleteUserLocation,
+        validation: [
+            body("userID").notEmpty().isString()
+        ]
     },
-    {
-        method: "get",
-        route: "/location/:id/friends",
-        action: controller.getNearbyFriends,
-    }
 ]
