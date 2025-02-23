@@ -49,10 +49,11 @@ fun LoginScreen(
             viewModel.handleSignInResult(
                 account?.email,
                 account?.displayName,
-                account?.idToken
+                account?.idToken,
+                account?.photoUrl.toString(),
             )
         } catch (e: ApiException) {
-            viewModel.handleSignInResult(null, null, null)
+            viewModel.handleSignInResult(null, null, null, null)
         }
     }
 

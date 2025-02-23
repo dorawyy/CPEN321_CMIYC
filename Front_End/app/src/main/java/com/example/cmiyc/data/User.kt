@@ -6,12 +6,7 @@ data class User(
     val userId: String,
     val email: String,
     val displayName: String,
+    val photoUrl: String? = null,
     val currentLocation: Point? = null,
     val lastLocationUpdate: Long = System.currentTimeMillis()
-)
-
-data class UserCredentials(
-    val email: String,
-    val userId: String,
-    val displayName: String,
 )
