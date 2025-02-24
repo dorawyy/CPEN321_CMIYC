@@ -18,9 +18,7 @@ export const UserRoutes = [
         method: "get",
         route: "/user/:userID",
         action: controller.getUserProfile,
-        validation: [
-            body("userID").notEmpty().isString()
-        ]
+        validation: []
     },
     {
         method: "put",
