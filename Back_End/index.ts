@@ -1,6 +1,5 @@
 import express, { NextFunction } from 'express';
 import { Request, Response } from 'express';
-import { MongoClient } from 'mongodb';
 import { client } from './services';
 import { LocationRoutes } from './routes/LocationRoutes';
 import { UserRoutes } from './routes/UserRoutes';
@@ -9,7 +8,7 @@ import { validationResult } from 'express-validator';
 import morgan from 'morgan';
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = Number(process.env.PORT) || 80;
 
 app.use(express.json());
 app.use(morgan('tiny'));
@@ -39,7 +38,7 @@ Routes.forEach((route) => {
 
 client.connect().then(() => {
     console.log("Connected to MongoDB");
-    app.listen(port, () => {
+    app.listen(port, '0.0.0.0', () => {
       console.log(`Server started at http://localhost:${port}`);
     });
   }
