@@ -15,7 +15,7 @@ export const FriendRoutes = [
     },
     {
         method: "post",
-        route: "/user/:userID/friends",
+        route: "/user/:userID/friends/:friendID/block",
         action: controller.blockUser,
         validation: [
             body("userID").notEmpty().isString(),
@@ -25,7 +25,7 @@ export const FriendRoutes = [
     {
         method: "post",
         route: "/user/:userID/friendRequests/:friendID",
-        action: controller.blockUser,
+        action: controller.respondToFriendRequest,
         validation: [
             body("userID").notEmpty().isString(),
             body("friendID").notEmpty().isString(),
@@ -49,4 +49,14 @@ export const FriendRoutes = [
             body("friendID").notEmpty().isString()
         ]
     },
+    {
+        method: "get",
+        route: "/user/:userID/getNearbyFriends",
+        action: controller.getNearbyFriends,
+        validation: [
+            body("userID").notEmpty().isString(),
+            body("location").notEmpty(),
+            body("radius").notEmpty()
+        ]
+    }
 ]
