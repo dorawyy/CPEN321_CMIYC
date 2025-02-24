@@ -23,9 +23,7 @@ export const LocationRoutes = [
         method: "get",
         route: "/location/:userID",
         action: controller.getUserLocation,
-        validation: [
-            body("userID").notEmpty().isString()
-        ]
+        validation: []
     },
     {
         method: "put",

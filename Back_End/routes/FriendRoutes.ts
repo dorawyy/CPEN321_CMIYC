@@ -36,9 +36,7 @@ export const FriendRoutes = [
         method: "get",
         route: "/user/:userID/friends",
         action: controller.getFriends,
-        validation: [
-            body("userID").notEmpty().isString()
-        ]
+        validation: []
     },
     {
         method: "delete",
