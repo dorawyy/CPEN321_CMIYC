@@ -8,10 +8,11 @@ export const LocationRoutes = [
         method: "get",
         route: "/location",
         action: controller.getLocations,
+        validation: []
     },
     {
         method: "post",
-        route: "/location",
+        route: "/location/:userID",
         action: controller.postUserLocation,
         validation: [
             body("userID").notEmpty().isString(),

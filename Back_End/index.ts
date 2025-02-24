@@ -4,16 +4,17 @@ import { MongoClient } from 'mongodb';
 import { client } from './services';
 import { LocationRoutes } from './routes/LocationRoutes';
 import { UserRoutes } from './routes/UserRoutes';
+import { FriendRoutes } from './routes/FriendRoutes';
 import { validationResult } from 'express-validator';
 import morgan from 'morgan';
 
 const app = express();
-const port = 3000;
+const port = 3001;
 
 app.use(express.json());
 app.use(morgan('tiny'));
 
-const Routes = [...LocationRoutes, ...UserRoutes];
+const Routes = [...LocationRoutes, ...UserRoutes, ...FriendRoutes];
 
 Routes.forEach((route) => {
   (app as any)[route.method](

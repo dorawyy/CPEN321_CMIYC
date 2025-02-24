@@ -10,7 +10,9 @@ export class LocationController {
 
     // Used to add a location with a user ID and a location object containing latitude and longitude.
     async postUserLocation(req: Request, res: Response, nextFunction: NextFunction) {
-        const createdLocation = await client.db("cmiyc").collection("locations").insertOne(req.body);
+        const userID = req.params.userID;
+        const location = req.body.location;
+        const createdLocation = await client.db("cmiyc").collection("locations").insertOne({ userID, location });
         res.status(200).send("Location added: " + createdLocation.insertedId);
     }
     
