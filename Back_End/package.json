@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node index.ts",
-    "dev": "dotenv -f .env -- run npx nodemon -e .ts index.ts"
+    "dev": "nodemon -e .ts --exec 'node -r dotenv/config -r ts-node/register index.ts'",
+    "docker:up": "docker-compose --env-file .env up",
+    "docker:down": "docker-compose --env-file .env down"
   },
   "author": "",
   "license": "ISC",
