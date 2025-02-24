@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.cmiyc.data.Friend
 import com.example.cmiyc.repositories.UserRepository
 import com.example.cmiyc.repository.FriendsRepository
+import com.mapbox.geojson.Point
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -53,11 +54,10 @@ class HomeViewModel(
         }
     }
 
-    fun updateStatus(status: String) {
-        // TODO: Implement status update when API is ready
+    fun broadcastMessage(activity: String) {
         viewModelScope.launch {
             try {
-                // Call API to update status
+                userRepository.broadcastMessage(activity)
                 _state.update { it.copy(error = null) }
             } catch (e: Exception) {
                 _state.update { it.copy(error = e.message) }

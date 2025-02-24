@@ -38,21 +38,16 @@ class LoginViewModel(
 
         viewModelScope.launch {
             try {
-                // Create user credentials
-                val credentials = User(
+                val user = User(
                     email = email,
                     displayName = displayName,
                     userId = idToken,
                     photoUrl = photoUrl,
                     currentLocation = null,
                 )
-
-                // Save user credentials and user
-                userRepository.setCurrentUser(credentials)
-
-                // Start location updates
+                userRepository.setCurrentUser(user)
                 locationManager.startLocationUpdates()
-
+                userRepository.registerUser(user)
                 _loginState.value = LoginState.Success(
                     email = email,
                     displayName = displayName,
@@ -69,7 +64,6 @@ class LoginViewModel(
     fun resetState() {
         viewModelScope.launch {
             try {
-                // Clear user credentials
                 userRepository.clearCurrentUser()
                 _loginState.value = LoginState.Initial
             } catch (e: Exception) {
