@@ -66,7 +66,7 @@ interface ApiService {
         @Path("userId") userId: String
     ): List<Log>
 
-    @POST("users/{userId}}/register")
+    @POST("users/{userId}/register")
     suspend fun registerUser(
         @Path("userId") userId: String,
         @Body user: User
