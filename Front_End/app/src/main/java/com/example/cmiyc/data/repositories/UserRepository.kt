@@ -47,13 +47,11 @@ object UserRepository {
 
         try {
             val userId = getCurrentUserId()
-            // Take the latest location update
             val latestUpdate = locationUpdateQueue.poll() ?: return
 
             try {
                 val response = api.updateUserLocation(userId, latestUpdate)
                 if (response.isSuccessful) {
-                    // Update local user state
                     _currentUser.value = _currentUser.value?.copy(
                         currentLocation = Point.fromLngLat(
                             latestUpdate.longitude,
@@ -61,15 +59,11 @@ object UserRepository {
                         ),
                         lastLocationUpdate = latestUpdate.timestamp
                     )
-
-                    // Clear any older updates in the queue
                     locationUpdateQueue.clear()
                 } else {
-                    // If update failed, add it back to queue for retry
                     locationUpdateQueue.offer(latestUpdate)
                 }
             } catch (e: Exception) {
-                // If update failed, add it back to queue for retry
                 locationUpdateQueue.offer(latestUpdate)
                 throw e
             }
@@ -99,11 +93,23 @@ object UserRepository {
         locationUpdateQueue.offer(request)
     }
 
+    suspend fun registerUser(user: User) {
+        api.registerUser(user.userId, user)
+    }
+
+    suspend fun broadcastMessage(activity: String) {
+        val location = _currentUser.value?.currentLocation
+            ?: throw Exception("User not authenticated")
+        val timestamp = System.currentTimeMillis()
+        val userId = getCurrentUserId()
+        api.broadcastMessage(userId, activity, location, timestamp)
+    }
+
     fun clearCurrentUser() {
         _currentUser.value = null
     }
 
-    fun refreshLogs() {
+    suspend fun refreshLogs() {
         try {
             val userId = _currentUser.value?.userId ?: return
             val updatedLogs = api.getLogs(userId)

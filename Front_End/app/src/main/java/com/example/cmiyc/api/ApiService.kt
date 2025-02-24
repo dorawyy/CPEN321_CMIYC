@@ -66,6 +66,20 @@ interface ApiService {
         @Path("userId") userId: String
     ): List<Log>
 
+    @POST("users/{userId}}/register")
+    suspend fun registerUser(
+        @Path("userId") userId: String,
+        @Body user: User
+    ): Response<Unit>
+
+    @POST("users/{userId}/broadcast")
+    suspend fun broadcastMessage(
+        @Path("userId") userId: String,
+        @Body activity: String,
+        @Body location: Point,
+        @Body timestamp: Long
+    ): Response<Unit>
+
 }
 
 interface _MockApiService {
@@ -74,9 +88,11 @@ interface _MockApiService {
     suspend fun sendFriendRequest(userId: String, targetUserId: String): Response<Unit>
     suspend fun removeFriend(userId: String, targetUserId: String): Response<Unit>
     suspend fun updateUserLocation(userId: String, location: LocationUpdateRequest): Response<Unit>
-    abstract fun getFriendRequests(): List<FriendRequest>
-    abstract fun respondToFriendRequest(requestId: String, s: String): Response<Unit>
-    abstract fun getLogs(userId: String): List<Log>
+    suspend fun getFriendRequests(): List<FriendRequest>
+    suspend fun respondToFriendRequest(requestId: String, s: String): Response<Unit>
+    suspend fun getLogs(userId: String): List<Log>
+    suspend fun registerUser(userId: String, user: User): Response<Unit>
+    suspend fun broadcastMessage(userId: String, activity: String, location: Point, timestamp: Long): Response<Unit>
 }
 
 private fun randomNearbyPoint(base: Point, offset: Double = 0.001): Point {
@@ -153,7 +169,7 @@ class MockApiService : _MockApiService {
         return Response.success(Unit)
     }
 
-    override fun getFriendRequests(): List<FriendRequest> {
+    override suspend fun getFriendRequests(): List<FriendRequest> {
         return listOf(
             FriendRequest(
                 requestId = "request1",
@@ -170,11 +186,11 @@ class MockApiService : _MockApiService {
         )
     }
 
-    override fun respondToFriendRequest(requestId: String, s: String): Response<Unit> {
+    override suspend fun respondToFriendRequest(requestId: String, s: String): Response<Unit> {
         return Response.success(Unit);
     }
 
-    override fun getLogs(userId: String): List<Log> {
+    override suspend fun getLogs(userId: String): List<Log> {
         return listOf(
             Log(
                 sender = "Alice",
@@ -189,5 +205,18 @@ class MockApiService : _MockApiService {
                 timestamp = System.currentTimeMillis()
             )
         )
+    }
+
+    override suspend fun registerUser(userId: String, user: User): Response<Unit> {
+        return Response.success(Unit);
+    }
+
+    override suspend fun broadcastMessage(
+        userId: String,
+        activity: String,
+        location: Point,
+        timestamp: Long
+    ): Response<Unit> {
+        return Response.success(Unit);
     }
 }

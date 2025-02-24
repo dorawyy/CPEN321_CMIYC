@@ -103,18 +103,18 @@ fun HomeScreen(
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
-                title = { Text("Status Update") },
+                title = { Text("Activity Update") },
                 text = {
                     TextField(
                         value = userInput,
                         onValueChange = { userInput = it },
-                        label = { Text("Your Status") }
+                        label = { Text("Your Activity") }
                     )
                 },
                 confirmButton = {
                     Button(onClick = {
                         showDialog = false
-                        viewModel.updateStatus(userInput)
+                        viewModel.broadcastMessage(userInput)
                         userInput = ""
                     }) {
                         Text("Update")
