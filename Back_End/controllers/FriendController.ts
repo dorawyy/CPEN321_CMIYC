@@ -11,7 +11,9 @@ export class FriendController {
             for (const friendID of user.friends) {
                 const friend = await client.db("cmiyc").collection("users").findOne({ userID: friendID });
                 if (friend) {
-                    friends.push(friend);
+                    // Create a new object without friends and friendRequests
+                    const { friends: _, friendRequests: __, ...friendWithoutLists } = friend;
+                    friends.push(friendWithoutLists);
                 }
             }
             res.send(friends);
