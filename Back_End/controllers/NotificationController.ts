@@ -1,11 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { client } from "../services";
-import { messaging } from "../services";
-import { ObjectId } from "mongodb";
-import os from 'os';
+import { client, messaging } from "../services";
 
-
-export class ServerController {
+export class NotificationController {
     async setFCMToken(req: Request, res: Response, nextFunction: NextFunction) {
         const fcmToken = req.body.fcmToken;
         const name = req.body.name;
@@ -33,14 +29,7 @@ export class ServerController {
         });
     }
 
-    async updateLocation(req: Request, res: Response, nextFunction: NextFunction) {
-        const name = req.body.name;
-        const location = req.body.location;
-        const collection = client.db("test").collection("names");
-        const result = await collection.updateOne({ name }, { $set: { location } });
-        res.status(200).send({ message: "Location updated successfully" });
-    }
-
+    //notifications still have to be added to the database
     async sendEventNotification(req: Request, res: Response, nextFunction: NextFunction) {
         const name = req.body.name;
         const collection = client.db("test").collection("names");
@@ -65,7 +54,7 @@ export class ServerController {
             const nearbyFriends = friends.filter((friend) => {
                 if (!friend.location) return false;
                 
-                const distance = ServerController.calculateDistance(
+                const distance = NotificationController.calculateDistance(
                     user.location.lat,
                     user.location.lng,
                     friend.location.lat,
@@ -93,7 +82,7 @@ export class ServerController {
             res.status(200).send({
                 nearbyFriends: nearbyFriends.map((f) => ({
                     name: f.name,
-                    distance: ServerController.calculateDistance(
+                    distance: NotificationController.calculateDistance(
                         user.location.lat,
                         user.location.lng,
                         f.location.lat,
@@ -110,18 +99,25 @@ export class ServerController {
         }
     }
 
+    async getNotifications(req: Request, res: Response, nextFunction: NextFunction) {
+        const name = req.body.name;
+        const collection = client.db("test").collection("notifications");
+        const notifications = await collection.find({name: name}).toArray();
+        res.status(200).send(notifications);
+    }
+
     private static toRadians(degrees: number): number {
         return degrees * (Math.PI/180);
     }
 
     private static calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
         const R = 6371; // Earth radius in kilometers
-        const dLat = ServerController.toRadians(lat2 - lat1);
-        const dLon = ServerController.toRadians(lon2 - lon1);
+        const dLat = NotificationController.toRadians(lat2 - lat1);
+        const dLon = NotificationController.toRadians(lon2 - lon1);
         
         const a = 
             Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(ServerController.toRadians(lat1)) * Math.cos(ServerController.toRadians(lat2)) *
+            Math.cos(NotificationController.toRadians(lat1)) * Math.cos(NotificationController.toRadians(lat2)) *
             Math.sin(dLon/2) * Math.sin(dLon/2);
             
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 

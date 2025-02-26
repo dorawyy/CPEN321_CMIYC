@@ -4,6 +4,7 @@ import { client } from './services';
 import { LocationRoutes } from './routes/LocationRoutes';
 import { UserRoutes } from './routes/UserRoutes';
 import { FriendRoutes } from './routes/FriendRoutes';
+import { NotificationRoutes } from './routes/NotificationRoutes';
 import { validationResult } from 'express-validator';
 import morgan from 'morgan';
 
@@ -13,9 +14,9 @@ const port = Number(process.env.PORT) || 80;
 app.use(express.json());
 app.use(morgan('tiny'));
 
-const Routes = [...LocationRoutes, ...UserRoutes, ...FriendRoutes];
+const Routes = [...LocationRoutes, ...UserRoutes, ...FriendRoutes, ...NotificationRoutes];
 
-Routes.forEach((route) => {
+Routes.forEach((route) => { 
   (app as any)[route.method](
     route.route,
     route.validation,
