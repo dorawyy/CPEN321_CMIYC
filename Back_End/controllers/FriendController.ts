@@ -66,7 +66,13 @@ export class FriendController {
         const { userID } = req.params;
         const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
         if (user) {
-            res.send(user.friendRequests);
+            // Get the full user objects for each friend request
+            const friendRequests = await Promise.all(
+                user.friendRequests.map(async (requestID: string) => {
+                    return await client.db("cmiyc").collection("users").findOne({ userID: requestID });
+                })
+            );
+            res.send(friendRequests);
         } else {
             res.status(404).send("User not found");
         }
