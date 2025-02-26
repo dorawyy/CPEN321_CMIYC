@@ -5,34 +5,26 @@ const notificationController = new NotificationController();
 
 export const NotificationRoutes = [
     {
-        method: "get",
-        route: "/fcm",
-        controller: notificationController,
-        action: notificationController.getFCMToken,
-        validation: [body("name").isString()],
-    },
-
-    {
         method: "put",
-        route: "/fcm",
+        route: "/fcm/:userID",
         controller: notificationController,
         action: notificationController.setFCMToken,
-        validation: [body("fcmToken").isString(), body("name").isString()],
+        validation: [body("fcmToken").isString()],
     },
 
     {
         method: "post",
-        route: "/send-event",
+        route: "/send-event/:userID",
         controller: notificationController,
         action: notificationController.sendEventNotification,
-        validation: [body("name").isString()],
+        validation: [body("eventName").isString()],
     },
 
     {
         method: "get",
-        route: "/notifications",
+        route: "/notifications/:userID",
         controller: notificationController,
         action: notificationController.getNotifications,
-        validation: [body("name").isString()],
+        validation: [],
     }
 ]

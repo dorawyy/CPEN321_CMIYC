@@ -1,48 +1,59 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, request } from "express";
 import { client } from "../services";
 
 export class FriendController {
-    // Used to get a user's friend list. GET request.
+
     async getFriends(req: Request, res: Response, nextFunction: NextFunction) {
         const userID = req.params.userID;
         const user = await client.db("cmiyc").collection("users").findOne({ userID });
         if (user) {
-            res.send(user.friends);
+            const friends = [];
+            for (const friendID of user.friends) {
+                const friend = await client.db("cmiyc").collection("users").findOne({ userID: friendID });
+                if (friend) {
+                    friends.push(friend);
+                }
+            }
+            res.send(friends);
+
         } else {
             res.status(404).send("User not found");
         }
     }
     
+    
     // Used to send a friend request to a user. POST request.
     async sendFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
-        const { userID, friendID } = req.body;
+        const { userID, friendEmail } = req.params;
 
-        if (userID === friendID) {
+        const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
+        if (!user) {
+            res.status(404).send("User not found");
+            return;
+        }
+        if (user.email === friendEmail) {
             res.status(400).send("Cannot send friend request to yourself");
             return;
         }
 
         try {
-            const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
-            const friend = await client.db("cmiyc").collection("users").findOne({ friendID: friendID });
+            const friend = await client.db("cmiyc").collection("users").findOne({ email: friendEmail });
 
-            if (!user || !friend) {
-                return res.status(404).send("User or friend not found");
+            if (!friend) {
+                res.status(404).send("Friend not found");
+                return;
             }
 
             // Check if already friends
-            if (user.friends.includes(friendID)) {
-                return res.status(400).send("You are already friends");
+            if (user.friends.includes(friend.userID)) {
+                res.status(400).send("You are already friends");
+                return;
             }
 
-            // Check if blocked
-            if (user.blocked.includes(friendID)) {
-                return res.status(400).send("You have blocked this user");
-            }
-
-            // Send friend request
-            await client.db("cmiyc").collection("users").updateOne({ userID: friendID }, { $push: { friendRequests: userID } });
-            
+            await client.db("cmiyc").collection("users").updateOne(
+                { userID: friend.userID }, 
+                { $push: { friendRequests: userID } } as any
+            );
             res.status(200).send("Friend request sent successfully");
 
         } catch (err) {
@@ -50,31 +61,47 @@ export class FriendController {
         }
     }
 
+    // Used to get a user's friend requests. GET request.
+    async getFriendRequests(req: Request, res: Response, nextFunction: NextFunction) {
+        const { userID } = req.params;
+        const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
+        if (user) {
+            res.send(user.friendRequests);
+        } else {
+            res.status(404).send("User not found");
+        }
+    }
+
+
+
     // Used to respond to a friend request. POST request.
-    async respondToFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
-        const { userID, friendID, response } = req.body;
+    async acceptFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
+        const { userID, friendID } = req.params;
+
+        console.log(userID, friendID);
 
         try {
             const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
-            const friend = await client.db("cmmiyc").collection("users").findOne({ friendID: friendID });
+            const friend = await client.db("cmiyc").collection("users").findOne({ userID: friendID });
+
+            console.log(user, friend);
 
             if (!user || !friend) {
                 return res.status(404).send("User or friend not found");
             }
 
             // Check if friend request exists
-            if (!friend.friendRequests.includes(userID)) {
+            if (!user.friendRequests.includes(friendID)) {
                 return res.status(400).send("No friend request found");
             }
 
             // Accept friend request - adds friend to both users' friend lists
-            if (response === "accept") {
-                await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $push: { friends: friendID } });
-                await client.db("cmiyc").collection("users").updateOne({ userID: friendID }, { $push: { friends: userID } });
-            }
+            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $push: { friends: friendID } } as any);
+            await client.db("cmiyc").collection("users").updateOne({ userID: friendID }, { $push: { friends: userID } } as any);
+            
 
-            // Decline friend request
-            await client.db("cmiyc").collection("users").updateOne({ userID: friendID }, { $pull: { friendRequests: userID } });
+            // Remove friend request
+            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friendRequests: friendID } } as any);
             
             res.status(200).send("Friend request responded to successfully");
 
@@ -83,87 +110,48 @@ export class FriendController {
         }
     }
 
-    // Used to block a user.
-    async blockUser(req: Request, res: Response, nextFunction: NextFunction) {
-        const { userID, friendID } = req.body;
-
-        if (userID === friendID) {
-            res.status(400).send("Cannot block yourself");
-            return;
-        }
-
-        try {
-            const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
-            const friend = await client.db("cmiyc").collection("users").findOne({ friendID: friendID });
-
-            if (!user || !friend) {
-                return res.status(404).send("User or friend not found");
-            }
-
-            // Check if already blocked
-            if (user.blocked.includes(friendID)) {
-                return res.status(400).send("You have already blocked this user");
-            }
-
-            // Block user
-            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $push: { blocked: friendID } });
-            
-            res.status(200).send("User blocked successfully");
-
-        } catch (err) {
-            res.status(404).send("Error blocking user");
-        }
-    }
-
-    // Used to delete a user's friend. DELETE request.
-    async removeFriend(req: Request, res: Response, nextFunction: NextFunction) { 
+    // Used to decline a friend request. POST request.
+    async declineFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
         const { userID, friendID } = req.params;
 
         try {
             const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
-            
+
             if (!user) {
                 return res.status(404).send("User not found");
             }
 
-            // Remove friend from users' friend lists
-            user.friends = user.friends.filter((id: string) => id !== friendID);
-            await user.save();
+            // Remove friend request
+            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friendRequests: friendID } } as any);
+            
+            res.status(200).send("Friend request declined successfully");
 
+        } catch (err) {
+            res.status(404).send("Error declining friend request");
+        }
+    }
+
+    // Used to remove a friend. POST request.
+    async deleteFriend(req: Request, res: Response, nextFunction: NextFunction) {
+        const { userID, friendID } = req.params;
+
+        try {
+            const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
+            const friend = await client.db("cmiyc").collection("users").findOne({ userID: friendID });
+
+            if (!user || !friend) {
+                return res.status(404).send("User or friend not found");
+            }   
+
+            // Remove friend from users' friend lists
+            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friends: friendID } } as any);
+            await client.db("cmiyc").collection("users").updateOne({ userID: friendID }, { $pull: { friends: userID } } as any);
+            
             res.status(200).send("Friend deleted successfully");
-        
+
         } catch (err) {
             res.status(404).send("Error deleting friend");
         }
     }
-
-    // Used to get a user's nearby friends. GET request.
-    async getNearbyFriends(req: Request, res: Response, nextFunction: NextFunction) {
-        const { userID, location, radius} = req.body;
-
-        try {
-            const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
-            if (!user) {
-                return res.status(404).send("User not found");
-            }
-
-            // Find nearby friends
-            const nearbyFriends = await client.db("cmiyc").collection("users").find({
-                location: {
-                    $near: {
-                        $geometry: {
-                            type: "Point",
-                            coordinates: [location.longitude, location.latitude]
-                        },
-                        $maxDistance: radius
-                    }
-                }
-            }).toArray();
-
-            res.status(200).send(nearbyFriends);
-        }
-        catch (err) {
-            res.status(404).send("Error getting nearby friends");
-        }
-    }
+    
 }

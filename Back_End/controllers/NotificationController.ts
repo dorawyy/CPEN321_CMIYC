@@ -4,61 +4,63 @@ import { client, messaging } from "../services";
 export class NotificationController {
     async setFCMToken(req: Request, res: Response, nextFunction: NextFunction) {
         const fcmToken = req.body.fcmToken;
-        const name = req.body.name;
-        const collection = client.db("test").collection("names");
+        const userID = req.params.userID;
+        const collection = client.db("cmiyc").collection("users");
         
-        // Try to update existing document first
+        // Check if user exists
+        const user = await collection.findOne({ userID });
+        
+        if (!user) {
+            return res.status(404).send({ message: "User not found" });
+        }
+        
+        // Update FCM token for existing user
         const result = await collection.updateOne(
-            { name },
-            { $set: { fcmToken } },
-            { upsert: true }
+            { userID },
+            { $set: { fcmToken } }
         );
 
+        if (result.matchedCount === 0) {
+            return res.status(404).send({ message: "Failed to update FCM token" });
+        }
+
         res.status(200).send({
-            message: "FCM token set successfully",
-            isNewDocument: result.upsertedCount === 1
+            message: "FCM token set successfully"
         });
     }
 
-    async getFCMToken(req: Request, res: Response, nextFunction: NextFunction) {
-        const name = req.body.name;
-        const collection = client.db("test").collection("names");
-        const fcmToken = await collection.findOne({ name });
-        res.status(200).send({
-            fcmToken: fcmToken?.fcmToken,
-        });
-    }
 
     //notifications still have to be added to the database
     async sendEventNotification(req: Request, res: Response, nextFunction: NextFunction) {
-        const name = req.body.name;
-        const collection = client.db("test").collection("names");
+        const userID = req.params.userID;
+        const eventName = req.body.eventName;
+        const collection = client.db("cmiyc").collection("users");
         
         try {
-            const user = await collection.findOne({ name });
+            const user = await collection.findOne({ userID });
             
             if (!user) {
                 return res.status(404).send({ message: "User not found" });
             }
 
-            if (!user.location) {
+            if (!user.currentLocation) {
                 return res.status(400).send({ message: "User location not set" });
             }
 
             // Get all friends' documents
             const friends = await collection.find({ 
-                name: { $in: user.friends || [] }
+                userID: { $in: user.friends || [] }
             }).toArray();
 
             // Calculate distances
             const nearbyFriends = friends.filter((friend) => {
-                if (!friend.location) return false;
+                if (!friend.currentLocation) return false;
                 
                 const distance = NotificationController.calculateDistance(
-                    user.location.lat,
-                    user.location.lng,
-                    friend.location.lat,
-                    friend.location.lng
+                    user.currentLocation.latitude,
+                    user.currentLocation.longitude,
+                    friend.currentLocation.latitude,
+                    friend.currentLocation.longitude
                 );
                 
                 return distance <= 1; // 1 kilometer
@@ -71,26 +73,35 @@ export class NotificationController {
                 return messaging.send({
                     token: friend.fcmToken,
                     notification: {
-                        title: "New Event",
-                        body: `${req.body.name} is starting a new event!`
+                        title: eventName,
+                        body: `${user.displayName} is starting a new event!`
                     }
                 });
             });
 
             await Promise.all(notificationPromises);
 
+            //add notifications to logList in nearbyFriends
+
+            console.log(nearbyFriends);
+            for (const friend of nearbyFriends) {
+                await collection.updateOne(
+                    { userID: friend.userID },
+                    { 
+                        $push: { 
+                            logList: {
+                                fromName: user.displayName,
+                                eventName: req.body.eventName,
+                                location: user.currentLocation,
+                                timestamp: new Date()
+                            }
+                        } as any
+                    }
+                );
+            }
+
             res.status(200).send({
-                nearbyFriends: nearbyFriends.map((f) => ({
-                    name: f.name,
-                    distance: NotificationController.calculateDistance(
-                        user.location.lat,
-                        user.location.lng,
-                        f.location.lat,
-                        f.location.lng
-                    ),
-                    fcmToken: f.fcmToken
-                })),
-                message: "Nearby friends retrieved successfully"
+                message: "Notification sent successfully"
             });
             
         } catch (error) {
@@ -100,10 +111,13 @@ export class NotificationController {
     }
 
     async getNotifications(req: Request, res: Response, nextFunction: NextFunction) {
-        const name = req.body.name;
-        const collection = client.db("test").collection("notifications");
-        const notifications = await collection.find({name: name}).toArray();
-        res.status(200).send(notifications);
+        const userID = req.params.userID;
+        const collection = client.db("cmiyc").collection("users");
+        const user = await collection.findOne({ userID });
+        if (!user) {
+            return res.status(404).send({ message: "User not found" });
+        }
+        res.status(200).send(user.logList);
     }
 
     private static toRadians(degrees: number): number {
