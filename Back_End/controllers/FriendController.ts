@@ -71,10 +71,15 @@ export class FriendController {
             // Get the full user objects for each friend request
             const friendRequests = await Promise.all(
                 user.friendRequests.map(async (requestID: string) => {
-                    return await client.db("cmiyc").collection("users").findOne({ userID: requestID });
+                    const friend = await client.db("cmiyc").collection("users").findOne({ userID: requestID });
+                    if (friend) {
+                        const { friends: _, friendRequests: __, ...friendWithoutLists } = friend;
+                        return friendWithoutLists;
+                    }
+                    return null;
                 })
             );
-            res.send(friendRequests);
+            res.send(friendRequests.filter(Boolean));
         } else {
             res.status(404).send("User not found");
         }
