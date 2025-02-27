@@ -58,25 +58,6 @@ class FriendsViewModel(
         }
     }
 
-    private fun loadFriends() {
-        viewModelScope.launch {
-            try {
-                _state.update { it.copy(isLoading = true) }
-                val friends = friendsRepository.getFriends()
-                _state.update { it.copy(
-                    friends = friends,
-                    isLoading = false,
-                    error = null
-                )}
-            } catch (e: Exception) {
-                _state.update { it.copy(
-                    error = e.message,
-                    isLoading = false
-                )}
-            }
-        }
-    }
-
     fun refresh() {
         loadFriends()
     }
@@ -95,10 +76,10 @@ class FriendsViewModel(
         }
     }
 
-    fun acceptRequest(requestId: String) {
+    fun acceptRequest(userId: String) {
         viewModelScope.launch {
             try {
-                friendsRepository.acceptFriendRequest(requestId)
+                friendsRepository.acceptFriendRequest(userId)
                 // Refresh both friends list and requests
                 loadFriends()
                 refreshFriendRequests()
@@ -108,10 +89,10 @@ class FriendsViewModel(
         }
     }
 
-    fun denyRequest(requestId: String) {
+    fun denyRequest(userId: String) {
         viewModelScope.launch {
             try {
-                friendsRepository.denyFriendRequest(requestId)
+                friendsRepository.denyFriendRequest(userId)
                 // Refresh requests
                 refreshFriendRequests()
             } catch (e: Exception) {
@@ -129,48 +110,65 @@ class FriendsViewModel(
         }
     }
 
-    fun searchFriends(query: String) {
+    fun filterFriends(query: String) {
         viewModelScope.launch {
-            try {
-                _state.update { it.copy(
-                    searchQuery = query,
-                    isSearching = true
-                )}
-
-                if (query.isNotEmpty()) {
-                    val results = friendsRepository.searchUsers(query)
-                    _state.update { it.copy(
-                        searchResults = results,
-                        isSearching = true,
-                        error = null
-                    )}
-                } else {
-                    _state.update { it.copy(
-                        searchResults = emptyList(),
-                        isSearching = false
-                    )}
-                }
-            } catch (e: Exception) {
-                _state.update { it.copy(
-                    error = e.message,
-                    isSearching = false
-                )}
+            _state.update { currentState ->
+                currentState.copy(
+                    filterQuery = query,
+                    filteredFriends = if (query.isEmpty()) {
+                        currentState.friends
+                    } else {
+                        currentState.friends.filter { friend ->
+                            friend.name.contains(query, ignoreCase = true) ||
+                                    friend.email.contains(query, ignoreCase = true)
+                        }
+                    }
+                )
             }
         }
     }
 
-    fun addFriend(targetUserId: String) {
+    fun updateEmailInput(email: String) {
+        _state.update { it.copy(emailInput = email) }
+    }
+
+    fun sendFriendRequest() {
         viewModelScope.launch {
             try {
-                friendsRepository.sendFriendRequest(targetUserId)
-                _state.update { state ->
-                    state.copy(
-                        searchResults = state.searchResults.filter { it.userId != targetUserId },
-                        error = null
-                    )
+                val email = state.value.emailInput.trim()
+                if (email.isEmpty()) {
+                    _state.update { it.copy(error = "Please enter an email address") }
+                    return@launch
                 }
+
+                friendsRepository.sendFriendRequest(email)
+                _state.update { it.copy(
+                    showAddFriendDialog = false,
+                    emailInput = "",
+                    error = null
+                )}
             } catch (e: Exception) {
                 _state.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    fun loadFriends() {
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(isLoading = true) }
+                val friends = friendsRepository.getFriends()
+                _state.update { it.copy(
+                    friends = friends,
+                    filteredFriends = friends,
+                    isLoading = false,
+                    error = null
+                )}
+            } catch (e: Exception) {
+                _state.update { it.copy(
+                    error = e.message,
+                    isLoading = false
+                )}
             }
         }
     }
@@ -193,11 +191,12 @@ class FriendsViewModel(
 
 data class FriendsScreenState(
     val friends: List<Friend> = emptyList(),
-    val searchResults: List<Friend> = emptyList(),
+    val filteredFriends: List<Friend> = emptyList(),
     val friendRequests: List<FriendRequest> = emptyList(),
-    val searchQuery: String = "",
+    val filterQuery: String = "",
     val isLoading: Boolean = false,
-    val isSearching: Boolean = false,
     val error: String? = null,
-    val showRequestsDialog: Boolean = false
+    val showRequestsDialog: Boolean = false,
+    val showAddFriendDialog: Boolean = false,
+    val emailInput: String = ""
 )

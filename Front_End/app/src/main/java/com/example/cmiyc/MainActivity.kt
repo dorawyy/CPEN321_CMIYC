@@ -20,24 +20,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         Firebase.initialize(this)
-        logRegToken()
         setContent {
             CMIYCTheme {
                 Surface {
                     AppNavigation()
                 }
             }
-        }
-    }
-
-    fun logRegToken() {
-        Firebase.messaging.getToken().addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                return@addOnCompleteListener
-            }
-            val token = task.result
-            val msg = "FCM Registration token: $token"
-            Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
         }
     }
 }

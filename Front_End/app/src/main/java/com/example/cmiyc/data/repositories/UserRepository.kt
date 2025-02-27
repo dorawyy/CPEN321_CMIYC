@@ -1,7 +1,7 @@
 package com.example.cmiyc.repositories
 
 import com.example.cmiyc.api.ApiClient
-import com.example.cmiyc.api.LocationUpdateRequest
+import com.example.cmiyc.api.dto.*
 import com.example.cmiyc.data.Log
 import com.example.cmiyc.data.User
 import com.mapbox.geojson.Point
@@ -21,7 +21,7 @@ object UserRepository {
     val logs: StateFlow<List<Log>> = _logs
 
     // Queue for pending location updates
-    private val locationUpdateQueue = ConcurrentLinkedQueue<LocationUpdateRequest>()
+    private val locationUpdateQueue = ConcurrentLinkedQueue<LocationDTO>()
 
     // Flag to track if update job is running
     private var isUpdating = false
@@ -50,12 +50,13 @@ object UserRepository {
             val latestUpdate = locationUpdateQueue.poll() ?: return
 
             try {
-                val response = api.updateUserLocation(userId, latestUpdate)
+                val locationUpdateRequest = LocationUpdateRequestDTO(latestUpdate)
+                val response = api.updateUserLocation(userId, locationUpdateRequest)
                 if (response.isSuccessful) {
                     _currentUser.value = _currentUser.value?.copy(
                         currentLocation = Point.fromLngLat(
                             latestUpdate.longitude,
-                            latestUpdate.latitude
+                            latestUpdate.latitude,
                         ),
                         lastLocationUpdate = latestUpdate.timestamp
                     )
@@ -86,34 +87,59 @@ object UserRepository {
     }
 
     fun updateUserLocation(location: Point) {
-        val request = LocationUpdateRequest(
+        val request = LocationDTO(
             longitude = location.longitude(),
-            latitude = location.latitude()
+            latitude = location.latitude(),
+            timestamp = System.currentTimeMillis(),
         )
         locationUpdateQueue.offer(request)
     }
 
-    suspend fun registerUser(user: User) {
-        api.registerUser(user.userId, user)
+    suspend fun registerUser() {
+        val userRegistrationRequest = UserRegistrationRequestDTO(
+            userID = _currentUser.value?.userId ?: "",
+            displayName = _currentUser.value?.displayName ?: "",
+            email = _currentUser.value?.email ?: "",
+            photoURL = _currentUser.value?.photoUrl ?: "",
+            fcmToken = _currentUser.value?.fcmToken ?: "",
+        )
+        val response = api.registerUser(userRegistrationRequest)
+        if (!response.isSuccessful) {
+            throw Exception("Failed to register user: ${response.code()}")
+        }
     }
 
     suspend fun broadcastMessage(activity: String) {
-        val location = _currentUser.value?.currentLocation
-            ?: throw Exception("User not authenticated")
-        val timestamp = System.currentTimeMillis()
-        val userId = getCurrentUserId()
-        api.broadcastMessage(userId, activity, location, timestamp)
+        val response = api.broadcastMessage(
+            userId = getCurrentUserId(),
+            eventName = activity,
+        )
+        if (!response.isSuccessful) {
+            throw Exception("Failed to broadcast message: ${response.code()}")
+        }
     }
 
     fun clearCurrentUser() {
         _currentUser.value = null
     }
 
+    private fun LogDTO.toLog(): Log = Log(
+        sender = sender_name,
+        activity = eventName,
+        senderLocation = sender_location.let { Point.fromLngLat(it.longitude, it.latitude) },
+        timestamp = timestamp
+    )
+
     suspend fun refreshLogs() {
         try {
             val userId = _currentUser.value?.userId ?: return
-            val updatedLogs = api.getLogs(userId)
-            _logs.value = updatedLogs
+            val response = api.getLogs(userId)
+            if (response.isSuccessful) {
+                val logs = response.body()?.map { it.toLog() } ?: emptyList()
+                _logs.value = logs
+            } else {
+                throw Exception("Failed to fetch logs: ${response.code()}")
+            }
         } catch (e: Exception) {
             throw e
         }

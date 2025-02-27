@@ -63,7 +63,7 @@ fun MapComponent(
                         true
                     }
                     iconImage = defaultUserIcon
-                    textField = "${friend.name}\n${friend.status}"
+                    textField = friend.name
                     textOffset = listOf(0.0, 5.0)
                 }
             }

@@ -3,24 +3,25 @@ package com.example.cmiyc.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.cmiyc.data.FriendRequest
 import com.example.cmiyc.repositories.UserRepository
 import com.example.cmiyc.repository.FriendsRepository
 import com.example.cmiyc.ui.components.FriendItem
 import com.example.cmiyc.ui.components.SearchBar
 import com.example.cmiyc.ui.viewmodels.FriendsViewModel
 import com.example.cmiyc.ui.viewmodels.FriendsViewModelFactory
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.ui.Alignment
-import com.example.cmiyc.data.FriendRequest
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -49,13 +50,23 @@ fun FriendsScreen(
                     }
                 },
                 actions = {
+                    // Add Friend Button
+                    IconButton(
+                        onClick = {
+                            viewModel.updateState { it.copy(showAddFriendDialog = true) }
+                        }
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Add Friend"
+                        )
+                    }
+
                     // Friend Requests Button with Badge
                     BadgedBox(
                         badge = {
                             if (state.friendRequests.isNotEmpty()) {
-                                Badge {
-                                    Text(state.friendRequests.size.toString())
-                                }
+                                Badge { Text(state.friendRequests.size.toString()) }
                             }
                         }
                     ) {
@@ -81,17 +92,31 @@ fun FriendsScreen(
         ) {
             Column {
                 SearchBar(
-                    query = state.searchQuery,
-                    onQueryChange = viewModel::searchFriends,
+                    query = state.filterQuery,
+                    onQueryChange = viewModel::filterFriends,
                     modifier = Modifier.padding(16.dp)
                 )
 
                 if (state.isLoading) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = androidx.compose.ui.Alignment.Center
+                        contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator()
+                    }
+                } else if (state.filteredFriends.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (state.filterQuery.isEmpty())
+                                "No friends yet"
+                            else
+                                "No matching friends",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 } else {
                     LazyColumn(
@@ -99,28 +124,35 @@ fun FriendsScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        if (state.isSearching) {
-                            items(state.searchResults) { friend ->
-                                FriendItem(
-                                    friend = friend,
-                                    isFriend = false,
-                                    onAddFriend = { viewModel.addFriend(friend.userId) },
-                                    onRemoveFriend = { /* Not needed here */ }
-                                )
-                            }
-                        } else {
-                            items(state.friends) { friend ->
-                                FriendItem(
-                                    friend = friend,
-                                    isFriend = true,
-                                    onAddFriend = { /* Not needed here */ },
-                                    onRemoveFriend = { viewModel.removeFriend(friend.userId) }
-                                )
-                            }
+                        items(
+                            items = state.filteredFriends,
+                            key = { friend -> friend.userId }
+                        ) { friend ->
+                            FriendItem(
+                                friend = friend,
+                                onRemoveFriend = { viewModel.removeFriend(friend.userId)},
+                            )
                         }
                     }
                 }
             }
+        }
+
+        // Add Friend Dialog
+        if (state.showAddFriendDialog) {
+            AddFriendDialog(
+                email = state.emailInput,
+                onEmailChange = viewModel::updateEmailInput,
+                onSendRequest = {
+                    viewModel.sendFriendRequest()
+                },
+                onDismiss = {
+                    viewModel.updateState { it.copy(
+                        showAddFriendDialog = false,
+                        emailInput = ""
+                    )}
+                }
+            )
         }
 
         // Friend Requests Dialog
@@ -153,6 +185,48 @@ fun FriendsScreen(
             )
         }
     }
+}
+
+@Composable
+fun AddFriendDialog(
+    email: String,
+    onEmailChange: (String) -> Unit,
+    onSendRequest: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add Friend") },
+        text = {
+            OutlinedTextField(
+                value = email,
+                onValueChange = onEmailChange,
+                label = { Text("Friend's Email") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { onSendRequest() }
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onSendRequest,
+                enabled = email.isNotBlank()
+            ) {
+                Text("Send Request")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable
@@ -189,7 +263,10 @@ fun FriendRequestDialog(
                     modifier = Modifier.heightIn(max = 300.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(requests) { request ->
+                    items(
+                        items = requests,
+                        key = { request -> request.userId }
+                    ) { request ->
                         FriendRequestItem(
                             request = request,
                             onAccept = onAccept,
@@ -244,7 +321,7 @@ fun FriendRequestItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 FilledTonalIconButton(
-                    onClick = { onAccept(request.requestId) },
+                    onClick = { onAccept(request.userId) },
                     colors = IconButtonDefaults.filledTonalIconButtonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
@@ -257,7 +334,7 @@ fun FriendRequestItem(
                 }
 
                 FilledTonalIconButton(
-                    onClick = { onDeny(request.requestId) },
+                    onClick = { onDeny(request.userId) },
                     colors = IconButtonDefaults.filledTonalIconButtonColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer
                     )
