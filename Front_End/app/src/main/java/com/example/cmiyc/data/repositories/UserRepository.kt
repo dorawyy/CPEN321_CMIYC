@@ -192,7 +192,7 @@ object UserRepository {
         sender = sender_name,
         activity = eventName,
         senderLocation = sender_location.let { Point.fromLngLat(it.longitude, it.latitude) },
-        timestamp = timestamp
+        timestamp = sender_location.timestamp
     )
 
     suspend fun refreshLogs() {
