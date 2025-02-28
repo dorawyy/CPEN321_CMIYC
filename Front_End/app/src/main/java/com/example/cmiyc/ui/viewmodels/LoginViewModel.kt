@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.cmiyc.data.User
-import com.example.cmiyc.location.LocationManager
 import com.example.cmiyc.repositories.UserRepository
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
@@ -16,12 +15,11 @@ import kotlinx.coroutines.tasks.await
 
 class LoginViewModelFactory(
     private val userRepository: UserRepository,
-    private val locationManager: LocationManager
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return LoginViewModel(userRepository, locationManager) as T
+            return LoginViewModel(userRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
@@ -29,7 +27,6 @@ class LoginViewModelFactory(
 
 class LoginViewModel(
     private val userRepository: UserRepository,
-    private val locationManager: LocationManager
 ) : ViewModel() {
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Initial)
     val loginState: StateFlow<LoginState> = _loginState
@@ -53,7 +50,6 @@ class LoginViewModel(
                     fcmToken = token,
                 )
                 userRepository.setCurrentUser(user)
-                locationManager.startLocationUpdates()
                 userRepository.registerUser()
                 _loginState.value = LoginState.Success(
                     email = email,

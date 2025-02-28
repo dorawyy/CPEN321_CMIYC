@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.example.cmiyc.R
 import com.example.cmiyc.data.Friend
+import com.example.cmiyc.repositories.UserRepository
 import com.mapbox.geojson.Point
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapEffect
@@ -27,21 +28,12 @@ fun MapComponent(
     friends: List<Friend>,
     modifier: Modifier = Modifier
 ) {
-
     var lastUpdatedLocation: Point? = null
-    val thresholdDistance = 100.0 // distance in meters
+    val thresholdDistance = 25.0 // distance in meters
     var isFirstUpdate = true
 
     fun calculateDistance(from: Point, to: Point): Double {
-        val distanceInKilometers = TurfMeasurement.distance(from, to)
-
-        // Convert to meters if needed
-        val distanceInMeters = distanceInKilometers * 1000
-        return distanceInMeters
-    }
-
-    fun postLocationUpdate(point: Point) {
-        Log.d("MapComponent", "Test")
+        return TurfMeasurement.distance(from, to) * 1000 // Convert km to meters
     }
 
     MapboxMap(
@@ -57,6 +49,7 @@ fun MapComponent(
             }
 
             mapView.location.addOnIndicatorPositionChangedListener { point ->
+                // For camera centering
                 mapViewportState.setCameraOptions(
                     cameraOptions {
                         center(point)
@@ -66,20 +59,22 @@ fun MapComponent(
                         }
                     }
                 )
-            }
 
-            mapView.location.addOnIndicatorPositionChangedListener { point ->
-                // Calculate distance if we have a previous location
-                if (lastUpdatedLocation == null || calculateDistance(lastUpdatedLocation!!, point) > thresholdDistance) {
-                    lastUpdatedLocation = point
-                    postLocationUpdate(point) // Function to trigger your POST request
+                // For location updates
+                val shouldUpdate = if (lastUpdatedLocation == null) {
+                    true  // Always update the first time
+                } else {
+                    calculateDistance(lastUpdatedLocation!!, point) > thresholdDistance
                 }
 
-                mapViewportState.setCameraOptions(
-                    cameraOptions {
-                        center(point)
-                    }
-                )
+                if (shouldUpdate) {
+                    Log.d("MapComponent", "Location updated: moved ${lastUpdatedLocation?.let {
+                        calculateDistance(it, point).toInt()
+                    } ?: "first update"} meters")
+
+                    lastUpdatedLocation = point
+                    UserRepository.updateUserLocation(point)
+                }
             }
         }
 
