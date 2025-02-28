@@ -7,6 +7,8 @@ import com.example.cmiyc.data.User
 import com.mapbox.geojson.Point
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.io.IOException
+import java.net.SocketTimeoutException
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.time.Duration.Companion.seconds
 
@@ -26,6 +28,10 @@ object UserRepository {
     // Flag to track if update job is running
     private var isUpdating = false
 
+    // Error tracking for backoff
+    private var consecutiveFailures = 0
+    private val maxRetryDelay = 60.seconds
+
     init {
         startLocationUpdateWorker()
     }
@@ -36,7 +42,14 @@ object UserRepository {
                 if (isAuthenticated() && locationUpdateQueue.isNotEmpty()) {
                     processLocationUpdates()
                 }
-                delay(1.seconds)
+                // Exponential backoff for retry delay
+                val delay = if (consecutiveFailures > 0) {
+                    val backoffDelay = (1.seconds * (1 shl minOf(consecutiveFailures, 5)))
+                    minOf(backoffDelay, maxRetryDelay)
+                } else {
+                    1.seconds
+                }
+                delay(delay)
             }
         }
     }
@@ -53,26 +66,36 @@ object UserRepository {
                 val locationUpdateRequest = LocationUpdateRequestDTO(latestUpdate)
                 val response = api.updateUserLocation(userId, locationUpdateRequest)
                 if (response.isSuccessful) {
-                    _currentUser.value = latestUpdate.timestamp?.let {
+                    _currentUser.value = latestUpdate.timestamp.let {
                         _currentUser.value?.copy(
-                            currentLocation = latestUpdate.latitude?.let { it1 ->
-                                latestUpdate.longitude?.let { it2 ->
-                                    Point.fromLngLat(
-                                        it2,
-                                        it1,
-                                    )
-                                }
-                            },
+                            currentLocation = Point.fromLngLat(
+                                latestUpdate.longitude,
+                                latestUpdate.latitude,
+                            ),
                             lastLocationUpdate = it
                         )
                     }
                     locationUpdateQueue.clear()
+                    consecutiveFailures = 0 // Reset failure counter on success
                 } else {
                     locationUpdateQueue.offer(latestUpdate)
+                    consecutiveFailures++
+                    println("Failed to update location: ${response.code()} (Failures: $consecutiveFailures)")
                 }
+            } catch (e: SocketTimeoutException) {
+                // Handle timeout specifically
+                locationUpdateQueue.offer(latestUpdate)
+                consecutiveFailures++
+                println("Network timeout when updating location: ${e.message} (Failures: $consecutiveFailures)")
+            } catch (e: IOException) {
+                // Handle network errors
+                locationUpdateQueue.offer(latestUpdate)
+                consecutiveFailures++
+                println("Network error when updating location: ${e.message} (Failures: $consecutiveFailures)")
             } catch (e: Exception) {
                 locationUpdateQueue.offer(latestUpdate)
-                throw e
+                consecutiveFailures++
+                println("Error updating location: ${e.message} (Failures: $consecutiveFailures)")
             }
         } finally {
             isUpdating = false
@@ -107,29 +130,49 @@ object UserRepository {
     }
 
     suspend fun registerUser() {
-        val userRegistrationRequest = UserRegistrationRequestDTO(
-            userID = _currentUser.value?.userId ?: "",
-            displayName = _currentUser.value?.displayName ?: "",
-            email = _currentUser.value?.email ?: "",
-            photoURL = _currentUser.value?.photoUrl ?: "",
-            fcmToken = _currentUser.value?.fcmToken ?: "",
-            currentLocation = LocationDTO(0.0, 0.0, 0),
-
-
-        )
-        val response = api.registerUser(userRegistrationRequest)
-        if (!response.isSuccessful) {
-            throw Exception("Failed to register user: ${response.code()}")
+        try {
+            val userRegistrationRequest = UserRegistrationRequestDTO(
+                userID = _currentUser.value?.userId ?: "",
+                displayName = _currentUser.value?.displayName ?: "",
+                email = _currentUser.value?.email ?: "",
+                photoURL = _currentUser.value?.photoUrl ?: "",
+                fcmToken = _currentUser.value?.fcmToken ?: "",
+                currentLocation = LocationDTO(0.0, 0.0, 0),
+            )
+            val response = api.registerUser(userRegistrationRequest)
+            if (!response.isSuccessful) {
+                throw Exception("Failed to register user: ${response.code()}")
+            }
+        } catch (e: SocketTimeoutException) {
+            println("Network timeout when registering user: ${e.message}")
+            throw e
+        } catch (e: IOException) {
+            println("Network error when registering user: ${e.message}")
+            throw e
+        } catch (e: Exception) {
+            println("Error registering user: ${e.message}")
+            throw e
         }
     }
 
     suspend fun broadcastMessage(activity: String) {
-        val response = api.broadcastMessage(
-            userId = getCurrentUserId(),
-            eventName = activity,
-        )
-        if (!response.isSuccessful) {
-            throw Exception("Failed to broadcast message: ${response.code()}")
+        try {
+            val response = api.broadcastMessage(
+                userId = getCurrentUserId(),
+                eventName = activity,
+            )
+            if (!response.isSuccessful) {
+                throw Exception("Failed to broadcast message: ${response.code()}")
+            }
+        } catch (e: SocketTimeoutException) {
+            println("Network timeout when broadcasting message: ${e.message}")
+            throw e
+        } catch (e: IOException) {
+            println("Network error when broadcasting message: ${e.message}")
+            throw e
+        } catch (e: Exception) {
+            println("Error broadcasting message: ${e.message}")
+            throw e
         }
     }
 
@@ -154,7 +197,14 @@ object UserRepository {
             } else {
                 throw Exception("Failed to fetch logs: ${response.code()}")
             }
+        } catch (e: SocketTimeoutException) {
+            println("Network timeout when refreshing logs: ${e.message}")
+            throw e
+        } catch (e: IOException) {
+            println("Network error when refreshing logs: ${e.message}")
+            throw e
         } catch (e: Exception) {
+            println("Error refreshing logs: ${e.message}")
             throw e
         }
     }

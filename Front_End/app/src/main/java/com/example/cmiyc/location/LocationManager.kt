@@ -2,6 +2,8 @@ package com.example.cmiyc.location
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
 import com.example.cmiyc.repositories.UserRepository
 import com.google.android.gms.location.*
@@ -19,19 +21,26 @@ class LocationManager @Inject constructor(
     private val userRepository: UserRepository
 ) {
     private val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = CoroutineScope(Dispatchers.IO) // Changed to IO dispatcher for background work
 
     private val _currentLocation = MutableStateFlow<Point?>(null)
     val currentLocation: StateFlow<Point?> = _currentLocation
 
     private var locationCallback: LocationCallback? = null
+    private var locationHandlerThread: HandlerThread? = null
+    private var locationHandler: Handler? = null
 
-    private val UPDATE_INTERVAL_IN_MILLISECONDS = 30000L // 30 seconds
-    private val FASTEST_INTERVAL = 20000L // 20 seconds
+    private val UPDATE_INTERVAL_IN_MILLISECONDS = 1000L // 1 seconds
+    private val FASTEST_INTERVAL = 1000L // 1 seconds
     private val MIN_ACCURACY = 30f // 30 meters
 
     @SuppressLint("MissingPermission")
     fun startLocationUpdates() {
+        // Create a background thread for location updates
+        locationHandlerThread = HandlerThread("LocationHandlerThread")
+        locationHandlerThread?.start()
+        locationHandler = locationHandlerThread?.looper?.let { Handler(it) }
+
         val locationRequest = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
             UPDATE_INTERVAL_IN_MILLISECONDS
@@ -74,18 +83,20 @@ class LocationManager @Inject constructor(
                     }
                 }
 
-            // Start location updates
-            locationCallback?.let {
-                fusedLocationClient.requestLocationUpdates(
-                    locationRequest,
-                    it,
-                    Looper.getMainLooper()
-                ).addOnSuccessListener {
-                    println("Location updates successfully requested")
-                }.addOnFailureListener { e ->
-                    println("Failed to request location updates: ${e.message}")
-                }
-            }
+            // Start location updates on the background thread
+            locationCallback?.let { callback ->
+                locationHandler?.let { handler ->
+                    fusedLocationClient.requestLocationUpdates(
+                        locationRequest,
+                        callback,
+                        handler.looper
+                    ).addOnSuccessListener {
+                        println("Location updates successfully requested")
+                    }.addOnFailureListener { e ->
+                        println("Failed to request location updates: ${e.message}")
+                    }
+                } ?: println("Location handler is null")
+            } ?: println("Location callback is null")
         } catch (e: Exception) {
             println("Exception requesting location updates: ${e.message}")
         }
@@ -96,6 +107,9 @@ class LocationManager @Inject constructor(
             fusedLocationClient.removeLocationUpdates(it)
         }
         locationCallback = null
+        locationHandlerThread?.quitSafely()
+        locationHandlerThread = null
+        locationHandler = null
     }
 
     fun getCurrentLocation() {

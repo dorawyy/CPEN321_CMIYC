@@ -71,7 +71,7 @@ class FriendsViewModel(
                 } catch (e: Exception) {
                     _state.update { it.copy(error = "Failed to fetch friend requests: ${e.message}") }
                 }
-                delay(1000)
+                delay(5000)
             }
         }
     }
