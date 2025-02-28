@@ -66,24 +66,6 @@ export class NotificationController {
                 return distance <= 1; // 1 kilometer
             });
 
-            // Send notifications to nearby friends
-            const notificationPromises = nearbyFriends.map(friend => {
-                if (!friend.fcmToken) return Promise.resolve();
-                
-                return messaging.send({
-                    token: friend.fcmToken,
-                    notification: {
-                        title: eventName,
-                        body: `${user.displayName} is starting a new event!`
-                    }
-                });
-            });
-
-            await Promise.all(notificationPromises);
-
-            //add notifications to logList in nearbyFriends
-
-            console.log(nearbyFriends);
             for (const friend of nearbyFriends) {
                 // First, ensure the logList exists (using $set with empty array if it doesn't)
                 await collection.updateOne(
@@ -106,6 +88,20 @@ export class NotificationController {
                 );
             }
 
+            // Send notifications to nearby friends
+            const notificationPromises = nearbyFriends.map(friend => {
+                if (!friend.fcmToken) return Promise.resolve();
+                
+                return messaging.send({
+                    token: friend.fcmToken,
+                    notification: {
+                        title: eventName,
+                        body: `${user.displayName} is starting a new event!`
+                    }
+                });
+            });
+
+            await Promise.all(notificationPromises);
             res.status(200).send({
                 message: "Notification sent successfully"
             });
