@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.cmiyc.location.LocationManager
 import com.example.cmiyc.repositories.UserRepository
 import com.example.cmiyc.ui.theme.CMIYCTheme
 import com.example.cmiyc.ui.viewmodels.LoginState
@@ -25,17 +24,10 @@ fun LoginScreen(
     onLoginSuccess: (String, String, String) -> Unit,
 ) {
     val context = LocalContext.current.applicationContext
-    val locationManager = remember {
-        LocationManager(
-            context = context,
-            userRepository = UserRepository
-        )
-    }
 
     val viewModel: LoginViewModel = viewModel(
         factory = LoginViewModelFactory(
             userRepository = UserRepository,
-            locationManager = locationManager
         )
     )
     val loginState by viewModel.loginState.collectAsState()
