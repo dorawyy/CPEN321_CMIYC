@@ -7,5 +7,4 @@ data class Log(
     val activity: String,
     val senderLocation: Point,
     val timestamp: Long,
-
 )

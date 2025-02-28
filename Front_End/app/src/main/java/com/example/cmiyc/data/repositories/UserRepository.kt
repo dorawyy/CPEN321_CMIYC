@@ -189,10 +189,10 @@ object UserRepository {
     }
 
     private fun LogDTO.toLog(): Log = Log(
-        sender = sender_name,
+        sender = fromName,
         activity = eventName,
-        senderLocation = sender_location.let { Point.fromLngLat(it.longitude, it.latitude) },
-        timestamp = sender_location.timestamp
+        senderLocation = location.let { Point.fromLngLat(it.longitude, it.latitude) },
+        timestamp = location.timestamp
     )
 
     suspend fun refreshLogs() {
