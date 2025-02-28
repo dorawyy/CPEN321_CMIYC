@@ -85,6 +85,13 @@ export class NotificationController {
 
             console.log(nearbyFriends);
             for (const friend of nearbyFriends) {
+                // First, ensure the logList exists (using $set with empty array if it doesn't)
+                await collection.updateOne(
+                    { userID: friend.userID, logList: { $exists: false } },
+                    { $set: { logList: [] } }
+                );
+                
+                // Then push the new notification to the logList
                 await collection.updateOne(
                     { userID: friend.userID },
                     { 
@@ -94,8 +101,8 @@ export class NotificationController {
                                 eventName: req.body.eventName,
                                 location: user.currentLocation,
                             }
-                        } as any
-                    }
+                        } 
+                    } as any
                 );
             }
 
