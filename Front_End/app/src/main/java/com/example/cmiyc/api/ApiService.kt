@@ -46,7 +46,7 @@ interface ApiService {
         @Path("targetUserId") targetUserId: String
     ): Response<Unit>
 
-    @POST("users/{userId}/location")
+    @POST("/location/{userId}")
     suspend fun updateUserLocation(
         @Path("userId") userId: String,
         @Body location: LocationUpdateRequest
