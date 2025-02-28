@@ -5,6 +5,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -16,8 +20,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cmiyc.data.FriendRequest
-import com.example.cmiyc.repositories.UserRepository
-import com.example.cmiyc.repository.FriendsRepository
 import com.example.cmiyc.ui.components.FriendItem
 import com.example.cmiyc.ui.components.SearchBar
 import com.example.cmiyc.ui.viewmodels.FriendsViewModel
@@ -25,7 +27,7 @@ import com.example.cmiyc.ui.viewmodels.FriendsViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun FriendsScreen(
     onNavigateBack: () -> Unit,
@@ -33,13 +35,28 @@ fun FriendsScreen(
     val viewModel: FriendsViewModel = viewModel(factory = FriendsViewModelFactory())
     val state by viewModel.state.collectAsState()
 
-    // Start request polling when screen enters, stop when it exits
-    DisposableEffect(key1 = Unit) {
+    // Track if we're doing a manual refresh (pull-to-refresh) vs initial load
+    var isManualRefresh by remember { mutableStateOf(false) }
+
+    // Call onScreenEnter once when the screen is entered
+    LaunchedEffect(Unit) {
         viewModel.onScreenEnter()
+    }
+
+    DisposableEffect(Unit) {
         onDispose {
             viewModel.onScreenExit()
         }
     }
+
+    // Setup pull-to-refresh
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = state.isLoading && isManualRefresh,
+        onRefresh = {
+            isManualRefresh = true
+            viewModel.refresh()
+        }
+    )
 
     Scaffold(
         topBar = {
@@ -73,7 +90,7 @@ fun FriendsScreen(
                     ) {
                         IconButton(
                             onClick = {
-                                viewModel.updateState { it.copy(showRequestsDialog = true) }
+                                viewModel.loadFriendRequests()
                             }
                         ) {
                             Icon(
@@ -90,6 +107,7 @@ fun FriendsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .pullRefresh(pullRefreshState)
         ) {
             Column {
                 SearchBar(
@@ -98,44 +116,61 @@ fun FriendsScreen(
                     modifier = Modifier.padding(16.dp)
                 )
 
-                if (state.isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                } else if (state.filteredFriends.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = if (state.filterQuery.isEmpty())
-                                "No friends yet"
-                            else
-                                "No matching friends",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(
-                            items = state.filteredFriends,
-                            key = { friend -> friend.userId }
-                        ) { friend ->
-                            FriendItem(
-                                friend = friend,
-                                onRemoveFriend = { viewModel.removeFriend(friend.userId)},
+                Box(modifier = Modifier.fillMaxSize()) {
+                    // Only show the center loading indicator during initial load, not during pull-to-refresh
+                    if (state.isLoading && !isManualRefresh && state.filteredFriends.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    } else if (state.filteredFriends.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = if (state.filterQuery.isEmpty())
+                                    "No friends yet"
+                                else
+                                    "No matching friends",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(
+                                items = state.filteredFriends,
+                                key = { friend -> friend.userId }
+                            ) { friend ->
+                                FriendItem(
+                                    friend = friend,
+                                    onRemoveFriend = { viewModel.removeFriend(friend.userId) }
+                                )
+                            }
                         }
                     }
                 }
+            }
+
+            // Show pull-to-refresh indicator only for manual refreshes
+            PullRefreshIndicator(
+                refreshing = state.isLoading && isManualRefresh,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+        }
+
+        // Reset isManualRefresh when loading completes
+        LaunchedEffect(state.isLoading) {
+            if (!state.isLoading && isManualRefresh) {
+                isManualRefresh = false
             }
         }
 
@@ -156,10 +191,11 @@ fun FriendsScreen(
             )
         }
 
-        // Friend Requests Dialog
+        // Friend Requests Dialog with loading state
         if (state.showRequestsDialog) {
             FriendRequestDialog(
                 requests = state.friendRequests,
+                isLoading = state.isRequestsLoading,
                 onAccept = { requestId ->
                     viewModel.acceptRequest(requestId)
                 },
@@ -233,6 +269,7 @@ fun AddFriendDialog(
 @Composable
 fun FriendRequestDialog(
     requests: List<FriendRequest>,
+    isLoading: Boolean,
     onAccept: (String) -> Unit,
     onDeny: (String) -> Unit,
     onDismiss: () -> Unit
@@ -246,7 +283,16 @@ fun FriendRequestDialog(
             )
         },
         text = {
-            if (requests.isEmpty()) {
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else if (requests.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()

@@ -64,7 +64,10 @@ object UserRepository {
 
             try {
                 val locationUpdateRequest = LocationUpdateRequestDTO(latestUpdate)
+                val startTime = System.currentTimeMillis()
                 val response = api.updateUserLocation(userId, locationUpdateRequest)
+                val endTime = System.currentTimeMillis()
+                println("Location Update API call took ${endTime - startTime} ms")
                 if (response.isSuccessful) {
                     _currentUser.value = latestUpdate.timestamp.let {
                         _currentUser.value?.copy(
@@ -158,11 +161,14 @@ object UserRepository {
 
     suspend fun broadcastMessage(activity: String) {
         try {
+            val startTime = System.currentTimeMillis()
             val response = api.broadcastMessage(
                 userId = getCurrentUserId(),
                 eventName = BroadcastMessageRequestDTO(activity),
             )
             println("Broadcast message response: $response")
+            val endTime = System.currentTimeMillis()
+            println("Broadcast Message API call took ${endTime - startTime} ms")
             if (!response.isSuccessful) {
                 throw Exception("Failed to broadcast message: ${response.code()}")
             }
@@ -192,8 +198,11 @@ object UserRepository {
     suspend fun refreshLogs() {
         try {
             val userId = _currentUser.value?.userId ?: return
+            val startTime = System.currentTimeMillis()
             val response = api.getLogs(userId)
             println("Get Logs response: $response")
+            val endTime = System.currentTimeMillis()
+            println("Get Logs API call took ${endTime - startTime} ms")
             if (response.isSuccessful) {
                 val logs = response.body()?.map { it.toLog() } ?: emptyList()
                 _logs.value = logs

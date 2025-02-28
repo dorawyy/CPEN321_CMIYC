@@ -28,85 +28,94 @@ class FriendsViewModel : ViewModel() {
     init {
         // Collect friends data from repository
         viewModelScope.launch {
-            FriendsRepository.friends
-                .combine(FriendsRepository.isFriendsLoading) { friends, isLoading ->
-                    Pair(friends, isLoading)
+            FriendsRepository.friends.collect { friends ->
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        friends = friends,
+                        filteredFriends = filterFriendsWithQuery(friends, currentState.filterQuery)
+                    )
                 }
-                .collect { (friends, isLoading) ->
-                    _uiState.update { currentState ->
-                        currentState.copy(
-                            friends = friends,
-                            filteredFriends = if (currentState.filterQuery.isEmpty()) {
-                                friends
-                            } else {
-                                friends.filter { friend ->
-                                    friend.name.contains(currentState.filterQuery, ignoreCase = true) ||
-                                            friend.email.contains(currentState.filterQuery, ignoreCase = true)
-                                }
-                            },
-                            isLoading = isLoading
-                        )
-                    }
-                }
+            }
         }
 
-        // Collect friend requests data from repository
+        // Collect loading state
+        viewModelScope.launch {
+            FriendsRepository.isFriendsLoading.collect { isLoading ->
+                _uiState.update { it.copy(isLoading = isLoading) }
+            }
+        }
+
+        // Collect friend requests data
         viewModelScope.launch {
             FriendsRepository.friendRequests.collect { requests ->
                 _uiState.update { it.copy(friendRequests = requests) }
+            }
+        }
+
+        // Collect requests loading state
+        viewModelScope.launch {
+            FriendsRepository.isRequestsLoading.collect { isLoading ->
+                _uiState.update { it.copy(isRequestsLoading = isLoading) }
+            }
+        }
+    }
+
+    private fun filterFriendsWithQuery(friends: List<Friend>, query: String): List<Friend> {
+        return if (query.isEmpty()) {
+            friends
+        } else {
+            friends.filter { friend ->
+                friend.name.contains(query, ignoreCase = true) ||
+                        friend.email.contains(query, ignoreCase = true)
             }
         }
     }
 
     // Handle screen lifecycle
     fun onScreenEnter() {
-        // Start polling for friend requests when screen is active
-        FriendsRepository.startRequestsPollingOnly()
-        // Also refresh data immediately
-        viewModelScope.launch {
-            refreshFriendRequests()
-            refreshFriends()
-        }
-    }
-
-    fun onScreenExit() {
-        // Stop polling for friend requests when screen is inactive
-        FriendsRepository.stopRequestsPollingOnly()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        // Make sure polling is stopped when ViewModel is cleared
-        FriendsRepository.stopRequestsPollingOnly()
-    }
-
-    fun updateState(update: (FriendsScreenState) -> FriendsScreenState) {
-        _uiState.update(update)
-    }
-
-    fun refresh() {
+        // Fetch friends once when entering screen
         viewModelScope.launch {
             try {
-                refreshFriends()
-                refreshFriendRequests()
+                FriendsRepository.fetchFriendsOnce()
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             }
         }
     }
 
-    private suspend fun refreshFriends() {
-        FriendsRepository.refreshFriends().onFailure { e ->
-            _uiState.update { it.copy(error = e.message) }
+    fun onScreenExit() {
+        // Nothing to clean up since we don't start polling in this screen
+    }
+
+    // Load friend requests when button is clicked
+    fun loadFriendRequests() {
+        viewModelScope.launch {
+            try {
+                FriendsRepository.fetchFriendRequestsOnce()
+                _uiState.update { it.copy(showRequestsDialog = true) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+            }
         }
     }
 
-    private suspend fun refreshFriendRequests() {
-        FriendsRepository.refreshFriendRequests().onFailure { e ->
-            _uiState.update { it.copy(error = e.message) }
+    // Update UI state
+    fun updateState(update: (FriendsScreenState) -> FriendsScreenState) {
+        _uiState.update(update)
+    }
+
+    // Pull to refresh functionality
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                FriendsRepository.fetchFriendsOnce()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+            }
         }
     }
 
+    // Accept a friend request
     fun acceptRequest(userId: String) {
         viewModelScope.launch {
             try {
@@ -120,6 +129,7 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
+    // Deny a friend request
     fun denyRequest(userId: String) {
         viewModelScope.launch {
             try {
@@ -133,26 +143,22 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
+    // Filter friends by name or email
     fun filterFriends(query: String) {
         _uiState.update { currentState ->
             currentState.copy(
                 filterQuery = query,
-                filteredFriends = if (query.isEmpty()) {
-                    currentState.friends
-                } else {
-                    currentState.friends.filter { friend ->
-                        friend.name.contains(query, ignoreCase = true) ||
-                                friend.email.contains(query, ignoreCase = true)
-                    }
-                }
+                filteredFriends = filterFriendsWithQuery(currentState.friends, query)
             )
         }
     }
 
+    // Update email input for adding friend
     fun updateEmailInput(email: String) {
         _uiState.update { it.copy(emailInput = email) }
     }
 
+    // Send a friend request
     fun sendFriendRequest() {
         viewModelScope.launch {
             try {
@@ -181,6 +187,7 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
+    // Remove a friend
     fun removeFriend(targetUserId: String) {
         viewModelScope.launch {
             try {
@@ -194,6 +201,7 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
+    // Clear any error message
     fun clearError() {
         _uiState.update { it.copy(error = null) }
     }
@@ -205,6 +213,7 @@ data class FriendsScreenState(
     val friendRequests: List<FriendRequest> = emptyList(),
     val filterQuery: String = "",
     val isLoading: Boolean = false,
+    val isRequestsLoading: Boolean = false,
     val error: String? = null,
     val showRequestsDialog: Boolean = false,
     val showAddFriendDialog: Boolean = false,

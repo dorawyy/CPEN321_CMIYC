@@ -26,7 +26,7 @@ class HomeViewModel : ViewModel() {
     val state: StateFlow<HomeScreenState> = _state
 
     init {
-        // Just subscribe to the friends data flow from the repository
+        // Subscribe to the friends data flow from the repository
         viewModelScope.launch {
             FriendsRepository.friends.collect { friends ->
                 _state.update { it.copy(
@@ -35,6 +35,22 @@ class HomeViewModel : ViewModel() {
                 )}
             }
         }
+    }
+
+    // Start polling when ViewModel is created
+    fun startPolling() {
+        FriendsRepository.startHomeScreenPolling()
+    }
+
+    // Stop polling when ViewModel is cleared
+    fun stopPolling() {
+        FriendsRepository.stopHomeScreenPolling()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Stop polling when ViewModel is cleared
+        FriendsRepository.stopHomeScreenPolling()
     }
 
     fun broadcastMessage(activity: String) {
