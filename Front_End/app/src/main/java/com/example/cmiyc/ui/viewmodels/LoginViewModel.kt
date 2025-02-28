@@ -47,7 +47,7 @@ class LoginViewModel(
                 val user = User(
                     email = email,
                     displayName = displayName,
-                    userId = idToken,
+                    userId = email,
                     photoUrl = photoUrl,
                     currentLocation = null,
                     fcmToken = token,
@@ -58,7 +58,7 @@ class LoginViewModel(
                 _loginState.value = LoginState.Success(
                     email = email,
                     displayName = displayName,
-                    idToken = idToken,
+                    idToken = email,
                     photoUrl = photoUrl,
                     fcmToken = token,
                 )
