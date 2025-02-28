@@ -19,9 +19,6 @@ services:
     environment:
       - DB_URI=${DB_URI}
       - PORT=${PORT}
-      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
-      - FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL}
-      - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY}
     ports:
       - ${PORT}:${PORT}
     depends_on:

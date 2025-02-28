@@ -10,11 +10,30 @@ export const UserRoutes = [
         action: controller.createUserProfile,
         validation: [
             body("userID").notEmpty().isString(),
-            body("displayName").notEmpty().isString(),
+            body("name").notEmpty().isString(),
             body("email").notEmpty().isString().isEmail(),
-            body("photoURL").notEmpty().isString(),
-            body("fcmToken").notEmpty().isString(),
-            body("currentLocation").notEmpty().isObject(), // { latitude: number, longitude: number, timestamp: number }
+        ]
+    },
+    {
+        method: "get",
+        route: "/user/:userID",
+        action: controller.getUserProfile,
+        validation: []
+    },
+    {
+        method: "put",
+        route: "/user/:userID",
+        action: controller.updateUserProfile,
+        validation: [
+            body("userID").notEmpty().isString()
+        ]
+    },
+    {
+        method: "delete",
+        route: "/user/:userID",
+        action: controller.deleteUserProfile,
+        validation: [
+            body("userID").notEmpty().isString()
         ]
     },
 ]
