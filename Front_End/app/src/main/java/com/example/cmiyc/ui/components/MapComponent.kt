@@ -18,6 +18,7 @@ import com.mapbox.maps.extension.compose.annotation.rememberIconImage
 import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.turf.TurfMeasurement
 
 @Composable
 fun MapComponent(
@@ -29,10 +30,14 @@ fun MapComponent(
 
     var lastUpdatedLocation: Point? = null
     val thresholdDistance = 100.0 // distance in meters
+    var isFirstUpdate = true
 
     fun calculateDistance(from: Point, to: Point): Double {
-        Log.d("MapComponent", "Calculate the point")
-        return 199.0
+        val distanceInKilometers = TurfMeasurement.distance(from, to)
+
+        // Convert to meters if needed
+        val distanceInMeters = distanceInKilometers * 1000
+        return distanceInMeters
     }
 
     fun postLocationUpdate(point: Point) {
@@ -55,7 +60,10 @@ fun MapComponent(
                 mapViewportState.setCameraOptions(
                     cameraOptions {
                         center(point)
-                        zoom(14.0)
+                        if (isFirstUpdate) {
+                            zoom(14.0)
+                            isFirstUpdate = false
+                        }
                     }
                 )
             }
@@ -70,7 +78,6 @@ fun MapComponent(
                 mapViewportState.setCameraOptions(
                     cameraOptions {
                         center(point)
-                        zoom(14.0)
                     }
                 )
             }

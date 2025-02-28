@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "52950008489",
+    "project_id": "cmiyc-eaaf9",
+    "storage_bucket": "cmiyc-eaaf9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:52950008489:android:2a5e33b63479aef0e6dfb8",
+        "android_client_info": {
+          "package_name": "com.example.cmiyc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKpVnjGujarucyfu8BvJEdn-2GmU6UbOk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
