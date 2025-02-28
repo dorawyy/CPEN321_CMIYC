@@ -30,8 +30,8 @@ class LocationManager @Inject constructor(
     private var locationHandlerThread: HandlerThread? = null
     private var locationHandler: Handler? = null
 
-    private val UPDATE_INTERVAL_IN_MILLISECONDS = 2000L
-    private val FASTEST_INTERVAL = 2000L
+    private val UPDATE_INTERVAL_IN_MILLISECONDS = 5000L
+    private val FASTEST_INTERVAL = 5000L
     private val MIN_ACCURACY = 30f
 
     @SuppressLint("MissingPermission")
