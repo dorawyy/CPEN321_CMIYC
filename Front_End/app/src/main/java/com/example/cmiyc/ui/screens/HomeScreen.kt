@@ -25,14 +25,7 @@ fun HomeScreen(
     onNavigateToLog: () -> Unit,
     onNavigateToFriends: () -> Unit,
 ) {
-    val friendsRepository = remember { FriendsRepository(UserRepository) }
-
-    val viewModel: HomeViewModel = viewModel(
-        factory = HomeViewModelFactory(
-            userRepository = UserRepository,
-            friendsRepository = friendsRepository
-        )
-    )
+    val viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory())
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
     var userInput by remember { mutableStateOf("") }

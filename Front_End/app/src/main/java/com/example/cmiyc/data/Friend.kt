@@ -6,7 +6,7 @@ data class Friend(
     val userId: String,
     val name: String,
     val email: String,
-    val status: String = "Offline",
+    val photoURL: String? = null,
     val location: Point? = null,
-    val lastUpdated: Long = System.currentTimeMillis()
+    val lastUpdated: Long? = null,
 )

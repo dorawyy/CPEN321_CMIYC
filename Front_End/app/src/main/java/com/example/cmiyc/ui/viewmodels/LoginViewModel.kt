@@ -6,9 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.cmiyc.data.User
 import com.example.cmiyc.location.LocationManager
 import com.example.cmiyc.repositories.UserRepository
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.Firebase
+import com.google.firebase.messaging.messaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class LoginViewModelFactory(
     private val userRepository: UserRepository,
@@ -38,21 +42,25 @@ class LoginViewModel(
 
         viewModelScope.launch {
             try {
+                val tokenTask = Firebase.messaging.token
+                val token = tokenTask.await()
                 val user = User(
                     email = email,
                     displayName = displayName,
                     userId = idToken,
                     photoUrl = photoUrl,
                     currentLocation = null,
+                    fcmToken = token,
                 )
                 userRepository.setCurrentUser(user)
                 locationManager.startLocationUpdates()
-                userRepository.registerUser(user)
+                userRepository.registerUser()
                 _loginState.value = LoginState.Success(
                     email = email,
                     displayName = displayName,
                     idToken = idToken,
                     photoUrl = photoUrl,
+                    fcmToken = token,
                 )
             } catch (e: Exception) {
                 _loginState.value = LoginState.Error("Login failed: ${e.message}")
@@ -83,7 +91,8 @@ sealed class LoginState {
         val email: String,
         val displayName: String,
         val idToken: String,
-        val photoUrl: String? = null
+        val photoUrl: String? = null,
+        val fcmToken: String? = null
     ) : LoginState()
     data class Error(val message: String) : LoginState()
 }

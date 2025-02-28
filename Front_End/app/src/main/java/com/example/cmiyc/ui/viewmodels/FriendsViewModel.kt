@@ -5,172 +5,178 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.cmiyc.data.Friend
 import com.example.cmiyc.data.FriendRequest
-import com.example.cmiyc.data.User
-import com.example.cmiyc.repositories.UserRepository
 import com.example.cmiyc.repository.FriendsRepository
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 
-class FriendsViewModelFactory(
-    private val userRepository: UserRepository,
-    private val friendsRepository: FriendsRepository
-) : ViewModelProvider.Factory {
+class FriendsViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FriendsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return FriendsViewModel(userRepository, friendsRepository) as T
+            return FriendsViewModel() as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
 
-class FriendsViewModel(
-    private val userRepository: UserRepository,
-    private val friendsRepository: FriendsRepository
-) : ViewModel() {
+class FriendsViewModel : ViewModel() {
 
-    private val _state = MutableStateFlow(FriendsScreenState())
-    val state: StateFlow<FriendsScreenState> = _state
-
-    private var pollingJob: Job? = null
+    // Internal state
+    private val _uiState = MutableStateFlow(FriendsScreenState())
+    val state: StateFlow<FriendsScreenState> = _uiState
 
     init {
-        loadFriends()
-        startPeriodicUpdates()
-        startPollingFriendRequests()
+        // Collect friends data from repository
+        viewModelScope.launch {
+            FriendsRepository.friends
+                .combine(FriendsRepository.isFriendsLoading) { friends, isLoading ->
+                    Pair(friends, isLoading)
+                }
+                .collect { (friends, isLoading) ->
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            friends = friends,
+                            filteredFriends = if (currentState.filterQuery.isEmpty()) {
+                                friends
+                            } else {
+                                friends.filter { friend ->
+                                    friend.name.contains(currentState.filterQuery, ignoreCase = true) ||
+                                            friend.email.contains(currentState.filterQuery, ignoreCase = true)
+                                }
+                            },
+                            isLoading = isLoading
+                        )
+                    }
+                }
+        }
+
+        // Collect friend requests data from repository
+        viewModelScope.launch {
+            FriendsRepository.friendRequests.collect { requests ->
+                _uiState.update { it.copy(friendRequests = requests) }
+            }
+        }
+    }
+
+    // Handle screen lifecycle
+    fun onScreenEnter() {
+        // Start polling for friend requests when screen is active
+        FriendsRepository.startRequestsPollingOnly()
+        // Also refresh data immediately
+        viewModelScope.launch {
+            refreshFriendRequests()
+            refreshFriends()
+        }
+    }
+
+    fun onScreenExit() {
+        // Stop polling for friend requests when screen is inactive
+        FriendsRepository.stopRequestsPollingOnly()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Make sure polling is stopped when ViewModel is cleared
+        FriendsRepository.stopRequestsPollingOnly()
     }
 
     fun updateState(update: (FriendsScreenState) -> FriendsScreenState) {
-        _state.update(update)
-    }
-
-    private fun startPeriodicUpdates() {
-        viewModelScope.launch {
-            while (true) {
-                delay(1000) // Update every 30 seconds
-                loadFriends()
-            }
-        }
-    }
-
-    private fun loadFriends() {
-        viewModelScope.launch {
-            try {
-                _state.update { it.copy(isLoading = true) }
-                val friends = friendsRepository.getFriends()
-                _state.update { it.copy(
-                    friends = friends,
-                    isLoading = false,
-                    error = null
-                )}
-            } catch (e: Exception) {
-                _state.update { it.copy(
-                    error = e.message,
-                    isLoading = false
-                )}
-            }
-        }
+        _uiState.update(update)
     }
 
     fun refresh() {
-        loadFriends()
-    }
-
-    private fun startPollingFriendRequests() {
-        pollingJob = viewModelScope.launch {
-            while (isActive) {
-                try {
-                    val requests = friendsRepository.getFriendRequests()
-                    _state.update { it.copy(friendRequests = requests) }
-                } catch (e: Exception) {
-                    _state.update { it.copy(error = "Failed to fetch friend requests: ${e.message}") }
-                }
-                delay(1000)
+        viewModelScope.launch {
+            try {
+                refreshFriends()
+                refreshFriendRequests()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
             }
         }
     }
 
-    fun acceptRequest(requestId: String) {
-        viewModelScope.launch {
-            try {
-                friendsRepository.acceptFriendRequest(requestId)
-                // Refresh both friends list and requests
-                loadFriends()
-                refreshFriendRequests()
-            } catch (e: Exception) {
-                _state.update { it.copy(error = e.message) }
-            }
-        }
-    }
-
-    fun denyRequest(requestId: String) {
-        viewModelScope.launch {
-            try {
-                friendsRepository.denyFriendRequest(requestId)
-                // Refresh requests
-                refreshFriendRequests()
-            } catch (e: Exception) {
-                _state.update { it.copy(error = e.message) }
-            }
+    private suspend fun refreshFriends() {
+        FriendsRepository.refreshFriends().onFailure { e ->
+            _uiState.update { it.copy(error = e.message) }
         }
     }
 
     private suspend fun refreshFriendRequests() {
-        try {
-            val requests = friendsRepository.getFriendRequests()
-            _state.update { it.copy(friendRequests = requests) }
-        } catch (e: Exception) {
-            _state.update { it.copy(error = e.message) }
+        FriendsRepository.refreshFriendRequests().onFailure { e ->
+            _uiState.update { it.copy(error = e.message) }
         }
     }
 
-    fun searchFriends(query: String) {
+    fun acceptRequest(userId: String) {
         viewModelScope.launch {
             try {
-                _state.update { it.copy(
-                    searchQuery = query,
-                    isSearching = true
-                )}
-
-                if (query.isNotEmpty()) {
-                    val results = friendsRepository.searchUsers(query)
-                    _state.update { it.copy(
-                        searchResults = results,
-                        isSearching = true,
-                        error = null
-                    )}
-                } else {
-                    _state.update { it.copy(
-                        searchResults = emptyList(),
-                        isSearching = false
-                    )}
+                val result = FriendsRepository.acceptFriendRequest(userId)
+                result.onFailure { e ->
+                    _uiState.update { it.copy(error = e.message) }
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(
-                    error = e.message,
-                    isSearching = false
-                )}
+                _uiState.update { it.copy(error = e.message) }
             }
         }
     }
 
-    fun addFriend(targetUserId: String) {
+    fun denyRequest(userId: String) {
         viewModelScope.launch {
             try {
-                friendsRepository.sendFriendRequest(targetUserId)
-                _state.update { state ->
-                    state.copy(
-                        searchResults = state.searchResults.filter { it.userId != targetUserId },
-                        error = null
-                    )
+                val result = FriendsRepository.denyFriendRequest(userId)
+                result.onFailure { e ->
+                    _uiState.update { it.copy(error = e.message) }
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(error = e.message) }
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    fun filterFriends(query: String) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                filterQuery = query,
+                filteredFriends = if (query.isEmpty()) {
+                    currentState.friends
+                } else {
+                    currentState.friends.filter { friend ->
+                        friend.name.contains(query, ignoreCase = true) ||
+                                friend.email.contains(query, ignoreCase = true)
+                    }
+                }
+            )
+        }
+    }
+
+    fun updateEmailInput(email: String) {
+        _uiState.update { it.copy(emailInput = email) }
+    }
+
+    fun sendFriendRequest() {
+        viewModelScope.launch {
+            try {
+                val email = state.value.emailInput.trim()
+                if (email.isEmpty()) {
+                    _uiState.update { it.copy(error = "Please enter an email address") }
+                    return@launch
+                }
+
+                val result = FriendsRepository.sendFriendRequest(email)
+                result.fold(
+                    onSuccess = {
+                        _uiState.update { it.copy(
+                            showAddFriendDialog = false,
+                            emailInput = "",
+                            error = null
+                        )}
+                    },
+                    onFailure = { e ->
+                        _uiState.update { it.copy(error = e.message) }
+                    }
+                )
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
             }
         }
     }
@@ -178,26 +184,29 @@ class FriendsViewModel(
     fun removeFriend(targetUserId: String) {
         viewModelScope.launch {
             try {
-                friendsRepository.removeFriend(targetUserId)
-                loadFriends() // Reload friends list after removal
+                val result = FriendsRepository.removeFriend(targetUserId)
+                result.onFailure { e ->
+                    _uiState.update { it.copy(error = e.message) }
+                }
             } catch (e: Exception) {
-                _state.update { it.copy(error = e.message) }
+                _uiState.update { it.copy(error = e.message) }
             }
         }
     }
 
     fun clearError() {
-        _state.update { it.copy(error = null) }
+        _uiState.update { it.copy(error = null) }
     }
 }
 
 data class FriendsScreenState(
     val friends: List<Friend> = emptyList(),
-    val searchResults: List<Friend> = emptyList(),
+    val filteredFriends: List<Friend> = emptyList(),
     val friendRequests: List<FriendRequest> = emptyList(),
-    val searchQuery: String = "",
+    val filterQuery: String = "",
     val isLoading: Boolean = false,
-    val isSearching: Boolean = false,
     val error: String? = null,
-    val showRequestsDialog: Boolean = false
+    val showRequestsDialog: Boolean = false,
+    val showAddFriendDialog: Boolean = false,
+    val emailInput: String = ""
 )
