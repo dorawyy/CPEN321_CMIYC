@@ -12,6 +12,7 @@ import com.google.firebase.messaging.messaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class LoginViewModelFactory(
     private val userRepository: UserRepository,
@@ -41,7 +42,8 @@ class LoginViewModel(
 
         viewModelScope.launch {
             try {
-                val token = Tasks.await(Firebase.messaging.getToken())
+                val tokenTask = Firebase.messaging.token
+                val token = tokenTask.await()
                 val user = User(
                     email = email,
                     displayName = displayName,

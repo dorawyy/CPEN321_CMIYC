@@ -52,7 +52,7 @@ class FriendsViewModel(
     private fun startPeriodicUpdates() {
         viewModelScope.launch {
             while (true) {
-                delay(1000) // Update every 30 seconds
+                delay(10000)
                 loadFriends()
             }
         }

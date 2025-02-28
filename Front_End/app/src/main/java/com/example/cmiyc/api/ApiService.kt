@@ -9,7 +9,6 @@ import retrofit2.http.Path
 import com.example.cmiyc.api.dto.*
 
 interface ApiService {
-
     // User API
     @POST("user")
     suspend fun registerUser(
@@ -21,7 +20,6 @@ interface ApiService {
         @Path("userID") userId: String,
         @Body location: LocationUpdateRequestDTO
     ): Response<Unit>
-
 
     // Friends API
     @GET("friends/{userID}")
@@ -58,7 +56,6 @@ interface ApiService {
         @Path("friendID") friendID: String
     ): Response<Unit>
 
-
     // Notifications API
     @GET("notifications/{userID}")
     suspend fun getLogs(
@@ -70,5 +67,4 @@ interface ApiService {
         @Path("userID") userId: String,
         @Body eventName: String,
     ): Response<Unit>
-
 }

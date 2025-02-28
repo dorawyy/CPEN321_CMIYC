@@ -6,4 +6,5 @@ data class UserRegistrationRequestDTO(
     val email: String,
     val photoURL: String,
     val fcmToken: String,
+    val currentLocation: LocationDTO,
 )

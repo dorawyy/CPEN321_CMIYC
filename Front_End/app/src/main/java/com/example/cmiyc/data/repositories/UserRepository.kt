@@ -53,13 +53,19 @@ object UserRepository {
                 val locationUpdateRequest = LocationUpdateRequestDTO(latestUpdate)
                 val response = api.updateUserLocation(userId, locationUpdateRequest)
                 if (response.isSuccessful) {
-                    _currentUser.value = _currentUser.value?.copy(
-                        currentLocation = Point.fromLngLat(
-                            latestUpdate.longitude,
-                            latestUpdate.latitude,
-                        ),
-                        lastLocationUpdate = latestUpdate.timestamp
-                    )
+                    _currentUser.value = latestUpdate.timestamp?.let {
+                        _currentUser.value?.copy(
+                            currentLocation = latestUpdate.latitude?.let { it1 ->
+                                latestUpdate.longitude?.let { it2 ->
+                                    Point.fromLngLat(
+                                        it2,
+                                        it1,
+                                    )
+                                }
+                            },
+                            lastLocationUpdate = it
+                        )
+                    }
                     locationUpdateQueue.clear()
                 } else {
                     locationUpdateQueue.offer(latestUpdate)
@@ -83,7 +89,12 @@ object UserRepository {
     }
 
     fun setCurrentUser(credentials: User) {
-        _currentUser.value = User(credentials.userId, credentials.email, credentials.displayName, credentials.photoUrl)
+        _currentUser.value = User(
+            credentials.userId,
+            credentials.email,
+            credentials.displayName,
+            credentials.fcmToken,
+            credentials.photoUrl)
     }
 
     fun updateUserLocation(location: Point) {
@@ -102,6 +113,9 @@ object UserRepository {
             email = _currentUser.value?.email ?: "",
             photoURL = _currentUser.value?.photoUrl ?: "",
             fcmToken = _currentUser.value?.fcmToken ?: "",
+            currentLocation = LocationDTO(0.0, 0.0, 0),
+
+
         )
         val response = api.registerUser(userRegistrationRequest)
         if (!response.isSuccessful) {
