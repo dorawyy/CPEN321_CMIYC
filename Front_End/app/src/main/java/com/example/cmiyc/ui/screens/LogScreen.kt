@@ -154,7 +154,7 @@ fun LogItem(log: Log) {
             )
 
             Text(
-                text = formatTimestamp(log.timestamp),
+                text = log.timestamp,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

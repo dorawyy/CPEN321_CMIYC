@@ -6,6 +6,6 @@ data class Log(
     val sender: String,
     val activity: String,
     val senderLocation: Point,
-    val timestamp: Long,
+    val timestamp: String,
 
 )
