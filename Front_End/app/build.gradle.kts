@@ -41,6 +41,9 @@ android {
 }
 
 dependencies {
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.25.1")
+    implementation("androidx.compose.material:material:1.5.4")
+    implementation("androidx.compose.material:material-icons-extended:1.5.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4")
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("com.google.android.gms:play-services-auth:20.7.0")

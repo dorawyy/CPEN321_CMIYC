@@ -140,6 +140,7 @@ object UserRepository {
                 currentLocation = LocationDTO(0.0, 0.0, 0),
             )
             val response = api.registerUser(userRegistrationRequest)
+            println("Register user response: $response")
             if (!response.isSuccessful) {
                 throw Exception("Failed to register user: ${response.code()}")
             }
@@ -159,8 +160,9 @@ object UserRepository {
         try {
             val response = api.broadcastMessage(
                 userId = getCurrentUserId(),
-                eventName = activity,
+                eventName = BroadcastMessageRequestDTO(activity),
             )
+            println("Broadcast message response: $response")
             if (!response.isSuccessful) {
                 throw Exception("Failed to broadcast message: ${response.code()}")
             }
@@ -191,6 +193,7 @@ object UserRepository {
         try {
             val userId = _currentUser.value?.userId ?: return
             val response = api.getLogs(userId)
+            println("Get Logs response: $response")
             if (response.isSuccessful) {
                 val logs = response.body()?.map { it.toLog() } ?: emptyList()
                 _logs.value = logs

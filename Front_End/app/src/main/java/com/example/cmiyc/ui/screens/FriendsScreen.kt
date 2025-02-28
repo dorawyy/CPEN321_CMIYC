@@ -30,15 +30,16 @@ import java.util.*
 fun FriendsScreen(
     onNavigateBack: () -> Unit,
 ) {
-    val friendsRepository = remember { FriendsRepository(UserRepository) }
-    val viewModel: FriendsViewModel = viewModel(
-        factory = FriendsViewModelFactory(
-            userRepository = UserRepository,
-            friendsRepository = friendsRepository
-        )
-    )
-
+    val viewModel: FriendsViewModel = viewModel(factory = FriendsViewModelFactory())
     val state by viewModel.state.collectAsState()
+
+    // Start request polling when screen enters, stop when it exits
+    DisposableEffect(key1 = Unit) {
+        viewModel.onScreenEnter()
+        onDispose {
+            viewModel.onScreenExit()
+        }
+    }
 
     Scaffold(
         topBar = {

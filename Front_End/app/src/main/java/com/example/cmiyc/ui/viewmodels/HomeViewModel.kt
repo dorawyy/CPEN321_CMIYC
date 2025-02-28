@@ -6,50 +6,33 @@ import androidx.lifecycle.viewModelScope
 import com.example.cmiyc.data.Friend
 import com.example.cmiyc.repositories.UserRepository
 import com.example.cmiyc.repository.FriendsRepository
-import com.mapbox.geojson.Point
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import java.net.SocketTimeoutException
 
-class HomeViewModelFactory(
-    private val userRepository: UserRepository,
-    private val friendsRepository: FriendsRepository
-) : ViewModelProvider.Factory {
+class HomeViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return HomeViewModel(userRepository, friendsRepository) as T
+            return HomeViewModel() as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
 
-class HomeViewModel(
-    private val userRepository: UserRepository,
-    private val friendsRepository: FriendsRepository
-) : ViewModel() {
+class HomeViewModel : ViewModel() {
 
     private val _state = MutableStateFlow(HomeScreenState())
     val state: StateFlow<HomeScreenState> = _state
 
     init {
-        startLocationUpdates()
-    }
-
-    private fun startLocationUpdates() {
+        // Just subscribe to the friends data flow from the repository
         viewModelScope.launch {
-            while (true) {
-                try {
-                    val friends = friendsRepository.getFriends()
-                    _state.update { it.copy(
-                        friends = friends,
-                        error = null
-                    )}
-                } catch (e: Exception) {
-                    _state.update { it.copy(error = e.message) }
-                }
-                kotlinx.coroutines.delay(5000L) // Update every 5 seconds
+            FriendsRepository.friends.collect { friends ->
+                _state.update { it.copy(
+                    friends = friends,
+                    error = null
+                )}
             }
         }
     }
@@ -57,8 +40,13 @@ class HomeViewModel(
     fun broadcastMessage(activity: String) {
         viewModelScope.launch {
             try {
-                userRepository.broadcastMessage(activity)
+                withContext(Dispatchers.IO) {
+                    UserRepository.broadcastMessage(activity)
+                }
                 _state.update { it.copy(error = null) }
+            } catch (e: SocketTimeoutException) {
+                // Just log the timeout error
+                println("Network timeout when broadcasting message: ${e.message}")
             } catch (e: Exception) {
                 _state.update { it.copy(error = e.message) }
             }

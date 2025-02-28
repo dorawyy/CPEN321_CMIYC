@@ -65,6 +65,6 @@ interface ApiService {
     @POST("send-event/{userID}")
     suspend fun broadcastMessage(
         @Path("userID") userId: String,
-        @Body eventName: String,
+        @Body eventName: BroadcastMessageRequestDTO,
     ): Response<Unit>
 }

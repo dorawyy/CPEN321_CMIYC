@@ -30,9 +30,9 @@ class LocationManager @Inject constructor(
     private var locationHandlerThread: HandlerThread? = null
     private var locationHandler: Handler? = null
 
-    private val UPDATE_INTERVAL_IN_MILLISECONDS = 1000L // 1 seconds
-    private val FASTEST_INTERVAL = 1000L // 1 seconds
-    private val MIN_ACCURACY = 30f // 30 meters
+    private val UPDATE_INTERVAL_IN_MILLISECONDS = 5000L
+    private val FASTEST_INTERVAL = 5000L
+    private val MIN_ACCURACY = 30f
 
     @SuppressLint("MissingPermission")
     fun startLocationUpdates() {
@@ -52,7 +52,6 @@ class LocationManager @Inject constructor(
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
-                println("Location update received: ${locationResult.lastLocation}")
                 locationResult.lastLocation?.let { location ->
                     if (location.hasAccuracy() && location.accuracy <= MIN_ACCURACY) {
                         val point = Point.fromLngLat(location.longitude, location.latitude)
