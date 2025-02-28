@@ -93,7 +93,6 @@ export class NotificationController {
                                 fromName: user.displayName,
                                 eventName: req.body.eventName,
                                 location: user.currentLocation,
-                                timestamp: new Date()
                             }
                         } as any
                     }
