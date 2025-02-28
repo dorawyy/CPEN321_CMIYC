@@ -1,12 +1,14 @@
 package com.example.cmiyc.ui.components
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.example.cmiyc.R
 import com.example.cmiyc.data.Friend
+import com.mapbox.geojson.Point
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
@@ -24,6 +26,19 @@ fun MapComponent(
     friends: List<Friend>,
     modifier: Modifier = Modifier
 ) {
+
+    var lastUpdatedLocation: Point? = null
+    val thresholdDistance = 100.0 // distance in meters
+
+    fun calculateDistance(from: Point, to: Point): Double {
+        Log.d("MapComponent", "Calculate the point")
+        return 199.0
+    }
+
+    fun postLocationUpdate(point: Point) {
+        Log.d("MapComponent", "Test")
+    }
+
     MapboxMap(
         mapViewportState = mapViewportState,
         modifier = modifier
@@ -37,6 +52,21 @@ fun MapComponent(
             }
 
             mapView.location.addOnIndicatorPositionChangedListener { point ->
+                mapViewportState.setCameraOptions(
+                    cameraOptions {
+                        center(point)
+                        zoom(14.0)
+                    }
+                )
+            }
+
+            mapView.location.addOnIndicatorPositionChangedListener { point ->
+                // Calculate distance if we have a previous location
+                if (lastUpdatedLocation == null || calculateDistance(lastUpdatedLocation!!, point) > thresholdDistance) {
+                    lastUpdatedLocation = point
+                    postLocationUpdate(point) // Function to trigger your POST request
+                }
+
                 mapViewportState.setCameraOptions(
                     cameraOptions {
                         center(point)
