@@ -32,6 +32,14 @@ fun HomeScreen(
     val state by viewModel.state.collectAsState()
     val mapViewportState = rememberMapViewportState()
 
+    // Start polling when screen becomes active, stop when inactive
+    DisposableEffect(Unit) {
+        viewModel.startPolling()
+        onDispose {
+            viewModel.stopPolling()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
