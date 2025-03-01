@@ -75,9 +75,20 @@ fun MapComponent(
                     )
                 }
 
-                if (lastUpdatedLocation == null || calculateDistance(lastUpdatedLocation!!, point) > thresholdDistance) {
+                // For location updates
+                val shouldUpdate = if (lastUpdatedLocation == null) {
+                    true  // Always update the first time
+                } else {
+                    calculateDistance(lastUpdatedLocation!!, point) > thresholdDistance
+                }
+
+                if (shouldUpdate) {
+                    Log.d("MapComponent", "Location updated: moved ${lastUpdatedLocation?.let {
+                        calculateDistance(it, point).toInt()
+                    } ?: "first update"} meters")
+
                     lastUpdatedLocation = point
-                    postLocationUpdate(point)
+                    UserRepository.updateUserLocation(point)
                 }
             }
         }
