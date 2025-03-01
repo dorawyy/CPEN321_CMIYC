@@ -1,22 +1,20 @@
 import { FriendController } from "../controllers/FriendController";
 import { body } from "express-validator";
 
-const friendController = new FriendController();
+const controller = new FriendController();
 
 export const FriendRoutes = [
     {
         method: "get",
         route: "/friends/:userID",
-        controller: friendController,
-        action: friendController.getFriends,
+        action: controller.getFriends,
         validation: []
     },
 
     {
         method: "post",
         route: "/friends/:userID/sendRequest/:friendEmail",
-        controller: friendController,
-        action: friendController.sendFriendRequest,
+        action: controller.sendFriendRequest,
         validation: []
     },
 
@@ -24,32 +22,28 @@ export const FriendRoutes = [
     {
         method: "get",
         route: "/friends/:userID/friendRequests",
-        controller: friendController,
-        action: friendController.getFriendRequests,
+        action: controller.getFriendRequests,
         validation: []
     },
 
     {
         method: "post",
         route: "/friends/:userID/acceptRequest/:friendID",
-        controller: friendController,
-        action: friendController.acceptFriendRequest,
+        action: controller.acceptFriendRequest,
         validation: []
     },
 
     {
         method: "post",
         route: "/friends/:userID/declineRequest/:friendID",
-        controller: friendController,
-        action: friendController.declineFriendRequest,
+        action: controller.declineFriendRequest,
         validation: []
     },
 
     {
         method: "put",
         route: "/friends/:userID/deleteFriend/:friendID",
-        controller: friendController,
-        action: friendController.deleteFriend,
+        action: controller.deleteFriend,
         validation: []
     },
     

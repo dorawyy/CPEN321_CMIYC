@@ -1,30 +1,27 @@
 import { NotificationController } from "../controllers/NotificationController";
 import { body, param } from "express-validator";
 
-const notificationController = new NotificationController();
+const controller = new NotificationController();
 
 export const NotificationRoutes = [
     {
         method: "put",
         route: "/fcm/:userID",
-        controller: notificationController,
-        action: notificationController.setFCMToken,
+        action: controller.setFCMToken,
         validation: [body("fcmToken").isString()],
     },
 
     {
         method: "post",
         route: "/send-event/:userID",
-        controller: notificationController,
-        action: notificationController.sendEventNotification,
+        action: controller.sendEventNotification,
         validation: [body("eventName").isString()],
     },
 
     {
         method: "get",
         route: "/notifications/:userID",
-        controller: notificationController,
-        action: notificationController.getNotifications,
+        action: controller.getNotifications,
         validation: [],
     }
 ]
