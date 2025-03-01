@@ -31,7 +31,7 @@ export class NotificationController {
     }
 
     // Find nearby friends using quadtree
-    private findNearbyFriendsWithQuadtree(user: any, friends: any[]): any[] {
+    private static findNearbyFriendsWithQuadtree(user: any, friends: any[]): any[] {
         // Create a quadtree covering the entire world
         // Using longitude (-180 to 180) and latitude (-90 to 90)
         const worldBoundary: Rectangle = {
@@ -125,7 +125,7 @@ export class NotificationController {
             }).toArray();
 
             // Use quadtree to find nearby friends
-            const nearbyFriends = this.findNearbyFriendsWithQuadtree(user, friends);
+            const nearbyFriends = NotificationController.findNearbyFriendsWithQuadtree(user, friends);
 
             for (const friend of nearbyFriends) {
                 // First, ensure the logList exists (using $set with empty array if it doesn't)
