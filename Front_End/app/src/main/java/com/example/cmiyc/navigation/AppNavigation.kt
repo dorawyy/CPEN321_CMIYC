@@ -10,12 +10,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.cmiyc.ui.screens.*
 import android.Manifest
+import android.app.Activity
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import com.example.cmiyc.repositories.UserRepository
 
 @Composable
 fun AppNavigation() {
@@ -46,10 +49,22 @@ fun AppNavigation() {
         // We don't need to do anything with the result as we'll check permissions again when needed
     }
 
+    val activity = context as Activity
+
+    val currentUser by UserRepository.currentUser.collectAsState()
+
     // Request permissions if needed
     LaunchedEffect(Unit) {
         if (!hasLocationPermission && !permissionRequested) {
             locationPermissionLauncher.launch(locationPermissions)
+        }
+
+        currentUser?.let { user ->
+            if (activity.intent.getBooleanExtra("NAVIGATE_TO_LOG", false)) {
+                navController.navigate("log")
+                // Clear the flag to avoid repeated navigation
+                activity.intent.removeExtra("NAVIGATE_TO_LOG")
+            }
         }
     }
 

@@ -40,7 +40,7 @@ fun MapComponent(
 
     var isFirstUpdate = true
     // Define a fixed size for the friend icon (in dp)
-    val iconSizeDp = 72.dp
+    val iconSizeDp = 64.dp
     val density = LocalDensity.current
     val iconSizePx = with(density) { iconSizeDp.roundToPx() }
 

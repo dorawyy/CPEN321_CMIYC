@@ -28,4 +28,10 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    // In MainActivity.kt
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent) // Update the activity's intent
+    }
 }
