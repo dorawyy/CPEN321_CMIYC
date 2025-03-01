@@ -17,4 +17,18 @@ export const UserRoutes = [
             body("currentLocation").notEmpty().isObject(), // { latitude: number, longitude: number, timestamp: number }
         ]
     },
+
+    {
+        method: "get",
+        route: "/user/:userID",
+        action: controller.getAllUsers,
+        validation: []
+    },
+
+    {
+        method: "post",
+        route: "/user/ban/:userID",
+        action: controller.banUser,
+        validation: [body("adminID").notEmpty().isString()]
+    }
 ]
