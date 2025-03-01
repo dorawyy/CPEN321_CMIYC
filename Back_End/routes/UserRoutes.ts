@@ -1,13 +1,14 @@
 import { UserController } from "../controllers/UserController";
 import { body } from "express-validator";
 
-const controller = new UserController();
+const userController = new UserController();
 
 export const UserRoutes = [
     {
         method: "post",
         route: "/user",
-        action: controller.createUserProfile,
+        controller: userController,
+        action: userController.createUserProfile,
         validation: [
             body("userID").notEmpty().isString(),
             body("displayName").notEmpty().isString(),
@@ -21,14 +22,16 @@ export const UserRoutes = [
     {
         method: "get",
         route: "/user/:userID",
-        action: controller.getAllUsers,
+        controller: userController,
+        action: userController.getAllUsers,
         validation: []
     },
 
     {
         method: "post",
         route: "/user/ban/:userID",
-        action: controller.banUser,
+        controller: userController,
+        action: userController.banUser,
         validation: [body("adminID").notEmpty().isString()]
     }
 ]
