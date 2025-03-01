@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { client, messaging } from "../services";
+import { Quadtree, Point, Rectangle } from "../utils/Quadtree";
 
 export class NotificationController {
     async setFCMToken(req: Request, res: Response, nextFunction: NextFunction) {
@@ -29,6 +30,77 @@ export class NotificationController {
         });
     }
 
+    // Find nearby friends using quadtree
+    private findNearbyFriendsWithQuadtree(user: any, friends: any[]): any[] {
+        // Create a quadtree covering the entire world
+        // Using longitude (-180 to 180) and latitude (-90 to 90)
+        const worldBoundary: Rectangle = {
+            x: 0,      // center longitude
+            y: 0,      // center latitude
+            width: 180, // half the longitude range
+            height: 90  // half the latitude range
+        };
+        
+        const quadtree = new Quadtree(worldBoundary);
+        
+        // Insert all friends into the quadtree
+        for (const friend of friends) {
+            if (!friend.currentLocation) continue;
+            
+            const point: Point = {
+                x: friend.currentLocation.longitude,
+                y: friend.currentLocation.latitude,
+                data: friend
+            };
+            
+            quadtree.insert(point);
+        }
+        
+        // Define search range (1km around user)
+        // Convert 1km to approximate degrees (very rough approximation)
+        // 1 degree of latitude is approximately 111km
+        // 1 degree of longitude varies with latitude
+        const latDegree = 1 / 111; // 1km in latitude degrees
+        
+        // Longitude degrees per km varies with latitude
+        // cos(latitude) * 111km
+        const lonDegree = 1 / (111 * Math.cos(user.currentLocation.latitude * Math.PI / 180));
+        
+        const searchRange: Rectangle = {
+            x: user.currentLocation.longitude,
+            y: user.currentLocation.latitude,
+            width: lonDegree,
+            height: latDegree
+        };
+        
+        // Query the quadtree for points within the search range
+        const nearbyPoints = quadtree.query(searchRange);
+        
+        // Extract the friend data from the points
+        const nearbyFriends = nearbyPoints.map(point => point.data);
+
+        
+        console.log("Nearby friends from quadtree:", nearbyFriends);
+        
+        // Create a new list with calculated distances
+        const nearbyFriendsWithDistance = friends.map(friend => {
+            const distance = NotificationController.calculateDistance(
+                user.currentLocation.latitude,
+                user.currentLocation.longitude,
+                friend.currentLocation.latitude,
+                friend.currentLocation.longitude
+            );
+            
+            // Return a new object with the distance added
+            return {
+                ...friend,
+                distance: distance
+            };
+        });
+        
+        console.log("Nearby friends with calculated distances:", nearbyFriendsWithDistance);
+        return nearbyFriends;
+    }
 
     //notifications still have to be added to the database
     async sendEventNotification(req: Request, res: Response, nextFunction: NextFunction) {
@@ -52,19 +124,8 @@ export class NotificationController {
                 userID: { $in: user.friends || [] }
             }).toArray();
 
-            // Calculate distances
-            const nearbyFriends = friends.filter((friend) => {
-                if (!friend.currentLocation) return false;
-                
-                const distance = NotificationController.calculateDistance(
-                    user.currentLocation.latitude,
-                    user.currentLocation.longitude,
-                    friend.currentLocation.latitude,
-                    friend.currentLocation.longitude
-                );
-                
-                return distance <= 1; // 1 kilometer
-            });
+            // Use quadtree to find nearby friends
+            const nearbyFriends = this.findNearbyFriendsWithQuadtree(user, friends);
 
             for (const friend of nearbyFriends) {
                 // First, ensure the logList exists (using $set with empty array if it doesn't)
