@@ -1,4 +1,4 @@
-# M3 - Requirements and Design
+# M4 - Requirements and Design
 
 ## 1. Change History
 
@@ -26,7 +26,7 @@
 
 ### 3.1. Use-Case Diagram
 
-<img src="./images/M3/Use-Case.png" alt="My Image" width="100%"/>
+<img src="./images/M4/Use-Case.png" alt="My Image" width="100%"/>
 
 ### 3.2. Actors Description
 
@@ -405,7 +405,7 @@
 
 ### 4.5. Dependencies Diagram
 
-<img src="./images/M3/Dependency-Diagram.jpg" alt="Dependency Diagram" width="100%"/>
+<img src="./images/M4/Dependency-Diagram.jpg" alt="Dependency Diagram" width="100%"/>
 
 ---
 
@@ -413,27 +413,27 @@
 
 #### **FR1: Authentication using Google**
 
-<img src="./images/M3/FR1.png" alt="FR1 Diagram" width="100%"/>
+<img src="./images/M4/FR1.png" alt="FR1 Diagram" width="100%"/>
 
 #### **FR2: Manage Friends**
 
-<img src="./images/M3/FR2.png" alt="FR2 Diagram" width="100%"/>
+<img src="./images/M4/FR2.png" alt="FR2 Diagram" width="100%"/>
 
 #### **FR3: View Friends' Location**
 
-<img src="./images/M3/FR3.png" alt="FR3 Diagram" width="100%"/>
+<img src="./images/M4/FR3.png" alt="FR3 Diagram" width="100%"/>
 
 #### **FR4: Broadcast Activity**
 
-<img src="./images/M3/FR4.png" alt="FR4 Diagram" width="100%"/>
+<img src="./images/M4/FR4.png" alt="FR4 Diagram" width="100%"/>
 
 #### **FR5: Manage User**
 
-<img src="./images/M3/FR5.png" alt="FR5 Diagram" width="100%"/>
+<img src="./images/M4/FR5.png" alt="FR5 Diagram" width="100%"/>
 
 #### **FR5: Manage User Profile**
 
-<img src="./images/M3/FR6.png" alt="FR6 Diagram" width="100%"/>
+<img src="./images/M4/FR6.png" alt="FR6 Diagram" width="100%"/>
 
 ---
 
@@ -462,7 +462,7 @@
   - The unoptimized version of the location manager involves storing the key-value pair `{UserID : {latitude, longitude}}` for each `UserID`. On location updates, we would update the corresponding value. However, computing if another friend is nearby requires searching all friends’ locations. This linear time computation does not scale well when we have more users with more friends.
   - A quadtree is a tree-like data structure. Each node represents a rectangle on the Earth's surface. Each node has 4 children, each representing a quadrant of the parent. Since we know the broadcaster’s location, we only need to search for friends in one of the nodes above. This greatly improves efficiency as we reduce to a logarithmic time complexity.
 
-  - <img src="./images/M3/quadtree.jpeg" alt="QuadTree Example" width="100%"/>
+  - <img src="./images/M4/quadtree.jpeg" alt="QuadTree Example" width="100%"/>
 
 - **Design**:
 
