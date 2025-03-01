@@ -5,15 +5,22 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.cmiyc.R
 import com.example.cmiyc.data.Friend
 import com.mapbox.geojson.Point
+import com.mapbox.maps.Image
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
+import com.mapbox.maps.extension.compose.annotation.IconImage
 import com.mapbox.maps.extension.compose.annotation.rememberIconImage
 import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
@@ -28,9 +35,13 @@ fun MapComponent(
     modifier: Modifier = Modifier
 ) {
 
-    var lastUpdatedLocation: Point? = null
+    var lastUpdatedLocation by remember { mutableStateOf<Point?>(null) }
     val thresholdDistance = 100.0 // distance in meters
     var isFirstUpdate = true
+    // Define a fixed size for the friend icon (in dp)
+    val iconSizeDp = 72.dp
+    val density = LocalDensity.current
+    val iconSizePx = with(density) { iconSizeDp.roundToPx() }
 
     fun calculateDistance(from: Point, to: Point): Double {
         val distanceInKilometers = TurfMeasurement.distance(from, to)
@@ -57,29 +68,24 @@ fun MapComponent(
             }
 
             mapView.location.addOnIndicatorPositionChangedListener { point ->
-                mapViewportState.setCameraOptions(
-                    cameraOptions {
-                        center(point)
-                        if (isFirstUpdate) {
+                if (isFirstUpdate) {
+                    mapViewportState.setCameraOptions(
+                        cameraOptions {
+                            center(point)
                             zoom(14.0)
-                            isFirstUpdate = false
                         }
-                    }
-                )
-            }
-
-            mapView.location.addOnIndicatorPositionChangedListener { point ->
-                // Calculate distance if we have a previous location
-                if (lastUpdatedLocation == null || calculateDistance(lastUpdatedLocation!!, point) > thresholdDistance) {
-                    lastUpdatedLocation = point
-                    postLocationUpdate(point) // Function to trigger your POST request
+                    )
+                    isFirstUpdate = false
+                } else {
+                    mapViewportState.setCameraOptions(
+                        cameraOptions { center(point) }
+                    )
                 }
 
-                mapViewportState.setCameraOptions(
-                    cameraOptions {
-                        center(point)
-                    }
-                )
+                if (lastUpdatedLocation == null || calculateDistance(lastUpdatedLocation!!, point) > thresholdDistance) {
+                    lastUpdatedLocation = point
+                    postLocationUpdate(point)
+                }
             }
         }
 
@@ -90,6 +96,28 @@ fun MapComponent(
 
         friends.forEach { friend ->
             friend.location?.let { location ->
+                val friendIcon = if (!friend.photoURL.isNullOrEmpty()) {
+//                    rememberIconImage(
+//                        key = friend.photoURL,
+//                        painter = rememberAsyncImagePainter(
+//                            model = ImageRequest.Builder(context)
+//                                .data(friend.photoURL)
+//                                .size(iconSizePx)
+//                                .placeholder(R.drawable.default_user_icon)
+//                                .error(R.drawable.default_user_icon)
+//                                .allowHardware(false)
+//                                .build()
+//                        )
+//                    )
+                    LoadFriendIcon(
+                        context = context,
+                        photoUrl = friend.photoURL,
+                        iconSizePx = iconSizePx,
+                    )
+
+                } else {
+                    defaultUserIcon
+                }
                 PointAnnotation(point = location) {
                     interactionsState.onClicked {
                         Toast.makeText(
@@ -99,11 +127,42 @@ fun MapComponent(
                         ).show()
                         true
                     }
-                    iconImage = defaultUserIcon
+                    iconImage = friendIcon
                     textField = friend.name
-                    textOffset = listOf(0.0, 5.0)
+                    textOffset = listOf(0.0, 2.0)
                 }
             }
         }
     }
+}
+
+@Composable
+private fun LoadFriendIcon(
+    context: Context,
+    photoUrl: String,
+    iconSizePx: Int,
+): IconImage {
+    val painter = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(context)
+            .data(photoUrl)
+            .size(iconSizePx)
+            .placeholder(R.drawable.default_user_icon)
+            .error(R.drawable.default_user_icon)
+            .allowHardware(false)
+            .build()
+    )
+
+    // Track the loading state
+    var isLoaded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(painter.state) {
+        if (painter.state is AsyncImagePainter.State.Success) {
+            isLoaded = true
+        }
+    }
+
+    return rememberIconImage(
+        key = if (isLoaded) "loaded_$photoUrl" else "loading_$photoUrl",
+        painter = painter,
+    )
 }
