@@ -13,6 +13,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.cmiyc.R
 import com.example.cmiyc.data.Friend
+import com.example.cmiyc.repositories.UserRepository
 import com.mapbox.geojson.Point
 import com.mapbox.maps.Image
 import com.mapbox.maps.dsl.cameraOptions
@@ -34,9 +35,9 @@ fun MapComponent(
     friends: List<Friend>,
     modifier: Modifier = Modifier
 ) {
-
     var lastUpdatedLocation by remember { mutableStateOf<Point?>(null) }
-    val thresholdDistance = 100.0 // distance in meters
+    val thresholdDistance = 25.0 // distance in meters
+
     var isFirstUpdate = true
     // Define a fixed size for the friend icon (in dp)
     val iconSizeDp = 72.dp
@@ -44,15 +45,7 @@ fun MapComponent(
     val iconSizePx = with(density) { iconSizeDp.roundToPx() }
 
     fun calculateDistance(from: Point, to: Point): Double {
-        val distanceInKilometers = TurfMeasurement.distance(from, to)
-
-        // Convert to meters if needed
-        val distanceInMeters = distanceInKilometers * 1000
-        return distanceInMeters
-    }
-
-    fun postLocationUpdate(point: Point) {
-        Log.d("MapComponent", "Test")
+        return TurfMeasurement.distance(from, to) * 1000 // Convert km to meters
     }
 
     MapboxMap(
@@ -97,24 +90,11 @@ fun MapComponent(
         friends.forEach { friend ->
             friend.location?.let { location ->
                 val friendIcon = if (!friend.photoURL.isNullOrEmpty()) {
-//                    rememberIconImage(
-//                        key = friend.photoURL,
-//                        painter = rememberAsyncImagePainter(
-//                            model = ImageRequest.Builder(context)
-//                                .data(friend.photoURL)
-//                                .size(iconSizePx)
-//                                .placeholder(R.drawable.default_user_icon)
-//                                .error(R.drawable.default_user_icon)
-//                                .allowHardware(false)
-//                                .build()
-//                        )
-//                    )
                     LoadFriendIcon(
                         context = context,
                         photoUrl = friend.photoURL,
                         iconSizePx = iconSizePx,
                     )
-
                 } else {
                     defaultUserIcon
                 }
