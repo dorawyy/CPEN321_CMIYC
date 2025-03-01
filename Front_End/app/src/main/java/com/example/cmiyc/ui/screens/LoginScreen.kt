@@ -1,5 +1,6 @@
 package com.example.cmiyc.ui.screens
 
+import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -23,7 +24,8 @@ import com.google.android.gms.common.api.ApiException
 fun LoginScreen(
     onLoginSuccess: (String, String, String) -> Unit,
 ) {
-    val context = LocalContext.current.applicationContext
+    val context = LocalContext.current
+    val activity = context as? Activity
 
     val viewModel: LoginViewModel = viewModel(
         factory = LoginViewModelFactory(
@@ -31,6 +33,9 @@ fun LoginScreen(
         )
     )
     val loginState by viewModel.loginState.collectAsState()
+
+    // Track if banned dialog is showing
+    var showBannedDialog by remember { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -53,6 +58,9 @@ fun LoginScreen(
         when (val state = loginState) {
             is LoginState.Success -> {
                 onLoginSuccess(state.email, state.displayName, state.idToken)
+            }
+            is LoginState.Banned -> {
+                showBannedDialog = true
             }
             else -> {}
         }
@@ -91,5 +99,23 @@ fun LoginScreen(
         ) {
             Text(text = "Sign in with Google")
         }
+    }
+
+    // Show banned user dialog
+    if (showBannedDialog) {
+        AlertDialog(
+            onDismissRequest = { /* Don't dismiss on outside click */ },
+            title = { Text("Account Banned") },
+            text = { Text("Your account has been banned. Contact support for assistance.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        activity?.finish() // Exit the app
+                    }
+                ) {
+                    Text("Exit")
+                }
+            }
+        )
     }
 }

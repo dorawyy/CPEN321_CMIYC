@@ -13,13 +13,24 @@ interface ApiService {
     @POST("user")
     suspend fun registerUser(
         @Body user: UserRegistrationRequestDTO
-    ): Response<Unit>
+    ): Response<UserRegistrationResponseDTO>
 
     @PUT("location/{userID}")
     suspend fun updateUserLocation(
         @Path("userID") userId: String,
         @Body location: LocationUpdateRequestDTO
     ): Response<Unit>
+
+    @POST("user/ban/{userID}")
+    suspend fun banUser(
+        @Path("userID") userId: String,
+        @Body banRequestAdminID: BanUserRequestDTO
+    ): Response<Unit>
+
+    @GET("user/{userID}")
+    suspend fun getAllUsers(
+        @Path("userID") userId: String
+    ): Response<List<UserDTO>>
 
     // Friends API
     @GET("friends/{userID}")
