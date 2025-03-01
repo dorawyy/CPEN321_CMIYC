@@ -81,24 +81,6 @@ export class NotificationController {
 
         
         console.log("Nearby friends from quadtree:", nearbyFriends);
-        
-        // Create a new list with calculated distances
-        const nearbyFriendsWithDistance = friends.map(friend => {
-            const distance = NotificationController.calculateDistance(
-                user.currentLocation.latitude,
-                user.currentLocation.longitude,
-                friend.currentLocation.latitude,
-                friend.currentLocation.longitude
-            );
-            
-            // Return a new object with the distance added
-            return {
-                ...friend,
-                distance: distance
-            };
-        });
-        
-        console.log("Nearby friends with calculated distances:", nearbyFriendsWithDistance);
         return nearbyFriends;
     }
 
@@ -181,23 +163,5 @@ export class NotificationController {
             return res.status(404).send({ message: "User not found" });
         }
         res.status(200).send(user.logList);
-    }
-
-    private static toRadians(degrees: number): number {
-        return degrees * (Math.PI/180);
-    }
-
-    private static calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-        const R = 6371; // Earth radius in kilometers
-        const dLat = NotificationController.toRadians(lat2 - lat1);
-        const dLon = NotificationController.toRadians(lon2 - lon1);
-        
-        const a = 
-            Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(NotificationController.toRadians(lat1)) * Math.cos(NotificationController.toRadians(lat2)) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-            
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-        return R * c;
     }
 }
