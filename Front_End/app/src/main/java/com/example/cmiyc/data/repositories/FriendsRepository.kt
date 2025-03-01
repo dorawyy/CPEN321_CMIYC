@@ -1,5 +1,6 @@
 package com.example.cmiyc.repository
 
+import android.util.Log
 import com.example.cmiyc.api.ApiClient
 import com.example.cmiyc.data.Friend
 import com.example.cmiyc.data.FriendRequest
@@ -36,18 +37,11 @@ object FriendsRepository {
     // Background polling jobs
     private var friendsPollingJob: Job? = null
 
-    // Flag to control the background worker state
-    @Volatile
-    private var isActive = false
-
     // Update polling frequency for Home Screen (5 seconds)
     fun startHomeScreenPolling() {
-        if (isActive) return
-        isActive = true
-
-        friendsPollingJob?.cancel()
         friendsPollingJob = coroutineScope.launch {
             while (isActive) {
+                Log.d("FriendsRepository", "Test")
                 fetchFriends()
                 delay(5000)
             }
@@ -55,7 +49,6 @@ object FriendsRepository {
     }
 
     fun stopHomeScreenPolling() {
-        isActive = false
         friendsPollingJob?.cancel()
     }
 
