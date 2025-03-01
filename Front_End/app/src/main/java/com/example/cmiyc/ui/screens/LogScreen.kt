@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -44,7 +45,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogScreen(
-    onNavigateBack: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     val viewModel: LogViewModel = viewModel(
         factory = LogViewModelFactory(
@@ -92,10 +93,10 @@ fun LogScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(
+                        itemsIndexed( // Use itemsIndexed to get the index
                             items = state.logs,
-                            key = { log -> "${log.sender}${log.timestamp}" }
-                        ) { log ->
+                            key = { index, log -> "${index}_${log.sender}${log.timestamp}" } // Include index in key
+                        ) { index, log ->
                             LogItem(log = log)
                         }
                     }

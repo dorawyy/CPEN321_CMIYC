@@ -41,7 +41,6 @@ object FriendsRepository {
     fun startHomeScreenPolling() {
         friendsPollingJob = coroutineScope.launch {
             while (isActive) {
-                Log.d("FriendsRepository", "Test")
                 fetchFriends()
                 delay(5000)
             }
