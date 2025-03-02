@@ -42,17 +42,11 @@ Routes.forEach((route) => {
 // HTTPS options
 const httpsOptions = {
   key: fs.readFileSync('/app/ssl/server.key'),
-  cert: fs.readFileSync('/app/ssl/server.key')
+  cert: fs.readFileSync('/app/ssl/server.crt')
 };
 
 client.connect().then(() => {
-    console.log("Connected to MongoDB");
-    
-    // Start HTTP server
-    app.listen(port, '0.0.0.0', () => {
-      console.log(`HTTP Server started at http://localhost:${port}`);
-    });
-    
+    console.log("Connected to MongoDB");    
     // Start HTTPS server
     https.createServer(httpsOptions, app).listen(httpsPort, '0.0.0.0', () => {
       console.log(`HTTPS Server started at https://localhost:${httpsPort}`);
