@@ -75,10 +75,6 @@ fun MapComponent(
                             }
                         )
                         isFirstUpdate = false
-                    } else {
-                        mapViewportState.setCameraOptions(
-                            cameraOptions { center(point) }
-                        )
                     }
 
                     // For location updates
