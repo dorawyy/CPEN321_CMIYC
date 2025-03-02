@@ -242,11 +242,20 @@
      - Cold startup takes 5 seconds or less.
      - Warm startup takes 2 seconds or less.
      - Hot startup takes 1.5 seconds or less.
-   - **Justification**: Quick updates ensure seamless coordination.
+     - Friend Location Refresh: The average latency for refreshing friend locations on the home screen shall be approximately 500 ms (with an acceptable error margin).
+     - User Location Update: The average latency to update the user's own location shall be approximately 500 ms (each individual call has a round-trip time of about 100 ms, aggregating to the target value).
+   - **Justification**: Quick startup and near-real-time location updates ensure a seamless and coordinated user experience.
 
-2. **NFR2: Scalability**
-   - **Description**: The backend must handle at least 1000 concurrent users.
-   - **Justification**: Scalability is essential for supporting a growing user base.
+2. **NFR2: Resilience and Error Handling**
+
+   - **Description**: The app must be designed to handle errors and unexpected conditions gracefully. This includes:
+
+     - Implementing robust error handling mechanisms (e.g., automatic retries with exponential backoff, graceful degradation of non-critical services).
+     - Comprehensive logging and monitoring of errors to facilitate rapid troubleshooting and recovery.
+     - Providing clear and actionable feedback to users when issues occur, ensuring minimal disruption to the overall experience.
+     - Ensuring that transient failures (such as temporary network outages or API errors) do not result in extended downtime or data loss.
+
+   - **Justification**: A resilient design with robust error handling minimizes disruptions and enhances reliability, ensuring that users enjoy a stable experience even when facing adverse conditions.
 
 ---
 
@@ -297,6 +306,17 @@
       - Body: { “userID”: String, “displayName”: String, “email”: String, “photoURL”: String, “fcmToken”: String, “currentLocation”: {“latitude”, “longitude”, “timestamp”} }
       - Response: 200/OK (successfully created)
     - **Purpose**: To create a new user profile
+  - **getUsers(): List\<User\>**
+    - REST API (client <-> server)
+      - URI: GET /user/:userID
+      - Response: 200/OK (successfully created)
+    - **Purpose**: To get all users for admin to view
+  - **banUserProfile(): boolean**
+    - REST API (client <-> server)
+      - URI: POST /user/ban/:userID
+      - Body: { “userID”: String}
+      - Response: 200/OK (successfully created)
+    - **Purpose**: To ban a user from using the app
 
 #### **Friend Manager**
 
@@ -414,11 +434,11 @@
 
 1. **Real-Time Performance**
 
-   - **Validation**: Conduct tests on the app to make sure that it provides a seamless and easy experience for the user. Worst case it should take 2 seconds to update the location.
+   - **Validation**: Conduct comprehensive tests (both unit and integration tests) to ensure that the app delivers a seamless, fluid user experience. In all scenarios, location updates must complete within 2 seconds at worst.
 
-2. **Scalability**
+2. **Resilience and Error Handling**
 
-   - **Validation**: Use a distributed server architecture.
+   - **Validation**: Simulate network outages, transient errors, and other failure conditions to verify that the app gracefully handles errors. This includes employing retry mechanisms with exponential backoff, logging errors for later analysis, and providing clear feedback to users when issues occur.
 
 3. **Compatibility**
    - **Validation**: The app should be compatible with Android devices running Android 12 (API 31) and above.
