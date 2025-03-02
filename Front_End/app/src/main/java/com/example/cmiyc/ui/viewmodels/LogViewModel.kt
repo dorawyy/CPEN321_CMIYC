@@ -49,14 +49,10 @@ class LogViewModel (
                     userRepository.refreshLogs()
                     _state.update { it.copy(isLoading = false) }
                 } catch (e: Exception) {
-                    _state.update {
-                        it.copy(
-                            error = e.message ?: "Failed to refresh logs",
-                            isLoading = false
-                        )
-                    }
+                    println("Background log refresh failed: ${e.message}")
+                    _state.update { it.copy(isLoading = false) }
                 }
-                delay(30000) // Refresh every 30 seconds
+                delay(30000)
             }
         }
     }
