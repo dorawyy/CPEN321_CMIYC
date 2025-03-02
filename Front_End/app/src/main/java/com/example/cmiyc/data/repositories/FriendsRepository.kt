@@ -239,10 +239,4 @@ object FriendsRepository {
             Result.failure(e)
         }
     }
-
-    // Clean up resources when the app is shutting down
-    fun cleanup() {
-        stopHomeScreenPolling()
-        coroutineScope.cancel()
-    }
 }
