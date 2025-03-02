@@ -5,13 +5,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.cmiyc.data.User
 import com.example.cmiyc.repositories.UserRepository
-import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.messaging.messaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.io.IOException
+import java.net.SocketTimeoutException
 
 class LoginViewModelFactory(
     private val userRepository: UserRepository,
@@ -33,14 +34,22 @@ class LoginViewModel(
 
     fun handleSignInResult(email: String?, displayName: String?, idToken: String?, photoUrl: String?) {
         if (email == null || displayName == null || idToken == null) {
-            _loginState.value = LoginState.Error("Sign in failed: Missing credentials")
+            // This could happen due to network issues or Google Sign-In problems
+            _loginState.value = LoginState.Error("Unable to sign in. Please check your internet connection and try again.")
             return
         }
 
         viewModelScope.launch {
             try {
                 val tokenTask = Firebase.messaging.token
-                val token = tokenTask.await()
+                val token = try {
+                    tokenTask.await()
+                } catch (e: Exception) {
+                    // If FCM token retrieval fails due to network issues, we can still proceed
+                    // with a placeholder value, and we'll update it later when network is available
+                    println("FCM token retrieval failed: ${e.message}")
+                    "pending_token"
+                }
                 val user = User(
                     email = email,
                     displayName = displayName,
@@ -50,24 +59,38 @@ class LoginViewModel(
                     fcmToken = token,
                 )
                 userRepository.setCurrentUser(user)
-                userRepository.setFCMToken(token)
 
-                // Check if user is banned during registration
-                val registrationSuccess = userRepository.registerUser()
-                if (!registrationSuccess) {
-                    _loginState.value = LoginState.Banned
-                    return@launch
+                try {
+                    userRepository.setFCMToken(token)
+                } catch (e: Exception) {
+                    // Continue even if FCM token setting fails
+                    println("FCM token setting failed: ${e.message}")
                 }
 
-                _loginState.value = LoginState.Success(
-                    email = email,
-                    displayName = displayName,
-                    idToken = email,
-                    photoUrl = photoUrl,
-                    fcmToken = token,
-                )
+                // Check if user is banned during registration
+                try {
+                    val registrationSuccess = userRepository.registerUser()
+                    if (!registrationSuccess) {
+                        _loginState.value = LoginState.Banned
+                        return@launch
+                    }
+
+                    _loginState.value = LoginState.Success(
+                        email = email,
+                        displayName = displayName,
+                        idToken = email,
+                        photoUrl = photoUrl,
+                        fcmToken = token,
+                    )
+                } catch (e: SocketTimeoutException) {
+                    _loginState.value = LoginState.Error("Network timeout during registration. Please check your connection and try again.")
+                } catch (e: IOException) {
+                    _loginState.value = LoginState.Error("Network error during registration. Please check your connection and try again.")
+                } catch (e: Exception) {
+                    _loginState.value = LoginState.Error("Registration failed: ${e.message ?: "Unknown error"}")
+                }
             } catch (e: Exception) {
-                _loginState.value = LoginState.Error("Login failed: ${e.message}")
+                _loginState.value = LoginState.Error("Login failed: ${e.message ?: "Unknown error"}")
                 resetState()
             }
         }
@@ -99,5 +122,5 @@ sealed class LoginState {
         val fcmToken: String? = null
     ) : LoginState()
     data class Error(val message: String) : LoginState()
-    object Banned : LoginState() // New state for banned users
+    object Banned : LoginState() // State for banned users
 }

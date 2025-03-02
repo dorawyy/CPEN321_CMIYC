@@ -12,6 +12,7 @@ import androidx.activity.enableEdgeToEdge
 import com.google.firebase.Firebase
 import com.google.firebase.messaging.messaging
 import androidx.compose.material3.Surface
+import com.example.cmiyc.api.ApiClient
 import com.example.cmiyc.navigation.AppNavigation
 import com.google.firebase.initialize
 
@@ -20,6 +21,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         Firebase.initialize(this)
+        ApiClient.initialize(applicationContext)
         setContent {
             CMIYCTheme {
                 Surface {

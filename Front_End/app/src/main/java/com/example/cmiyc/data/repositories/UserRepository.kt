@@ -20,6 +20,10 @@ object UserRepository {
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser
 
+    // Add registration complete flag
+    private val _isRegistrationComplete = MutableStateFlow(false)
+    val isRegistrationComplete: StateFlow<Boolean> = _isRegistrationComplete
+
     private val _logs = MutableStateFlow<List<Log>>(emptyList())
     val logs: StateFlow<List<Log>> = _logs
 
@@ -40,6 +44,13 @@ object UserRepository {
     // Error tracking for backoff
     private var consecutiveFailures = 0
     private val maxRetryDelay = 60.seconds
+
+    // Location update state
+    private val _locationUpdateError = MutableStateFlow<String?>(null)
+    val locationUpdateError: StateFlow<String?> = _locationUpdateError
+
+    // Maximum failures before showing an error
+    private val maxConsecutiveFailures = 20
 
     init {
         startLocationUpdateWorker()
@@ -89,33 +100,51 @@ object UserRepository {
                     }
                     locationUpdateQueue.clear()
                     consecutiveFailures = 0 // Reset failure counter on success
+
+                    // Clear any existing error
+                    _locationUpdateError.value = null
                 } else {
                     locationUpdateQueue.offer(latestUpdate)
                     consecutiveFailures++
                     println("Failed to update location: ${response.code()} (Failures: $consecutiveFailures)")
+                    checkConsecutiveFailures("Failed to update location. Your friends may not see your current position.")
                 }
             } catch (e: SocketTimeoutException) {
                 // Handle timeout specifically
                 locationUpdateQueue.offer(latestUpdate)
                 consecutiveFailures++
                 println("Network timeout when updating location: ${e.message} (Failures: $consecutiveFailures)")
+                checkConsecutiveFailures("Network timeout when updating location. Your friends may not see your current position.")
             } catch (e: IOException) {
                 // Handle network errors
                 locationUpdateQueue.offer(latestUpdate)
                 consecutiveFailures++
                 println("Network error when updating location: ${e.message} (Failures: $consecutiveFailures)")
+                checkConsecutiveFailures("Network error when updating location. Your friends may not see your current position.")
             } catch (e: Exception) {
                 locationUpdateQueue.offer(latestUpdate)
                 consecutiveFailures++
                 println("Error updating location: ${e.message} (Failures: $consecutiveFailures)")
+                checkConsecutiveFailures("Error updating location: ${e.message}. Your friends may not see your current position.")
             }
         } finally {
             isUpdating = false
         }
     }
 
+    private fun checkConsecutiveFailures(errorMessage: String) {
+        if (consecutiveFailures >= maxConsecutiveFailures) {
+            _locationUpdateError.value = errorMessage
+        }
+    }
+
+    fun clearLocationUpdateError() {
+        _locationUpdateError.value = null
+        // Don't reset the counter here, let the system try to recover naturally
+    }
+
     fun isAuthenticated(): Boolean {
-        return _currentUser.value != null
+        return isRegistrationComplete.value
     }
 
     fun getCurrentUserId(): String {
@@ -179,6 +208,7 @@ object UserRepository {
             if (!response.isSuccessful) {
                 throw Exception("Failed to register user: ${response.code()}")
             }
+            _isRegistrationComplete.value = true
 
             // Handle admin status and banned status
             response.body()?.let {
@@ -230,6 +260,7 @@ object UserRepository {
     fun clearCurrentUser() {
         _currentUser.value = null
         _isAdmin.value = false
+        _isRegistrationComplete.value = false
     }
 
     private fun LogDTO.toLog(): Log = Log(

@@ -26,6 +26,10 @@ class HomeViewModel : ViewModel() {
     private val _state = MutableStateFlow(HomeScreenState())
     val state: StateFlow<HomeScreenState> = _state
 
+    // Track consecutive polling failures for friends
+    private var consecutiveFriendPollingFailures = 0
+    private val maxPollingFailures = 20
+
     init {
         // Subscribe to the friends data flow from the repository
         viewModelScope.launch {
@@ -40,22 +44,49 @@ class HomeViewModel : ViewModel() {
 
     // Start polling when ViewModel is created
     fun startPolling() {
+        // Use FriendsRepository's built-in polling mechanism
         FriendsRepository.startHomeScreenPolling()
+
+        // Start monitoring for consecutive failures
+        viewModelScope.launch {
+            while (isActive) {
+                if (FriendsRepository.consecutiveFailures >= maxPollingFailures) {
+                    val error = FriendsRepository.lastError
+                    val errorMsg = when (error) {
+                        is SocketTimeoutException -> "Network timeout when refreshing friend locations. The app may not show current locations."
+                        is IOException -> "Network error when refreshing friend locations. The app may not show current locations."
+                        else -> "Error refreshing friend locations: ${error?.message}. The app may not show current locations."
+                    }
+                    _state.update { it.copy(pollingError = errorMsg) }
+                } else if (FriendsRepository.consecutiveFailures == 0) {
+                    // Clear any previous polling errors when successful
+                    _state.update { it.copy(pollingError = null) }
+                }
+                delay(5000) // Check error state every 5 seconds
+            }
+        }
     }
 
     // Stop polling when ViewModel is cleared
     fun stopPolling() {
+        // Stop the polling in FriendsRepository
         FriendsRepository.stopHomeScreenPolling()
     }
 
     override fun onCleared() {
         super.onCleared()
-        // Stop polling when ViewModel is cleared
-        FriendsRepository.stopHomeScreenPolling()
+        // Cancel all coroutines when ViewModel is cleared
+        viewModelScope.cancel()
     }
 
     fun clearBroadcastSuccess() {
         _state.update { it.copy(broadcastSuccess = false) }
+    }
+
+    fun clearPollingError() {
+        _state.update { it.copy(pollingError = null) }
+        // Reset the counter when user acknowledges the error
+        consecutiveFriendPollingFailures = 0
     }
 
     fun broadcastMessage(activity: String) {
@@ -93,5 +124,6 @@ class HomeViewModel : ViewModel() {
 data class HomeScreenState(
     val friends: List<Friend> = emptyList(),
     val error: String? = null,
+    val pollingError: String? = null,
     val broadcastSuccess: Boolean = false
 )

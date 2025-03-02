@@ -37,6 +37,10 @@ fun LoginScreen(
     // Track if banned dialog is showing
     var showBannedDialog by remember { mutableStateOf(false) }
 
+    // Track if error dialog is showing
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -50,6 +54,17 @@ fun LoginScreen(
                 account?.photoUrl.toString(),
             )
         } catch (e: ApiException) {
+            showErrorDialog = true
+            // Google API error code 7 indicates a network error (no internet connection)
+            if (e.statusCode == 7) {
+                errorMessage = "Network connection error. Please check your internet connection and try again."
+            } else {
+                errorMessage = "Failed to sign in with Google: ${e.message ?: "Unknown error"}"
+            }
+            viewModel.handleSignInResult(null, null, null, null)
+        } catch (e: Exception) {
+            showErrorDialog = true
+            errorMessage = "Network error during sign in. Please check your internet connection and try again."
             viewModel.handleSignInResult(null, null, null, null)
         }
     }
@@ -61,6 +76,10 @@ fun LoginScreen(
             }
             is LoginState.Banned -> {
                 showBannedDialog = true
+            }
+            is LoginState.Error -> {
+                errorMessage = state.message
+                showErrorDialog = true
             }
             else -> {}
         }
@@ -114,6 +133,28 @@ fun LoginScreen(
                     }
                 ) {
                     Text("Exit")
+                }
+            }
+        )
+    }
+
+    // Show error dialog
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showErrorDialog = false
+                viewModel.resetState()
+            },
+            title = { Text("Login Error") },
+            text = { Text(errorMessage) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showErrorDialog = false
+                        viewModel.resetState()
+                    }
+                ) {
+                    Text("OK")
                 }
             }
         )

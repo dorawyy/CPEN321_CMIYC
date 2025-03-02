@@ -15,11 +15,20 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import com.example.cmiyc.utils.GeocodingUtil
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,7 +73,7 @@ fun LogScreen(
                     }
                 }
             )
-        }
+        },
     ) { padding ->
         Box(
             modifier = Modifier
@@ -93,18 +102,36 @@ fun LogScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        itemsIndexed( // Use itemsIndexed to get the index
-                            items = state.logs,
-                            key = { index, log -> "${index}_${log.sender}${log.timestamp}" } // Include index in key
+                        val sortedLogs = state.logs.sortedByDescending { it.timestamp }
+                        itemsIndexed(
+                            items = sortedLogs,
+                            key = { index, log -> "${index}_${log.sender}${log.timestamp}" }
                         ) { index, log ->
-                            LogItem(log = log)
+                            val logId = "${log.sender}${log.timestamp}"
+                            val cachedAddress = state.logAddresses[logId]
+                            LogItem(
+                                log = log,
+                                address = cachedAddress,
+                                onAddressLoaded = { address ->
+                                    viewModel.updateLogAddress(logId, address)
+                                }
+                            )
                         }
                     }
                 }
             }
+
+            // Show loading spinner when refreshing with existing logs
+            if (state.isLoading && state.logs.isNotEmpty()) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(16.dp)
+                )
+            }
         }
 
-        // Error Dialog
+        // Error Dialog (for one-time errors)
         state.error?.let { error ->
             AlertDialog(
                 onDismissRequest = { viewModel.clearError() },
@@ -117,11 +144,52 @@ fun LogScreen(
                 }
             )
         }
+
+        // Persistent Refresh Error Dialog (after multiple failures)
+        state.refreshError?.let { error ->
+            AlertDialog(
+                onDismissRequest = { viewModel.clearRefreshError() },
+                title = { Text("Sync Problem") },
+                text = {
+                    Column {
+                        Text(error)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("The app will continue to try refreshing in the background.")
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.clearRefreshError() }) {
+                        Text("OK")
+                    }
+                },
+            )
+        }
     }
 }
 
 @Composable
-fun LogItem(log: Log) {
+fun LogItem(
+    log: Log,
+    address: String? = null,
+    onAddressLoaded: (String) -> Unit = {}
+) {
+    val context = LocalContext.current
+    var locationText by remember { mutableStateOf(address ?: "Loading address...") }
+
+    // Fetch address if not provided
+    LaunchedEffect(log.senderLocation) {
+        if (address == null) {
+            locationText = "Loading address..."
+            val result = GeocodingUtil.getAddressFromLocation(
+                context,
+                log.senderLocation.latitude(),
+                log.senderLocation.longitude()
+            )
+            locationText = result
+            onAddressLoaded(result)
+        }
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -149,7 +217,7 @@ fun LogItem(log: Log) {
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Location: (${log.senderLocation.latitude().format(6)}, ${log.senderLocation.longitude().format(6)})",
+                text = "Location: $locationText",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

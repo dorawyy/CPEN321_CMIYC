@@ -31,6 +31,14 @@ object FriendsRepository {
     private val _isRequestsLoading = MutableStateFlow(false)
     val isRequestsLoading: StateFlow<Boolean> = _isRequestsLoading
 
+    // Error tracking for polling
+    private val _consecutiveFailures = MutableStateFlow(0)
+    val consecutiveFailures: Int get() = _consecutiveFailures.value
+
+    // Last error that occurred
+    private val _lastError = MutableStateFlow<Throwable?>(null)
+    val lastError: Throwable? get() = _lastError.value
+
     // Coroutine scope for background operations
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -42,7 +50,21 @@ object FriendsRepository {
         stopHomeScreenPolling() // Cancel any existing job first
         friendsPollingJob = coroutineScope.launch {
             while (isActive) {
-                fetchFriends()
+                try {
+                    fetchFriends()
+                    // Reset failure counter on success
+                    _consecutiveFailures.value = 0
+                    _lastError.value = null
+                } catch (e: CancellationException) {
+                    // Handle cancellation during delay
+                    throw e
+                } catch (e: Exception) {
+                    // Track failures and the error
+                    _consecutiveFailures.value++
+                    _lastError.value = e
+                    println("Friend polling failed (${_consecutiveFailures.value}): ${e.message}")
+                }
+
                 try {
                     delay(5000)
                 } catch (e: CancellationException) {
@@ -112,14 +134,18 @@ object FriendsRepository {
                 _friends.value = friends
             } else {
                 println("Error fetching friends: ${response.code()}")
+                throw IOException("Server returned error code: ${response.code()}")
             }
         } catch (e: SocketTimeoutException) {
             println("Network timeout when fetching friends: ${e.message}")
+            throw e
         } catch (e: IOException) {
             println("Network error when fetching friends: ${e.message}")
+            throw e
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             println("Error fetching friends: ${e.message}")
+            throw e
         }
     }
 
