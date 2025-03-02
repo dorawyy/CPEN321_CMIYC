@@ -4,12 +4,10 @@ FROM node:20.6-alpine
 
 WORKDIR /app
 
-RUN apk add --no-cache openssl
-
 COPY package*.json ./
 
-RUN mkdir -p /app/ssl
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /app/ssl/server.key -out /app/ssl/server.crt -subj "/CN=localhost"
+COPY ./ssl /app/ssl
+RUN chmod 600 /app/ssl/server.key && chmod 644 /app/ssl/server.crt
 
 RUN npm ci
 
