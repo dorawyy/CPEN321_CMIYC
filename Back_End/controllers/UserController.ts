@@ -28,7 +28,7 @@ export class UserController {
         }
         
         const createdUserProfile = await client.db("cmiyc").collection("users").insertOne(body);
-        res.status(200).send("User profile created: " + createdUserProfile.insertedId);
+        res.status(200).send({ message: "User profile created", isAdmin: body.isAdmin, isBanned: body.isBanned });
     }
 
     async getAllUsers(req: Request, res: Response, nextFunction: NextFunction) {
