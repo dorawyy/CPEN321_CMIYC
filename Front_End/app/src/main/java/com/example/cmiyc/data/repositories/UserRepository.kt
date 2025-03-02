@@ -141,6 +141,29 @@ object UserRepository {
         locationUpdateQueue.offer(request)
     }
 
+    suspend fun setFCMToken(fcmToken: String) {
+        try {
+            val userId = getCurrentUserId()
+            val fcmTokenRequest = FCMTokenRequestDTO(fcmToken)
+            val startTime = System.currentTimeMillis()
+            val response = api.setFCMToken(userId, fcmTokenRequest)
+            val endTime = System.currentTimeMillis()
+            println("Set FCM Token API call took ${endTime - startTime} ms")
+            if (!response.isSuccessful) {
+                throw Exception("Failed to set FCM token: ${response.code()}")
+            }
+        } catch (e: SocketTimeoutException) {
+            println("Network timeout when registering user: ${e.message}")
+            throw e
+        } catch (e: IOException) {
+            println("Network error when registering user: ${e.message}")
+            throw e
+        } catch (e: Exception) {
+            println("Error registering user: ${e.message}")
+            throw e
+        }
+    }
+
     suspend fun registerUser(): Boolean {
         try {
             val userRegistrationRequest = UserRegistrationRequestDTO(

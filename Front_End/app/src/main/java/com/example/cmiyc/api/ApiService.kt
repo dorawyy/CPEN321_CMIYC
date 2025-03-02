@@ -78,4 +78,10 @@ interface ApiService {
         @Path("userID") userId: String,
         @Body eventName: BroadcastMessageRequestDTO,
     ): Response<Unit>
+
+    @PUT("/fcm/{userID}")
+    suspend fun setFCMToken(
+        @Path("userID") userId: String,
+        @Body fcmToken: FCMTokenRequestDTO,
+    ): Response<Unit>
 }

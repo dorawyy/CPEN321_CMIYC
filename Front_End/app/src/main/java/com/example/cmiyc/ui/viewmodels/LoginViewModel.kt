@@ -50,6 +50,7 @@ class LoginViewModel(
                     fcmToken = token,
                 )
                 userRepository.setCurrentUser(user)
+                userRepository.setFCMToken(token)
 
                 // Check if user is banned during registration
                 val registrationSuccess = userRepository.registerUser()

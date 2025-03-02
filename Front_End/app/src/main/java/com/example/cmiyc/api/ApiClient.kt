@@ -1,6 +1,8 @@
 package com.example.cmiyc.api
 
 import okhttp3.OkHttpClient
+import okio.IOException
+import okhttp3.Interceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -14,7 +16,17 @@ object RetrofitClient {
         .readTimeout(5, TimeUnit.SECONDS)
         .writeTimeout(5, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
+        .addInterceptor { chain ->
+            try {
+                chain.proceed(chain.request())
+            } catch (e: IOException) {
+                // Force a new connection on network errors
+                val newRequest = chain.request().newBuilder().build()
+                chain.proceed(newRequest)
+            }
+        }
         .build()
+
 
     val retrofit: Retrofit by lazy {
         Retrofit.Builder()
