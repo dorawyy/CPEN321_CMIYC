@@ -1,114 +1,137 @@
 package com.example.cmiyc.navigation
 
-import android.app.Activity
-import android.util.Log
-import androidx.compose.runtime.*
-import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavHostController
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.cmiyc.ui.screens.*
+import android.Manifest
+import android.app.Activity
+import android.content.pm.PackageManager
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import com.example.cmiyc.repositories.UserRepository
-import com.example.cmiyc.ui.screens.FriendsScreen
-import com.example.cmiyc.ui.screens.HomeScreen
-import com.example.cmiyc.ui.screens.LogScreen
-import com.example.cmiyc.ui.screens.LoginScreen
-import com.example.cmiyc.ui.screens.ProfileScreen
-import com.mapbox.android.core.permissions.PermissionsListener
-import com.mapbox.android.core.permissions.PermissionsManager
-
-sealed class Screen(val route: String) {
-    object Login : Screen("login")
-    object Home : Screen("home")
-    object Profile : Screen("profile")
-    object Log : Screen("log")
-    object Friends : Screen("friends")
-}
 
 @Composable
-fun AppNavigation(
-    startDestination: String = Screen.Login.route,
-    navController: NavHostController = rememberNavController(),
-) {
+fun AppNavigation() {
+    val navController = rememberNavController()
+    val currentUser by UserRepository.currentUser.collectAsState()
+    val isLoggedIn = currentUser != null  // Derived state
+
+    // Location permission handling
     val context = LocalContext.current
+    val locationPermissions = arrayOf(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    )
 
-    val permissionsListener = remember {
-        object : PermissionsListener {
-            override fun onExplanationNeeded(permissionsToExplain: List<String>) {
-                Log.d("Permissions", "Explanation needed for: $permissionsToExplain")
-            }
-
-            override fun onPermissionResult(granted: Boolean) {
-                if (granted) {
-                    Log.d("Permissions", "Location permissions granted")
-                } else {
-                    Log.d("Permissions", "Location permissions denied")
-                }
-            }
+    // Check if we have the required location permissions
+    val hasLocationPermission = remember {
+        locationPermissions.all {
+            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
         }
     }
 
-    val permissionsManager = remember { PermissionsManager(permissionsListener) }
+    var permissionRequested by remember { mutableStateOf(false) }
 
+    // Permission launcher
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        permissionRequested = true
+        // We don't need to do anything with the result as we'll check permissions again when needed
+    }
+
+    val activity = context as Activity
+
+    // Request permissions if needed
     LaunchedEffect(Unit) {
-        if (!PermissionsManager.areLocationPermissionsGranted(context)) {
-            permissionsManager.requestLocationPermissions(context as Activity)
+        if (!hasLocationPermission && !permissionRequested) {
+            locationPermissionLauncher.launch(locationPermissions)
+        }
+
+        currentUser?.let { user ->
+            if (activity.intent.getBooleanExtra("NAVIGATE_TO_LOG", false)) {
+                navController.navigate("log")
+                // Clear the flag to avoid repeated navigation
+                activity.intent.removeExtra("NAVIGATE_TO_LOG")
+            }
         }
     }
 
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = if (isLoggedIn) "home" else "login"
     ) {
-        composable(Screen.Login.route) {
+        composable("login") {
             LoginScreen(
-                onLoginSuccess = { email, displayName, idToken ->
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+                onLoginSuccess = { _, _, _ ->
+                    navController.navigate("home") {
+                        popUpTo("login") { inclusive = true }
                     }
                 }
             )
         }
 
-        composable(Screen.Home.route) {
+        composable("home") {
             HomeScreen(
                 onNavigateToProfile = {
-                    navController.navigate(Screen.Profile.route)
+                    navController.navigate("profile")
                 },
                 onNavigateToLog = {
-                    navController.navigate(Screen.Log.route)
+                    navController.navigate("log")
                 },
                 onNavigateToFriends = {
-                    navController.navigate(Screen.Friends.route)
+                    navController.navigate("friends")
                 },
+                onNavigateToAdmin = {
+                    navController.navigate("admin")
+                }
             )
         }
 
-        composable(Screen.Profile.route) {
+        composable("profile") {
             ProfileScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.navigateUp()
                 },
                 onSignedOut = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
+                    navController.navigate("login") {
+                        popUpTo(navController.graph.id) { inclusive = true }
                     }
                 }
             )
         }
 
-        composable(Screen.Friends.route) {
-            FriendsScreen(
+        composable("log") {
+            LogScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.navigateUp()
                 }
             )
         }
 
-        composable(Screen.Log.route) {
-            LogScreen(
+        composable("friends") {
+            FriendsScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.navigateUp()
+                }
+            )
+        }
+
+        composable("admin") {
+            AdminScreen(
+                onNavigateBack = {
+                    navController.navigateUp()
                 }
             )
         }

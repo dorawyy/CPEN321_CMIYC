@@ -50,7 +50,15 @@ class LoginViewModel(
                     fcmToken = token,
                 )
                 userRepository.setCurrentUser(user)
-                userRepository.registerUser()
+                userRepository.setFCMToken(token)
+
+                // Check if user is banned during registration
+                val registrationSuccess = userRepository.registerUser()
+                if (!registrationSuccess) {
+                    _loginState.value = LoginState.Banned
+                    return@launch
+                }
+
                 _loginState.value = LoginState.Success(
                     email = email,
                     displayName = displayName,
@@ -91,4 +99,5 @@ sealed class LoginState {
         val fcmToken: String? = null
     ) : LoginState()
     data class Error(val message: String) : LoginState()
+    object Banned : LoginState() // New state for banned users
 }

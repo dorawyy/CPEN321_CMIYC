@@ -1,10 +1,11 @@
-# M3 - Requirements and Design
+# M4 - Requirements and Design
 
 ## 1. Change History
 
-| Date | Modification Description | Rationale |
-| ---- | ------------------------ | --------- |
-|      |                          |           |
+| Date     | Modification Description | Rationale                                         |
+| -------- | ------------------------ | ------------------------------------------------- |
+| 2025.3.1 | Use case diagram         | Implemented feedback from TA                      |
+| 2025.3.1 | 4.1 Main Components      | Updated to accurately reflect our app’s use cases |
 
 ---
 
@@ -26,25 +27,25 @@
 
 ### 3.1. Use-Case Diagram
 
-<img src="./images/M3/Use-Case.png" alt="My Image" width="100%"/>
+<img src="./images/M4/Use-Case.png" alt="My Image" width="100%"/>
 
 ### 3.2. Actors Description
 
-1. **User**: A person who uses the app to share their real-time location and update their status.
-2. **Admin**: A person who can have access to the backend and manages the system data.
+1. **User**: A person who uses the app to share their real-time location and update their status and view their friend’s location.
+2. **Admin**: A person who can have access to block users
 
 ### 3.3. Functional Requirements
 
-#### **FR1: Authentication using Google**
+#### **FR1: Login with Google Authentication**
 
 - **Overview**:
 
-  1. Registration & Log in
+  1. Google Login
   2. Log out
 
 - **Detailed Flow for Each Independent Scenarios**:
 
-  - **FR1_1**: Registration and Login using Google Authentication service
+  - **FR1_1**: Google Login
 
     - **Description**: When no session is active, new and existing users use Google Authentication service to start a session.
     - **Primary Actors**: User, Admin
@@ -76,7 +77,7 @@
 
   1. Add Friend
   2. Remove Friend
-  3. Accept Friend
+  3. Respond to Friend Requests
 
 - **Detailed Flow for Each Independent Scenarios**:
 
@@ -101,18 +102,14 @@
     - **Primary actor(s)**: User
     - **Success scenario(s)**:
       1. User selects a friend to remove.
-      2. The friend is removed from the friend list.
-      3. The user is also removed from the friend’s list.
+      2. The friend is removed from the user's friend list.
+      3. The user is also removed from the user's friend list.
     - **Failure scenario(s)**:
       - 1a. Removal fails due to a server issue.
         - 1a1. Display an error message.
-        - 1a2. Retry removing the friend.
-      - 2a. User attempts to remove a non-existent friend.
-        - 2a1. Display a message indicating the friend is not in the list.
-      - 3a. Friend’s list does not update correctly.
-        - 3a1. Ensure server synchronization and retry adding the user to friend’s list.
+        - 1a2. Prompt the user to retry removing the friend.
 
-  - **FR2_3: Accept Friend**
+  - **FR2_3: Respond to Friend Requests**
     - **Description**: The user can accept or deny friend requests.
     - **Primary actor(s)**: User, Friend
     - **Success scenario(s)**:
@@ -120,9 +117,6 @@
       2. If the user accepts, that friend is added to their friend list and the friend’s list adds the user.
       3. If the user denies, the friend request is cleared.
     - **Failure scenario(s)**:
-      - 1a. Accept request fails due to a network issue.
-        - 1a1. Display an error message.
-        - 1a2. Retry the accepted request.
       - 2a. Friend’s list does not update correctly.
         - 2a1. Ensure server synchronization and retry adding the user to friend’s list.
 
@@ -130,13 +124,11 @@
 
 - **Overview**:
 
-  1. Friend Icon on the Map
-  2. Log of Invited Activities
-  3. Real-Time Notifications
+  1. Show Friends’ Locations
 
 - **Detailed Flow for Each Independent Scenarios**:
 
-  - **FR3.1 Friend Icon on the Map**
+  - **FR3.1 Show Friends’ Locations**
 
     - **Description**: Users can view their friend’s real-time location.
     - **Primary actor(s)**: User
@@ -150,84 +142,58 @@
         - 1a2. Retry location fetching.
       - 2a. Map fails to move in response to the user.
         - 2a1. Display an error message.
-        - 2a2. Reload the app.
-
-  - **FR3.2 Log of Invited Activities**
-
-    - **Description**: The user can view a log with all the previously invited activities.
-    - **Primary actor(s)**: User
-    - **Main success scenario**:
-      1. The user switches to the log page.
-      2. The user can scroll up and down the log to see the previous invited activities.
-    - **Failure scenario(s)**:
-      - 1a. Server fails to update the log of previously invited activities.
-        - 1a1. Display an error message.
-        - 1a2. Retry activity fetching.
-
-  - **FR3.3 Real-Time Notifications**
-    - **Description**: The user receives real-time notifications for friend activity status updates.
-    - **Primary actor(s)**: User
-    - **Main success scenario**:
-      1. User receives a notification for an activity invitation or when entering a radius of a previous activity invitation.
-    - **Failure scenario(s)**:
-      - 1a. Notification fails to send due to server issues.
-        - 1a1. Log the failure.
-        - 1a2. Retry sending the notification.
-      - 1b. Notification is delayed.
-        - 1b1. App displays a message notifying the user of the delay.
+        - 2a2. Prompt the user to reload the app
 
 #### **FR4: Broadcast Activity**
 
 - **Overview**:
 
-  1. Set activity message & Real-time push Notification to all friends
+  1. Set activity message & send a real-time push notification to all nearby friends
   2. Post a new log to all friends' log list
 
 - **Detailed Flow for Each Independent Scenarios**:
 
-  - **FR4.1 Set activity message & Real-time push Notification to all friends**
+  - **FR4.1 Set activity message & send a real-time push notification to all nearby friends**
 
-    - **Description**: From the Map page, users can enter their activity message and click on broadcast to let all their friends know.
+    - **Description**: From the map page, users can enter their activity message and click on broadcast to let all their friends know.
     - **Primary actor(s)**: User
     - **Main success scenarios**:
-      1. The user is on the Map page and sets their activity message.
-      2. User clicks broadcast.
-      3. User’s current activity along with the message “join them” is sent via push notifications to User’s friends.
-      4. User’s friend clicks on push notification and is redirected to the map page and centered to the sender’s location.
+      1. The user is on the map page and sets their activity message.
+      2. User clicks "Broadcast".
+      3. The user’s current activity is sent via push notifications to the user’s friends in a specified radius.
     - **Failure scenarios**:
-      - 2a. Broadcast fails due to a network error.
-        - 2a1. Display network error message and show retry button.
-      - 3a. Push notification is not delivered due to a network error.
-        - 3a1. Retry sending push notification up to a maximum of 5 times without notifying the user of the error.
-        - 3a2. If the error still persists after 5 retries, show an error message to the user with a retry button.
+      - 2a. Broadcasting fails due to network error.
+        - 2a1. Display network error message and prompt user to retry broadcasting.
+      - 3a. Push notification is not delivered due to network error
+        - 3a1. Retry sending push notification up to a maximum of 5 times without notifying user of the error
+        - 3a2. If the error still persists after 5 retries, show an error message to the user and prompt them to try broadcasting again.
 
   - **FR4.2 Post a new log to all friends’ log list**
-    - **Description**: When User broadcasts activity, a new log entry will be added to all friends’ log pages.
+
+    - **Description**: When a user broadcasts activity, a new log entry will be added to all friends’ activity logs.
     - **Primary actor(s)**: User
     - **Main success scenarios**:
       1. User clicks on the broadcast with a set activity message.
-      2. Every User’s friends’ log list is updated with a new entry.
+      2. Every User’s friends’ log list is updated with a new entry. We want it to update every time there is a new entry as we think real-time makes the app more enjoyable.
       3. The new entry contains the broadcaster’s name, activity message, and location.
     - **Failure scenarios**:
-      - 1a. Sending log entry fails due to a network error.
+      - 1a. Sending broadcast data fails due to network error.
         - 1a1. App retries sending the log message 5 times without notifying the user.
-        - 1a2. If max attempts are exceeded, display an error message to the user with a retry button.
+        - 1a2. If max attempts are exceeded, display error messages to the user and prompt them to retry broadcasting.
 
-#### **FR5: Manage User Profile**
+#### **FR5: View Activity Logs**
 
 - **Overview**:
 
-  1. Update Personal Information
-  2. Change Profile Photo
+  1. User views the activity logs.
 
 - **Detailed Flow for Each Independent Scenarios**:
 
-  - **FR5.1 Update Personal Information**
-
-    - **Description**: Users can edit their personal details, such as name, bio, and contact information, to keep their profile up to date.
+  - **FR5.1 View Notifications**
+    - **Description**: The user can view a list of all activity logs received from their friends.
     - **Primary actor(s)**: User
     - **Main success scenario**:
-      1. Users navigate to their profile settings pages.
+      1. The user switches to the “Activity Log” page
       2. Users edit their personal information (e.g., name, bio, contact details).
       3. Changes are saved and reflected in the user’s profile.
     - **Failure scenario(s)**:
@@ -237,19 +203,6 @@
       - 2a. Invalid input is detected (e.g., empty name, special characters in bio).
         - 2a1. App displays an error message prompting for corrections.
 
-  - **FR5.2 Change Profile Photo**
-    - **Description**: Users can upload or update their profile picture to personalize their account.
-    - **Primary actor(s)**: User
-    - **Main success scenario**:
-      1. User selects a new profile photo from their device.
-      2. The app uploads and processes the image.
-      3. The new profile photo is updated and displayed in the user’s profile.
-    - **Failure scenario(s)**:
-      - 1a. Image upload fails due to a network issue.
-        - 1a1. App displays an error message and allows retrying.
-      - 2a. Uploaded file is not in an accepted format (e.g., non-image file).
-        - 2a1. App displays a warning and prompts the user to select a valid image file.
-
 #### **FR6: Manage Users**
 
 - **Overview**:
@@ -258,10 +211,8 @@
   2. Restrict User
 
 - **Detailed Flow for Each Independent Scenarios**:
-
   - **FR6.1 Ban User**
-
-    - **Description**: Admins can permanently ban users who engage in harmful behavior, ensuring a safe environment.
+    - **Description**: Admins can permanently ban users who engage in harmful behavior, ensuring a safe environment. The criteria for banning users is up to the admin. It could be because someone is using the app in a harmful manner as in they are stalking their friends.
     - **Primary actor(s)**: Admin
     - **Main success scenarios**:
       1. Admin selects a user to ban from the system.
@@ -271,23 +222,6 @@
       - 1a. Ban action fails due to a server issue.
         - 1a1. System logs the failure and retries the operation.
         - 1a2. Admin receives an error message if retries fail.
-      - 2a. Users attempt to access the app after being banned.
-        - 2a1. App displays a message informing the user of their ban status.
-
-  - **FR6.2 Restrict User**
-    - **Description**: Admins can temporarily restrict users by limiting their actions, such as posting status updates or sending friend invitations.
-    - **Primary actor(s)**: Admin
-    - **Main success scenarios**:
-      1. Admin selects a user to restrict.
-      2. Restrictions (e.g., disabling location sharing, preventing friend requests) are applied.
-      3. The restricted user is notified of their limited access.
-      4. Admin can later remove restrictions if necessary.
-    - **Failure scenarios**:
-      - 1a. Restriction fails due to a system error.
-        - 1a1. System logs the failure and retries applying the restriction.
-        - 1a2. Admin is notified if the restriction does not apply successfully.
-      - 2a. User tries to perform restricted actions.
-        - 2a1. App displays a message explaining the restriction.
 
 ### 3.5. Non-Functional Requirements
 
@@ -405,7 +339,7 @@
 
 ### 4.5. Dependencies Diagram
 
-<img src="./images/M3/Dependency-Diagram.jpg" alt="Dependency Diagram" width="100%"/>
+<img src="./images/M4/Dependency-Diagram.jpg" alt="Dependency Diagram" width="100%"/>
 
 ---
 
@@ -413,27 +347,27 @@
 
 #### **FR1: Authentication using Google**
 
-<img src="./images/M3/FR1.png" alt="FR1 Diagram" width="100%"/>
+<img src="./images/M4/FR1.png" alt="FR1 Diagram" width="100%"/>
 
 #### **FR2: Manage Friends**
 
-<img src="./images/M3/FR2.png" alt="FR2 Diagram" width="100%"/>
+<img src="./images/M4/FR2.png" alt="FR2 Diagram" width="100%"/>
 
 #### **FR3: View Friends' Location**
 
-<img src="./images/M3/FR3.png" alt="FR3 Diagram" width="100%"/>
+<img src="./images/M4/FR3.png" alt="FR3 Diagram" width="100%"/>
 
 #### **FR4: Broadcast Activity**
 
-<img src="./images/M3/FR4.png" alt="FR4 Diagram" width="100%"/>
+<img src="./images/M4/FR4.png" alt="FR4 Diagram" width="100%"/>
 
 #### **FR5: Manage User**
 
-<img src="./images/M3/FR5.png" alt="FR5 Diagram" width="100%"/>
+<img src="./images/M4/FR5.png" alt="FR5 Diagram" width="100%"/>
 
 #### **FR5: Manage User Profile**
 
-<img src="./images/M3/FR6.png" alt="FR6 Diagram" width="100%"/>
+<img src="./images/M4/FR6.png" alt="FR6 Diagram" width="100%"/>
 
 ---
 
@@ -462,7 +396,7 @@
   - The unoptimized version of the location manager involves storing the key-value pair `{UserID : {latitude, longitude}}` for each `UserID`. On location updates, we would update the corresponding value. However, computing if another friend is nearby requires searching all friends’ locations. This linear time computation does not scale well when we have more users with more friends.
   - A quadtree is a tree-like data structure. Each node represents a rectangle on the Earth's surface. Each node has 4 children, each representing a quadrant of the parent. Since we know the broadcaster’s location, we only need to search for friends in one of the nodes above. This greatly improves efficiency as we reduce to a logarithmic time complexity.
 
-  - <img src="./images/M3/quadtree.jpeg" alt="QuadTree Example" width="100%"/>
+  - <img src="./images/M4/quadtree.jpeg" alt="QuadTree Example" width="100%"/>
 
 - **Design**:
 

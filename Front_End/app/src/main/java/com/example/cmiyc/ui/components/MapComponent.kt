@@ -15,7 +15,6 @@ import com.example.cmiyc.R
 import com.example.cmiyc.data.Friend
 import com.example.cmiyc.repositories.UserRepository
 import com.mapbox.geojson.Point
-import com.mapbox.maps.Image
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
@@ -27,6 +26,12 @@ import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.turf.TurfMeasurement
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
 
 @Composable
 fun MapComponent(
@@ -40,7 +45,7 @@ fun MapComponent(
 
     var isFirstUpdate = true
     // Define a fixed size for the friend icon (in dp)
-    val iconSizeDp = 72.dp
+    val iconSizeDp = 64.dp
     val density = LocalDensity.current
     val iconSizePx = with(density) { iconSizeDp.roundToPx() }
 
@@ -48,81 +53,108 @@ fun MapComponent(
         return TurfMeasurement.distance(from, to) * 1000 // Convert km to meters
     }
 
-    MapboxMap(
-        mapViewportState = mapViewportState,
-        modifier = modifier
-    ) {
-        MapEffect(Unit) { mapView ->
-            mapView.location.updateSettings {
-                locationPuck = createDefault2DPuck(withBearing = true)
-                enabled = true
-                puckBearing = PuckBearing.COURSE
-                puckBearingEnabled = true
+    Box(modifier = modifier.fillMaxSize()) {
+        MapboxMap(
+            mapViewportState = mapViewportState,
+            modifier = modifier
+        ) {
+            MapEffect(Unit) { mapView ->
+                mapView.location.updateSettings {
+                    locationPuck = createDefault2DPuck(withBearing = true)
+                    enabled = true
+                    puckBearing = PuckBearing.COURSE
+                    puckBearingEnabled = true
+                }
+
+                mapView.location.addOnIndicatorPositionChangedListener { point ->
+                    if (isFirstUpdate) {
+                        mapViewportState.setCameraOptions(
+                            cameraOptions {
+                                center(point)
+                                zoom(14.0)
+                            }
+                        )
+                        isFirstUpdate = false
+                    } else {
+                        mapViewportState.setCameraOptions(
+                            cameraOptions { center(point) }
+                        )
+                    }
+
+                    // For location updates
+                    val shouldUpdate = if (lastUpdatedLocation == null) {
+                        true  // Always update the first time
+                    } else {
+                        calculateDistance(lastUpdatedLocation!!, point) > thresholdDistance
+                    }
+
+                    if (shouldUpdate) {
+                        Log.d(
+                            "MapComponent", "Location updated: moved ${
+                                lastUpdatedLocation?.let {
+                                    calculateDistance(it, point).toInt()
+                                } ?: "first update"
+                            } meters")
+
+                        lastUpdatedLocation = point
+                        UserRepository.updateUserLocation(point)
+                    }
+                }
             }
 
-            mapView.location.addOnIndicatorPositionChangedListener { point ->
-                if (isFirstUpdate) {
+            val defaultUserIcon = rememberIconImage(
+                key = R.drawable.default_user_icon,
+                painter = painterResource(id = R.drawable.default_user_icon)
+            )
+
+            friends.forEach { friend ->
+                friend.location?.let { location ->
+                    val friendIcon = if (!friend.photoURL.isNullOrEmpty()) {
+                        LoadFriendIcon(
+                            context = context,
+                            photoUrl = friend.photoURL,
+                            iconSizePx = iconSizePx,
+                        )
+                    } else {
+                        defaultUserIcon
+                    }
+                    PointAnnotation(point = location) {
+                        interactionsState.onClicked {
+                            Toast.makeText(
+                                context,
+                                "Clicked on ${friend.name}'s annotation",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            true
+                        }
+                        iconImage = friendIcon
+                        textField = friend.name
+                        textOffset = listOf(0.0, 2.0)
+                    }
+                }
+            }
+        }
+
+        // FloatingActionButton to reset the camera to the user's last known location
+        FloatingActionButton(
+            onClick = {
+                lastUpdatedLocation?.let { point ->
                     mapViewportState.setCameraOptions(
                         cameraOptions {
                             center(point)
                             zoom(14.0)
                         }
                     )
-                    isFirstUpdate = false
-                } else {
-                    mapViewportState.setCameraOptions(
-                        cameraOptions { center(point) }
-                    )
-                }
-
-                // For location updates
-                val shouldUpdate = if (lastUpdatedLocation == null) {
-                    true  // Always update the first time
-                } else {
-                    calculateDistance(lastUpdatedLocation!!, point) > thresholdDistance
-                }
-
-                if (shouldUpdate) {
-                    Log.d("MapComponent", "Location updated: moved ${lastUpdatedLocation?.let {
-                        calculateDistance(it, point).toInt()
-                    } ?: "first update"} meters")
-
-                    lastUpdatedLocation = point
-                    UserRepository.updateUserLocation(point)
-                }
-            }
-        }
-
-        val defaultUserIcon = rememberIconImage(
-            key = R.drawable.default_user_icon,
-            painter = painterResource(id = R.drawable.default_user_icon)
-        )
-
-        friends.forEach { friend ->
-            friend.location?.let { location ->
-                val friendIcon = if (!friend.photoURL.isNullOrEmpty()) {
-                    LoadFriendIcon(
-                        context = context,
-                        photoUrl = friend.photoURL,
-                        iconSizePx = iconSizePx,
-                    )
-                } else {
-                    defaultUserIcon
-                }
-                PointAnnotation(point = location) {
-                    interactionsState.onClicked {
-                        Toast.makeText(
-                            context,
-                            "Clicked on ${friend.name}'s annotation",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        true
-                    }
-                    iconImage = friendIcon
-                    textField = friend.name
-                    textOffset = listOf(0.0, 2.0)
-                }
-            }
+                } ?: Toast.makeText(context, "User location not available", Toast.LENGTH_SHORT).show()
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.locate_me),
+                contentDescription = "Reset Camera"
+            )
         }
     }
 }

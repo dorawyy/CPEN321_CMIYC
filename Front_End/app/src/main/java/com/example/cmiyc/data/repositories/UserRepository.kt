@@ -2,6 +2,7 @@ package com.example.cmiyc.repositories
 
 import com.example.cmiyc.api.ApiClient
 import com.example.cmiyc.api.dto.*
+import com.example.cmiyc.data.AdminUserItem
 import com.example.cmiyc.data.Log
 import com.example.cmiyc.data.User
 import com.mapbox.geojson.Point
@@ -21,6 +22,14 @@ object UserRepository {
 
     private val _logs = MutableStateFlow<List<Log>>(emptyList())
     val logs: StateFlow<List<Log>> = _logs
+
+    // Add isAdmin flag
+    private val _isAdmin = MutableStateFlow(false)
+    val isAdmin: StateFlow<Boolean> = _isAdmin
+
+    // For admin functionality
+    private val _adminUsers = MutableStateFlow<List<AdminUserItem>>(emptyList())
+    val adminUsers: StateFlow<List<AdminUserItem>> = _adminUsers
 
     // Queue for pending location updates
     private val locationUpdateQueue = ConcurrentLinkedQueue<LocationDTO>()
@@ -132,7 +141,30 @@ object UserRepository {
         locationUpdateQueue.offer(request)
     }
 
-    suspend fun registerUser() {
+    suspend fun setFCMToken(fcmToken: String) {
+        try {
+            val userId = getCurrentUserId()
+            val fcmTokenRequest = FCMTokenRequestDTO(fcmToken)
+            val startTime = System.currentTimeMillis()
+            val response = api.setFCMToken(userId, fcmTokenRequest)
+            val endTime = System.currentTimeMillis()
+            println("Set FCM Token API call took ${endTime - startTime} ms")
+            if (!response.isSuccessful) {
+                throw Exception("Failed to set FCM token: ${response.code()}")
+            }
+        } catch (e: SocketTimeoutException) {
+            println("Network timeout when registering user: ${e.message}")
+            throw e
+        } catch (e: IOException) {
+            println("Network error when registering user: ${e.message}")
+            throw e
+        } catch (e: Exception) {
+            println("Error registering user: ${e.message}")
+            throw e
+        }
+    }
+
+    suspend fun registerUser(): Boolean {
         try {
             val userRegistrationRequest = UserRegistrationRequestDTO(
                 userID = _currentUser.value?.userId ?: "",
@@ -147,6 +179,17 @@ object UserRepository {
             if (!response.isSuccessful) {
                 throw Exception("Failed to register user: ${response.code()}")
             }
+
+            // Handle admin status and banned status
+            response.body()?.let {
+                if (it.isBanned) {
+                    // User is banned
+                    return false
+                }
+                // Set admin status
+                _isAdmin.value = it.isAdmin
+            }
+            return true
         } catch (e: SocketTimeoutException) {
             println("Network timeout when registering user: ${e.message}")
             throw e
@@ -186,6 +229,7 @@ object UserRepository {
 
     fun clearCurrentUser() {
         _currentUser.value = null
+        _isAdmin.value = false
     }
 
     private fun LogDTO.toLog(): Log = Log(
@@ -223,6 +267,61 @@ object UserRepository {
 
     fun getLogs(): List<Log> {
         return _logs.value
+    }
+
+    // Convert UserDTO to AdminUserItem
+    private fun UserDTO.toAdminUserItem(): AdminUserItem = AdminUserItem(
+        userId = userID,
+        name = displayName,
+        email = email,
+        photoURL = photoURL,
+        isBanned = isBanned
+    )
+
+    // Get all users for admin screen
+    suspend fun getAllUsers(): Result<List<AdminUserItem>> {
+        return try {
+            val userId = _currentUser.value?.userId ?:
+            return Result.failure(Exception("User not authenticated"))
+            val startTime = System.currentTimeMillis()
+            val response = api.getAllUsers(userId)
+            val endTime = System.currentTimeMillis()
+            println("Get All Users API call took ${endTime - startTime} ms")
+            if (response.isSuccessful) {
+                val users = response.body()?.map { it.toAdminUserItem() } ?: emptyList()
+                _adminUsers.value = users
+                Result.success(users)
+            } else {
+                Result.failure(Exception("Failed to fetch users: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Ban a user
+    suspend fun banUser(targetUserId: String): Result<Unit> {
+        return try {
+            val userId = _currentUser.value?.userId ?:
+            return Result.failure(Exception("User not authenticated"))
+            val startTime = System.currentTimeMillis()
+            val response = api.banUser(
+                targetUserId,
+                BanUserRequestDTO(adminID = userId)
+            )
+            val endTime = System.currentTimeMillis()
+            println("Ban User API call took ${endTime - startTime} ms")
+
+            if (response.isSuccessful) {
+                // Refresh the users list after ban
+                getAllUsers()
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed to ban user: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     suspend fun signOut() {

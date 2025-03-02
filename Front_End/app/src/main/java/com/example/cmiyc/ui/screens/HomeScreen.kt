@@ -2,6 +2,7 @@ package com.example.cmiyc.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +18,7 @@ import com.example.cmiyc.ui.components.MapComponent
 import com.example.cmiyc.ui.viewmodels.HomeViewModel
 import com.example.cmiyc.ui.viewmodels.HomeViewModelFactory
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,6 +26,7 @@ fun HomeScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToLog: () -> Unit,
     onNavigateToFriends: () -> Unit,
+    onNavigateToAdmin: () -> Unit,
 ) {
     val viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory())
     val context = LocalContext.current
@@ -31,6 +34,9 @@ fun HomeScreen(
     var userInput by remember { mutableStateOf("") }
     val state by viewModel.state.collectAsState()
     val mapViewportState = rememberMapViewportState()
+
+    // Collect isAdmin state from repository
+    val isAdmin by UserRepository.isAdmin.collectAsState()
 
     // Start polling when screen becomes active, stop when inactive
     DisposableEffect(Unit) {
@@ -59,6 +65,17 @@ fun HomeScreen(
                             contentDescription = "Friends"
                         )
                     }
+
+                    // Show admin button for admin users
+                    if (isAdmin) {
+                        IconButton(onClick = onNavigateToAdmin) {
+                            Icon(
+                                Icons.Default.AdminPanelSettings,
+                                contentDescription = "Admin Panel"
+                            )
+                        }
+                    }
+
                     IconButton(onClick = onNavigateToProfile) {
                         Icon(
                             painter = painterResource(id = R.drawable.user_profile_icon),
@@ -141,6 +158,15 @@ fun HomeScreen(
                     }
                 }
             )
+        }
+
+        LaunchedEffect(state.broadcastSuccess) {
+            if (state.broadcastSuccess) {
+                // Show a snackbar or some other indicator
+                // Then reset the success flag after showing
+                delay(2000) // Show for 2 seconds
+                viewModel.clearBroadcastSuccess()
+            }
         }
     }
 }

@@ -1,20 +1,32 @@
 package com.example.cmiyc.api
 
 import okhttp3.OkHttpClient
+import okio.IOException
+import okhttp3.Interceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    private const val BASE_URL = "http://54.193.106.16/"
+    private const val BASE_URL = "http://52.53.192.244/"
 
     // Create OkHttpClient with custom timeouts
     private val okHttpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)  // Increased from default 10 seconds
-        .readTimeout(30, TimeUnit.SECONDS)     // Increased from default 10 seconds
-        .writeTimeout(30, TimeUnit.SECONDS)    // Increased from default 10 seconds
-        .retryOnConnectionFailure(true)        // Retry on connection failures
+        .connectTimeout(5, TimeUnit.SECONDS)
+        .readTimeout(5, TimeUnit.SECONDS)
+        .writeTimeout(5, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
+        .addInterceptor { chain ->
+            try {
+                chain.proceed(chain.request())
+            } catch (e: IOException) {
+                // Force a new connection on network errors
+                val newRequest = chain.request().newBuilder().build()
+                chain.proceed(newRequest)
+            }
+        }
         .build()
+
 
     val retrofit: Retrofit by lazy {
         Retrofit.Builder()

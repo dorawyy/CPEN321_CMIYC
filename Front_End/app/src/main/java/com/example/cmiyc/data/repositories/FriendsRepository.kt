@@ -1,5 +1,6 @@
 package com.example.cmiyc.repository
 
+import android.util.Log
 import com.example.cmiyc.api.ApiClient
 import com.example.cmiyc.data.Friend
 import com.example.cmiyc.data.FriendRequest
@@ -36,27 +37,25 @@ object FriendsRepository {
     // Background polling jobs
     private var friendsPollingJob: Job? = null
 
-    // Flag to control the background worker state
-    @Volatile
-    private var isActive = false
-
     // Update polling frequency for Home Screen (5 seconds)
     fun startHomeScreenPolling() {
-        if (isActive) return
-        isActive = true
-
-        friendsPollingJob?.cancel()
+        stopHomeScreenPolling() // Cancel any existing job first
         friendsPollingJob = coroutineScope.launch {
             while (isActive) {
                 fetchFriends()
-                delay(5000)
+                try {
+                    delay(5000)
+                } catch (e: CancellationException) {
+                    // Handle cancellation during delay
+                    throw e
+                }
             }
         }
     }
 
     fun stopHomeScreenPolling() {
-        isActive = false
         friendsPollingJob?.cancel()
+        friendsPollingJob = null
     }
 
     private fun FriendDTO.toFriend(): Friend = Friend(
@@ -119,6 +118,7 @@ object FriendsRepository {
         } catch (e: IOException) {
             println("Network error when fetching friends: ${e.message}")
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             println("Error fetching friends: ${e.message}")
         }
     }
@@ -238,11 +238,5 @@ object FriendsRepository {
         } catch (e: Exception) {
             Result.failure(e)
         }
-    }
-
-    // Clean up resources when the app is shutting down
-    fun cleanup() {
-        stopHomeScreenPolling()
-        coroutineScope.cancel()
     }
 }

@@ -36,6 +36,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     private fun sendNotification(messageTitle: String, messageBody: String) {
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        intent.putExtra("NAVIGATE_TO_LOG", true) // Add this flag
         val requestCode = 0
         val pendingIntent = PendingIntent.getActivity(
             this,
