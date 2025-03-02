@@ -1,5 +1,3 @@
-package com.example.cmiyc.ui.screens
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -10,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cmiyc.R
 import com.example.cmiyc.repositories.UserRepository
@@ -55,6 +54,8 @@ fun HomeScreen(
         }
     }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -93,6 +94,9 @@ fun HomeScreen(
                     }
                 }
             )
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
         }
     ) { paddingValues ->
         Column(
@@ -155,7 +159,7 @@ fun HomeScreen(
             )
         }
 
-        // Error handling
+        // Error handling for broadcast errors
         state.error?.let { error ->
             AlertDialog(
                 onDismissRequest = { viewModel.clearError() },
@@ -169,11 +173,33 @@ fun HomeScreen(
             )
         }
 
+        // Error handling for polling errors
+        state.pollingError?.let { error ->
+            AlertDialog(
+                onDismissRequest = { viewModel.clearPollingError() },
+                title = { Text("Connection Issue") },
+                text = {
+                    Column {
+                        Text(error)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("The app will continue to try updating in the background.")
+                    }
+                },
+                confirmButton = {
+                    Button(onClick = { viewModel.clearPollingError() }) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
+
         LaunchedEffect(state.broadcastSuccess) {
             if (state.broadcastSuccess) {
-                // Show a snackbar or some other indicator
-                // Then reset the success flag after showing
-                delay(2000) // Show for 2 seconds
+                // Show success snackbar
+                snackbarHostState.showSnackbar(
+                    message = "Activity broadcast successfully!",
+                    duration = SnackbarDuration.Short
+                )
                 viewModel.clearBroadcastSuccess()
             }
         }

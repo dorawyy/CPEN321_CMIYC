@@ -15,11 +15,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,7 +66,7 @@ fun LogScreen(
                     }
                 }
             )
-        }
+        },
     ) { padding ->
         Box(
             modifier = Modifier
@@ -93,18 +95,27 @@ fun LogScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        itemsIndexed( // Use itemsIndexed to get the index
+                        itemsIndexed(
                             items = state.logs,
-                            key = { index, log -> "${index}_${log.sender}${log.timestamp}" } // Include index in key
+                            key = { index, log -> "${index}_${log.sender}${log.timestamp}" }
                         ) { index, log ->
                             LogItem(log = log)
                         }
                     }
                 }
             }
+
+            // Show loading spinner when refreshing with existing logs
+            if (state.isLoading && state.logs.isNotEmpty()) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(16.dp)
+                )
+            }
         }
 
-        // Error Dialog
+        // Error Dialog (for one-time errors)
         state.error?.let { error ->
             AlertDialog(
                 onDismissRequest = { viewModel.clearError() },
@@ -115,6 +126,26 @@ fun LogScreen(
                         Text("OK")
                     }
                 }
+            )
+        }
+
+        // Persistent Refresh Error Dialog (after multiple failures)
+        state.refreshError?.let { error ->
+            AlertDialog(
+                onDismissRequest = { viewModel.clearRefreshError() },
+                title = { Text("Sync Problem") },
+                text = {
+                    Column {
+                        Text(error)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("The app will continue to try refreshing in the background.")
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.clearRefreshError() }) {
+                        Text("OK")
+                    }
+                },
             )
         }
     }

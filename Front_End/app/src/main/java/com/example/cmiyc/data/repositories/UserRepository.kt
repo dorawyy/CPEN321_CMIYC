@@ -45,6 +45,13 @@ object UserRepository {
     private var consecutiveFailures = 0
     private val maxRetryDelay = 60.seconds
 
+    // Location update state
+    private val _locationUpdateError = MutableStateFlow<String?>(null)
+    val locationUpdateError: StateFlow<String?> = _locationUpdateError
+
+    // Maximum failures before showing an error
+    private val maxConsecutiveFailures = 20
+
     init {
         startLocationUpdateWorker()
     }
@@ -93,29 +100,47 @@ object UserRepository {
                     }
                     locationUpdateQueue.clear()
                     consecutiveFailures = 0 // Reset failure counter on success
+
+                    // Clear any existing error
+                    _locationUpdateError.value = null
                 } else {
                     locationUpdateQueue.offer(latestUpdate)
                     consecutiveFailures++
                     println("Failed to update location: ${response.code()} (Failures: $consecutiveFailures)")
+                    checkConsecutiveFailures("Failed to update location. Your friends may not see your current position.")
                 }
             } catch (e: SocketTimeoutException) {
                 // Handle timeout specifically
                 locationUpdateQueue.offer(latestUpdate)
                 consecutiveFailures++
                 println("Network timeout when updating location: ${e.message} (Failures: $consecutiveFailures)")
+                checkConsecutiveFailures("Network timeout when updating location. Your friends may not see your current position.")
             } catch (e: IOException) {
                 // Handle network errors
                 locationUpdateQueue.offer(latestUpdate)
                 consecutiveFailures++
                 println("Network error when updating location: ${e.message} (Failures: $consecutiveFailures)")
+                checkConsecutiveFailures("Network error when updating location. Your friends may not see your current position.")
             } catch (e: Exception) {
                 locationUpdateQueue.offer(latestUpdate)
                 consecutiveFailures++
                 println("Error updating location: ${e.message} (Failures: $consecutiveFailures)")
+                checkConsecutiveFailures("Error updating location: ${e.message}. Your friends may not see your current position.")
             }
         } finally {
             isUpdating = false
         }
+    }
+
+    private fun checkConsecutiveFailures(errorMessage: String) {
+        if (consecutiveFailures >= maxConsecutiveFailures) {
+            _locationUpdateError.value = errorMessage
+        }
+    }
+
+    fun clearLocationUpdateError() {
+        _locationUpdateError.value = null
+        // Don't reset the counter here, let the system try to recover naturally
     }
 
     fun isAuthenticated(): Boolean {
@@ -235,6 +260,7 @@ object UserRepository {
     fun clearCurrentUser() {
         _currentUser.value = null
         _isAdmin.value = false
+        _isRegistrationComplete.value = false
     }
 
     private fun LogDTO.toLog(): Log = Log(

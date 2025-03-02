@@ -9,7 +9,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cmiyc.repositories.UserRepository
@@ -37,6 +36,7 @@ fun LoginScreen(
 
     // Track if banned dialog is showing
     var showBannedDialog by remember { mutableStateOf(false) }
+
     // Track if error dialog is showing
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
@@ -54,6 +54,17 @@ fun LoginScreen(
                 account?.photoUrl.toString(),
             )
         } catch (e: ApiException) {
+            showErrorDialog = true
+            // Google API error code 7 indicates a network error (no internet connection)
+            if (e.statusCode == 7) {
+                errorMessage = "Network connection error. Please check your internet connection and try again."
+            } else {
+                errorMessage = "Failed to sign in with Google: ${e.message ?: "Unknown error"}"
+            }
+            viewModel.handleSignInResult(null, null, null, null)
+        } catch (e: Exception) {
+            showErrorDialog = true
+            errorMessage = "Network error during sign in. Please check your internet connection and try again."
             viewModel.handleSignInResult(null, null, null, null)
         }
     }
@@ -89,38 +100,23 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        if (loginState is LoginState.Loading) {
-            // Show loading indicator
-            CircularProgressIndicator(
-                modifier = Modifier.padding(16.dp),
-                color = MaterialTheme.colorScheme.primary
-            )
+        Button(
+            onClick = {
+                val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken("154250715924-n0she152p8rq5gels8aak5d5g0t3ak9v.apps.googleusercontent.com")
+                    .requestEmail()
+                    .build()
 
-            Text(
-                text = "Signing in...",
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 8.dp)
+                val signInClient = GoogleSignIn.getClient(context, gso)
+                launcher.launch(signInClient.signInIntent)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             )
-        } else {
-            Button(
-                onClick = {
-                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                        .requestIdToken("154250715924-n0she152p8rq5gels8aak5d5g0t3ak9v.apps.googleusercontent.com")
-                        .requestEmail()
-                        .build()
-
-                    val signInClient = GoogleSignIn.getClient(context, gso)
-                    launcher.launch(signInClient.signInIntent)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Text(text = "Sign in with Google")
-            }
+        ) {
+            Text(text = "Sign in with Google")
         }
     }
 
@@ -145,14 +141,17 @@ fun LoginScreen(
     // Show error dialog
     if (showErrorDialog) {
         AlertDialog(
-            onDismissRequest = { showErrorDialog = false },
+            onDismissRequest = {
+                showErrorDialog = false
+                viewModel.resetState()
+            },
             title = { Text("Login Error") },
             text = { Text(errorMessage) },
             confirmButton = {
                 TextButton(
                     onClick = {
                         showErrorDialog = false
-                        viewModel.resetState() // Reset to initial state
+                        viewModel.resetState()
                     }
                 ) {
                     Text("OK")

@@ -8,6 +8,8 @@ import com.example.cmiyc.data.FriendRequest
 import com.example.cmiyc.repository.FriendsRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.io.IOException
+import java.net.SocketTimeoutException
 
 class FriendsViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -77,8 +79,12 @@ class FriendsViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 FriendsRepository.fetchFriendsOnce()
+            } catch (e: SocketTimeoutException) {
+                _uiState.update { it.copy(error = "Network timeout while loading friends. Please check your connection and try again.") }
+            } catch (e: IOException) {
+                _uiState.update { it.copy(error = "Network error while loading friends. Please check your connection and try again.") }
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message) }
+                _uiState.update { it.copy(error = "Failed to load friends: ${e.message}") }
             }
         }
     }
@@ -91,10 +97,27 @@ class FriendsViewModel : ViewModel() {
     fun loadFriendRequests() {
         viewModelScope.launch {
             try {
-                FriendsRepository.fetchFriendRequestsOnce()
-                _uiState.update { it.copy(showRequestsDialog = true) }
+                val result = FriendsRepository.fetchFriendRequestsOnce()
+                result.fold(
+                    onSuccess = {
+                        _uiState.update { it.copy(showRequestsDialog = true, error = null) }
+                    },
+                    onFailure = { e ->
+                        val errorMsg = when (e) {
+                            is SocketTimeoutException -> "Network timeout while loading friend requests. Please try again."
+                            is IOException -> "Network error while loading friend requests. Please check your connection."
+                            else -> "Failed to load friend requests: ${e.message}"
+                        }
+                        _uiState.update { it.copy(error = errorMsg) }
+                    }
+                )
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message) }
+                val errorMsg = when (e) {
+                    is SocketTimeoutException -> "Network timeout while loading friend requests. Please try again."
+                    is IOException -> "Network error while loading friend requests. Please check your connection."
+                    else -> "Failed to load friend requests: ${e.message}"
+                }
+                _uiState.update { it.copy(error = errorMsg) }
             }
         }
     }
@@ -109,8 +132,12 @@ class FriendsViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 FriendsRepository.fetchFriendsOnce()
+            } catch (e: SocketTimeoutException) {
+                _uiState.update { it.copy(error = "Network timeout while refreshing. Please try again later.") }
+            } catch (e: IOException) {
+                _uiState.update { it.copy(error = "Network error while refreshing. Please check your connection.") }
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message) }
+                _uiState.update { it.copy(error = "Failed to refresh: ${e.message}") }
             }
         }
     }
@@ -120,11 +147,26 @@ class FriendsViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val result = FriendsRepository.acceptFriendRequest(userId)
-                result.onFailure { e ->
-                    _uiState.update { it.copy(error = e.message) }
-                }
+                result.fold(
+                    onSuccess = {
+                        _uiState.update { it.copy(error = null) }
+                    },
+                    onFailure = { e ->
+                        val errorMsg = when (e) {
+                            is SocketTimeoutException -> "Network timeout while accepting friend request. Please try again."
+                            is IOException -> "Network error while accepting friend request. Please check your connection."
+                            else -> "Failed to accept friend request: ${e.message}"
+                        }
+                        _uiState.update { it.copy(error = errorMsg) }
+                    }
+                )
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message) }
+                val errorMsg = when (e) {
+                    is SocketTimeoutException -> "Network timeout while accepting friend request. Please try again."
+                    is IOException -> "Network error while accepting friend request. Please check your connection."
+                    else -> "Failed to accept friend request: ${e.message}"
+                }
+                _uiState.update { it.copy(error = errorMsg) }
             }
         }
     }
@@ -134,11 +176,26 @@ class FriendsViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val result = FriendsRepository.denyFriendRequest(userId)
-                result.onFailure { e ->
-                    _uiState.update { it.copy(error = e.message) }
-                }
+                result.fold(
+                    onSuccess = {
+                        _uiState.update { it.copy(error = null) }
+                    },
+                    onFailure = { e ->
+                        val errorMsg = when (e) {
+                            is SocketTimeoutException -> "Network timeout while declining friend request. Please try again."
+                            is IOException -> "Network error while declining friend request. Please check your connection."
+                            else -> "Failed to decline friend request: ${e.message}"
+                        }
+                        _uiState.update { it.copy(error = errorMsg) }
+                    }
+                )
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message) }
+                val errorMsg = when (e) {
+                    is SocketTimeoutException -> "Network timeout while declining friend request. Please try again."
+                    is IOException -> "Network error while declining friend request. Please check your connection."
+                    else -> "Failed to decline friend request: ${e.message}"
+                }
+                _uiState.update { it.copy(error = errorMsg) }
             }
         }
     }
@@ -174,15 +231,27 @@ class FriendsViewModel : ViewModel() {
                         _uiState.update { it.copy(
                             showAddFriendDialog = false,
                             emailInput = "",
-                            error = null
+                            error = null,
+                            requestSentSuccessful = true,
+                            successMessage = "Friend request sent successfully to $email"
                         )}
                     },
                     onFailure = { e ->
-                        _uiState.update { it.copy(error = e.message) }
+                        val errorMsg = when (e) {
+                            is SocketTimeoutException -> "Network timeout while sending friend request. Please try again."
+                            is IOException -> "Network error while sending friend request. Please check your connection."
+                            else -> "Failed to send friend request: ${e.message}"
+                        }
+                        _uiState.update { it.copy(error = errorMsg) }
                     }
                 )
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message) }
+                val errorMsg = when (e) {
+                    is SocketTimeoutException -> "Network timeout while sending friend request. Please try again."
+                    is IOException -> "Network error while sending friend request. Please check your connection."
+                    else -> "Failed to send friend request: ${e.message}"
+                }
+                _uiState.update { it.copy(error = errorMsg) }
             }
         }
     }
@@ -193,12 +262,26 @@ class FriendsViewModel : ViewModel() {
             try {
                 val result = FriendsRepository.removeFriend(targetUserId)
                 result.onFailure { e ->
-                    _uiState.update { it.copy(error = e.message) }
+                    val errorMsg = when (e) {
+                        is SocketTimeoutException -> "Network timeout while removing friend. Please try again."
+                        is IOException -> "Network error while removing friend. Please check your connection."
+                        else -> "Failed to remove friend: ${e.message}"
+                    }
+                    _uiState.update { it.copy(error = errorMsg) }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message) }
+                val errorMsg = when (e) {
+                    is SocketTimeoutException -> "Network timeout while removing friend. Please try again."
+                    is IOException -> "Network error while removing friend. Please check your connection."
+                    else -> "Failed to remove friend: ${e.message}"
+                }
+                _uiState.update { it.copy(error = errorMsg) }
             }
         }
+    }
+
+    fun clearSuccessMessage() {
+        _uiState.update { it.copy(requestSentSuccessful = false, successMessage = null) }
     }
 
     // Clear any error message
@@ -217,5 +300,7 @@ data class FriendsScreenState(
     val error: String? = null,
     val showRequestsDialog: Boolean = false,
     val showAddFriendDialog: Boolean = false,
-    val emailInput: String = ""
+    val emailInput: String = "",
+    val requestSentSuccessful: Boolean = false,
+    val successMessage: String? = null
 )

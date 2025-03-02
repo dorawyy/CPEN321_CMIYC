@@ -7,12 +7,12 @@ import com.example.cmiyc.data.User
 import com.example.cmiyc.repositories.UserRepository
 import com.google.firebase.Firebase
 import com.google.firebase.messaging.messaging
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.supervisorScope
+import java.io.IOException
+import java.net.SocketTimeoutException
 
 class LoginViewModelFactory(
     private val userRepository: UserRepository,
@@ -34,84 +34,63 @@ class LoginViewModel(
 
     fun handleSignInResult(email: String?, displayName: String?, idToken: String?, photoUrl: String?) {
         if (email == null || displayName == null || idToken == null) {
-            _loginState.value = LoginState.Error("Sign in failed: Missing credentials")
+            // This could happen due to network issues or Google Sign-In problems
+            _loginState.value = LoginState.Error("Unable to sign in. Please check your internet connection and try again.")
             return
         }
 
-        // Change to Loading state first
-        _loginState.value = LoginState.Loading
-
         viewModelScope.launch {
             try {
-                // Use supervisorScope to prevent cancellation propagation
-                supervisorScope {
-                    // Get FCM token
-                    val tokenTask = Firebase.messaging.token
-                    val token = try {
-                        tokenTask.await()
-                    } catch (e: Exception) {
-                        // Log the error but continue with null token
-                        println("Failed to get FCM token: ${e.message}")
-                        null
+                val tokenTask = Firebase.messaging.token
+                val token = try {
+                    tokenTask.await()
+                } catch (e: Exception) {
+                    // If FCM token retrieval fails due to network issues, we can still proceed
+                    // with a placeholder value, and we'll update it later when network is available
+                    println("FCM token retrieval failed: ${e.message}")
+                    "pending_token"
+                }
+                val user = User(
+                    email = email,
+                    displayName = displayName,
+                    userId = email,
+                    photoUrl = photoUrl,
+                    currentLocation = null,
+                    fcmToken = token,
+                )
+                userRepository.setCurrentUser(user)
+
+                try {
+                    userRepository.setFCMToken(token)
+                } catch (e: Exception) {
+                    // Continue even if FCM token setting fails
+                    println("FCM token setting failed: ${e.message}")
+                }
+
+                // Check if user is banned during registration
+                try {
+                    val registrationSuccess = userRepository.registerUser()
+                    if (!registrationSuccess) {
+                        _loginState.value = LoginState.Banned
+                        return@launch
                     }
 
-                    // Create user object
-                    val user = User(
+                    _loginState.value = LoginState.Success(
                         email = email,
                         displayName = displayName,
-                        userId = email,
+                        idToken = email,
                         photoUrl = photoUrl,
-                        currentLocation = null,
                         fcmToken = token,
                     )
-
-                    // Set current user in repository
-                    userRepository.setCurrentUser(user)
-
-                    // Set FCM token if available
-                    if (token != null) {
-                        try {
-                            userRepository.setFCMToken(token)
-                        } catch (e: Exception) {
-                            // Log the error but continue
-                            println("Failed to set FCM token: ${e.message}")
-                        }
-                    }
-
-                    // Register user with the API
-                    try {
-                        val registrationSuccess = userRepository.registerUser()
-                        if (!registrationSuccess) {
-                            _loginState.value = LoginState.Banned
-                            return@supervisorScope
-                        }
-
-                        // Success! Update login state
-                        _loginState.value = LoginState.Success(
-                            email = email,
-                            displayName = displayName,
-                            idToken = email,
-                            photoUrl = photoUrl,
-                            fcmToken = token,
-                        )
-                    } catch (e: CancellationException) {
-                        // Re-throw cancellation exceptions to properly handle coroutine cancellation
-                        throw e
-                    } catch (e: Exception) {
-                        println("Registration failed: ${e.message}")
-                        _loginState.value = LoginState.Error("Registration failed: ${e.message}")
-                        resetState()
-                    }
+                } catch (e: SocketTimeoutException) {
+                    _loginState.value = LoginState.Error("Network timeout during registration. Please check your connection and try again.")
+                } catch (e: IOException) {
+                    _loginState.value = LoginState.Error("Network error during registration. Please check your connection and try again.")
+                } catch (e: Exception) {
+                    _loginState.value = LoginState.Error("Registration failed: ${e.message ?: "Unknown error"}")
                 }
-            } catch (e: CancellationException) {
-                // Handle cancellation specifically
-                println("Login process was cancelled: ${e.message}")
-                _loginState.value = LoginState.Error("Login process was cancelled")
-                resetState()
             } catch (e: Exception) {
-                // Handle all other exceptions
-                println("Login failed with exception: ${e.message}")
-                _loginState.value = LoginState.Error("Login failed: ${e.message}")
+                _loginState.value = LoginState.Error("Login failed: ${e.message ?: "Unknown error"}")
                 resetState()
             }
         }
@@ -135,7 +114,6 @@ class LoginViewModel(
 
 sealed class LoginState {
     object Initial : LoginState()
-    object Loading : LoginState() // New loading state
     data class Success(
         val email: String,
         val displayName: String,

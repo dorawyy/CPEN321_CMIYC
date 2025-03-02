@@ -26,6 +26,7 @@ import com.example.cmiyc.ui.viewmodels.FriendsViewModel
 import com.example.cmiyc.ui.viewmodels.FriendsViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
@@ -37,6 +38,10 @@ fun FriendsScreen(
 
     // Track if we're doing a manual refresh (pull-to-refresh) vs initial load
     var isManualRefresh by remember { mutableStateOf(false) }
+
+    // Track success messages
+    var showSuccessSnackbar by remember { mutableStateOf(false) }
+    var successMessage by remember { mutableStateOf("") }
 
     // Call onScreenEnter once when the screen is entered
     LaunchedEffect(Unit) {
@@ -101,6 +106,25 @@ fun FriendsScreen(
                     }
                 }
             )
+        },
+        snackbarHost = {
+            if (showSuccessSnackbar) {
+                Snackbar(
+                    modifier = Modifier.padding(16.dp),
+                    action = {
+                        TextButton(onClick = { showSuccessSnackbar = false }) {
+                            Text("Dismiss")
+                        }
+                    },
+                    dismissAction = {
+                        IconButton(onClick = { showSuccessSnackbar = false }) {
+                            Icon(Icons.Filled.Close, contentDescription = "Dismiss")
+                        }
+                    }
+                ) {
+                    Text(successMessage)
+                }
+            }
         }
     ) { padding ->
         Box(
@@ -151,7 +175,12 @@ fun FriendsScreen(
                             ) { friend ->
                                 FriendItem(
                                     friend = friend,
-                                    onRemoveFriend = { viewModel.removeFriend(friend.userId) }
+                                    onRemoveFriend = {
+                                        viewModel.removeFriend(friend.userId)
+                                        // Show success message for friend removal
+                                        successMessage = "Removed ${friend.name} from your friends"
+                                        showSuccessSnackbar = true
+                                    }
                                 )
                             }
                         }
@@ -174,6 +203,14 @@ fun FriendsScreen(
             }
         }
 
+        // Auto-hide success snackbar after a delay
+        LaunchedEffect(showSuccessSnackbar) {
+            if (showSuccessSnackbar) {
+                delay(3000) // 3 seconds
+                showSuccessSnackbar = false
+            }
+        }
+
         // Add Friend Dialog
         if (state.showAddFriendDialog) {
             AddFriendDialog(
@@ -181,6 +218,7 @@ fun FriendsScreen(
                 onEmailChange = viewModel::updateEmailInput,
                 onSendRequest = {
                     viewModel.sendFriendRequest()
+                    // Success message will be shown in the error dialog handling below if successful
                 },
                 onDismiss = {
                     viewModel.updateState { it.copy(
@@ -197,10 +235,18 @@ fun FriendsScreen(
                 requests = state.friendRequests,
                 isLoading = state.isRequestsLoading,
                 onAccept = { requestId ->
+                    // Find the friend request to get their name
+                    val requestName = state.friendRequests.find { it.userId == requestId }?.displayName ?: "User"
                     viewModel.acceptRequest(requestId)
+                    successMessage = "Added $requestName as a friend"
+                    showSuccessSnackbar = true
                 },
                 onDeny = { requestId ->
+                    // Find the friend request to get their name
+                    val requestName = state.friendRequests.find { it.userId == requestId }?.displayName ?: "User"
                     viewModel.denyRequest(requestId)
+                    successMessage = "Declined friend request from $requestName"
+                    showSuccessSnackbar = true
                 },
                 onDismiss = {
                     viewModel.updateState { it.copy(showRequestsDialog = false) }
