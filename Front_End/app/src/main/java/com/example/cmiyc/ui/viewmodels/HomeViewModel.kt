@@ -8,6 +8,7 @@ import com.example.cmiyc.repositories.UserRepository
 import com.example.cmiyc.repository.FriendsRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.io.IOException
 import java.net.SocketTimeoutException
 
 class HomeViewModelFactory : ViewModelProvider.Factory {
@@ -53,18 +54,33 @@ class HomeViewModel : ViewModel() {
         FriendsRepository.stopHomeScreenPolling()
     }
 
+    fun clearBroadcastSuccess() {
+        _state.update { it.copy(broadcastSuccess = false) }
+    }
+
     fun broadcastMessage(activity: String) {
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
                     UserRepository.broadcastMessage(activity)
                 }
-                _state.update { it.copy(error = null) }
+                // Clear error and possibly show success feedback
+                _state.update { it.copy(
+                    error = null,
+                    broadcastSuccess = true // Add this to your state
+                )}
             } catch (e: SocketTimeoutException) {
-                // Just log the timeout error
-                println("Network timeout when broadcasting message: ${e.message}")
+                _state.update { it.copy(
+                    error = "Your broadcast may not have been sent due to a network timeout. Your friends might not receive this update."
+                )}
+            } catch (e: IOException) {
+                _state.update { it.copy(
+                    error = "Your broadcast may not have been sent due to a network error. Your friends might not receive this update."
+                )}
             } catch (e: Exception) {
-                _state.update { it.copy(error = e.message) }
+                _state.update { it.copy(
+                    error = "Error: ${e.message ?: "Failed to broadcast message"}"
+                )}
             }
         }
     }
@@ -76,5 +92,6 @@ class HomeViewModel : ViewModel() {
 
 data class HomeScreenState(
     val friends: List<Friend> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val broadcastSuccess: Boolean = false
 )

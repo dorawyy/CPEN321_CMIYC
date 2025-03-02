@@ -18,6 +18,7 @@ import com.example.cmiyc.ui.components.MapComponent
 import com.example.cmiyc.ui.viewmodels.HomeViewModel
 import com.example.cmiyc.ui.viewmodels.HomeViewModelFactory
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -157,6 +158,15 @@ fun HomeScreen(
                     }
                 }
             )
+        }
+
+        LaunchedEffect(state.broadcastSuccess) {
+            if (state.broadcastSuccess) {
+                // Show a snackbar or some other indicator
+                // Then reset the success flag after showing
+                delay(2000) // Show for 2 seconds
+                viewModel.clearBroadcastSuccess()
+            }
         }
     }
 }
