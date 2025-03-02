@@ -7,12 +7,9 @@ import { FriendRoutes } from './routes/FriendRoutes';
 import { NotificationRoutes } from './routes/NotificationRoutes';
 import { validationResult } from 'express-validator';
 import morgan from 'morgan';
-import https from 'https';
-import fs from 'fs';
 
 const app = express();
 const port = Number(process.env.PORT) || 80;
-const httpsPort = 443;
 
 app.use(express.json());
 app.use(morgan('tiny'));
@@ -37,22 +34,16 @@ Routes.forEach((route) => {
       }
     }
   );
-});
-
-// HTTPS options
-const httpsOptions = {
-  key: fs.readFileSync('/app/ssl/server.key'),
-  cert: fs.readFileSync('/app/ssl/server.crt')
-};
+  });
+      
 
 client.connect().then(() => {
-    console.log("Connected to MongoDB");    
-    // Start HTTPS server
-    https.createServer(httpsOptions, app).listen(httpsPort, '0.0.0.0', () => {
-      console.log(`HTTPS Server started at https://localhost:${httpsPort}`);
+    console.log("Connected to MongoDB");
+    app.listen(port, '0.0.0.0', () => {
+      console.log(`Server started at http://localhost:${port}`);
     });
   }
-).catch((err) => {
-    console.log(err);
-    client.close();
-});
+  ).catch((err) => {
+      console.log(err);
+      client.close();
+  });
