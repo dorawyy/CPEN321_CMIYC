@@ -11,5 +11,6 @@ RUN npm ci
 COPY . .
 
 EXPOSE $PORT
+EXPOSE $HTTP_PORT
 
 CMD ["npm", "start"]
