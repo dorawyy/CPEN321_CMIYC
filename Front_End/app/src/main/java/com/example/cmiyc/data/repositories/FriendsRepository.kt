@@ -39,17 +39,23 @@ object FriendsRepository {
 
     // Update polling frequency for Home Screen (5 seconds)
     fun startHomeScreenPolling() {
+        stopHomeScreenPolling() // Cancel any existing job first
         friendsPollingJob = coroutineScope.launch {
             while (isActive) {
-                Log.d("FriendsRepository", "Test")
                 fetchFriends()
-                delay(5000)
+                try {
+                    delay(5000)
+                } catch (e: CancellationException) {
+                    // Handle cancellation during delay
+                    throw e
+                }
             }
         }
     }
 
     fun stopHomeScreenPolling() {
         friendsPollingJob?.cancel()
+        friendsPollingJob = null
     }
 
     private fun FriendDTO.toFriend(): Friend = Friend(
@@ -112,6 +118,7 @@ object FriendsRepository {
         } catch (e: IOException) {
             println("Network error when fetching friends: ${e.message}")
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             println("Error fetching friends: ${e.message}")
         }
     }

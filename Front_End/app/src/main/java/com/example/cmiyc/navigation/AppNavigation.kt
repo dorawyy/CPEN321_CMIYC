@@ -12,6 +12,7 @@ import com.example.cmiyc.ui.screens.*
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
@@ -23,7 +24,8 @@ import com.example.cmiyc.repositories.UserRepository
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    var isLoggedIn by remember { mutableStateOf(false) }
+    val currentUser by UserRepository.currentUser.collectAsState()
+    val isLoggedIn = currentUser != null  // Derived state
 
     // Location permission handling
     val context = LocalContext.current
@@ -51,8 +53,6 @@ fun AppNavigation() {
 
     val activity = context as Activity
 
-    val currentUser by UserRepository.currentUser.collectAsState()
-
     // Request permissions if needed
     LaunchedEffect(Unit) {
         if (!hasLocationPermission && !permissionRequested) {
@@ -75,7 +75,6 @@ fun AppNavigation() {
         composable("login") {
             LoginScreen(
                 onLoginSuccess = { _, _, _ ->
-                    isLoggedIn = true
                     navController.navigate("home") {
                         popUpTo("login") { inclusive = true }
                     }
@@ -106,7 +105,6 @@ fun AppNavigation() {
                     navController.navigateUp()
                 },
                 onSignedOut = {
-                    isLoggedIn = false
                     navController.navigate("login") {
                         popUpTo(navController.graph.id) { inclusive = true }
                     }
