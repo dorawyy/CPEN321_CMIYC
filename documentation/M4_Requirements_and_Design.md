@@ -2,10 +2,13 @@
 
 ## 1. Change History
 
-| Date     | Modification Description | Rationale                                         |
-| -------- | ------------------------ | ------------------------------------------------- |
-| 2025.3.1 | Use case diagram         | Implemented feedback from TA                      |
-| 2025.3.1 | 4.1 Main Components      | Updated to accurately reflect our app’s use cases |
+| Date     | Modification Description | Rationale                                                                |
+| -------- | ------------------------ | ------------------------------------------------------------------------ |
+| 2025.3.1 | Use case diagram         | Implemented feedback from TA                                             |
+| 2025.3.1 | 4.1 Main Components      | Updated to accurately reflect our app’s use cases                        |
+| 2025.3.1 | Functional Requirements  | Update some functional requirements' wording                             |
+| 2025.3.1 | Sequence Diagrams        | Update and improve sequence diagrams based on the modification in design |
+| 2025.3.1 | Dependency Diagram       | Correct the Dependency Diagram (Firebase Notification)                   |
 
 ---
 
@@ -86,15 +89,17 @@
     - **Description**: Users can add friends by sending friend requests.
     - **Primary actor(s)**: User
     - **Success scenario(s)**:
-      1. User sends a friend request.
-      2. Friend accepts the request, and the connection is established.
+      1. User clicks the friends button to access the friend page
+      2. User clicks the add friend button
+      3. User enters friend’s email address
+      4. User submit the friend request
     - **Failure scenario(s)**:
-      - 1a. Friend request fails due to a network error.
-        - 1a1. Display an error message.
-        - 1a2. Retry sending the invitation.
-      - 2a. Friend request is not received due to server issues.
-        - 2a1. Log the failure and notify the sender.
-        - 2a2. Retry sending the invitation.
+      - 4a. Friend request fails due to a network error.
+        - 4a1. Display an error message.
+        - 4a2. Retry sending the invitation.
+      - 4b. Friend request is not received due to server issues.
+        - 4b1. Log the failure and notify the sender.
+        - 4b2. Retry sending the invitation.
 
   - **FR2_2: Remove Friend**
 
@@ -129,7 +134,6 @@
 - **Detailed Flow for Each Independent Scenarios**:
 
   - **FR3.1 Show Friends’ Locations**
-
     - **Description**: Users can view their friend’s real-time location.
     - **Primary actor(s)**: User
     - **Main success scenario**:
@@ -169,7 +173,6 @@
         - 3a2. If the error still persists after 5 retries, show an error message to the user and prompt them to try broadcasting again.
 
   - **FR4.2 Post a new log to all friends’ log list**
-
     - **Description**: When a user broadcasts activity, a new log entry will be added to all friends’ activity logs.
     - **Primary actor(s)**: User
     - **Main success scenarios**:
@@ -194,25 +197,24 @@
     - **Primary actor(s)**: User
     - **Main success scenario**:
       1. The user switches to the “Activity Log” page
-      2. Users edit their personal information (e.g., name, bio, contact details).
-      3. Changes are saved and reflected in the user’s profile.
+      2. The user can scroll up and down the log to see all received activity logs.
     - **Failure scenario(s)**:
-      - 1a. Profile update fails due to a network issue.
-        - 1a1. App displays an error message.
-        - 1a2. App retries saving changes.
-      - 2a. Invalid input is detected (e.g., empty name, special characters in bio).
-        - 2a1. App displays an error message prompting for corrections.
+      - 1a. Server fails to update the activity log of broadcasted activities.
+        - 1a1. Display an error message.
+        - 1a2. Retry activity fetching.
 
 #### **FR6: Manage Users**
 
 - **Overview**:
 
   1. Ban User
-  2. Restrict User
+  2. View All Users
 
 - **Detailed Flow for Each Independent Scenarios**:
+
   - **FR6.1 Ban User**
-    - **Description**: Admins can permanently ban users who engage in harmful behavior, ensuring a safe environment. The criteria for banning users is up to the admin. It could be because someone is using the app in a harmful manner as in they are stalking their friends.
+
+    - **Description**: Admins can permanently ban users who engage in harmful behavior, ensuring a safe environment. The criteria for banning users is up to the admin. It could be because someone is using the app in a harmful manner as if they are stalking their friends.
     - **Primary actor(s)**: Admin
     - **Main success scenarios**:
       1. Admin selects a user to ban from the system.
@@ -223,15 +225,26 @@
         - 1a1. System logs the failure and retries the operation.
         - 1a2. Admin receives an error message if retries fail.
 
+  - **FR6.2 View All Users**
+    - **Description**: The admin can view a list of all users currently registered to the app.
+    - **Primary actor(s)**: Admin
+    - **Main success scenarios**:
+      1. Admin views all users
+    - **Failure scenarios**:
+      - 1a. Admin is unable to see any users due to a server error.
+        - 1a1. System logs the failure and prompts the admin to reload the app.
+
 ### 3.5. Non-Functional Requirements
 
 1. **NFR1: Real-Time Performance**
 
-   - **Description**: The app must update locations and notifications within 2 seconds.
+   - **Description**: The app follows the Android vitals startup suggestions:
+     - Cold startup takes 5 seconds or less.
+     - Warm startup takes 2 seconds or less.
+     - Hot startup takes 1.5 seconds or less.
    - **Justification**: Quick updates ensure seamless coordination.
 
 2. **NFR2: Scalability**
-
    - **Description**: The backend must handle at least 1000 concurrent users.
    - **Justification**: Scalability is essential for supporting a growing user base.
 
@@ -243,63 +256,89 @@
 
 #### **Location Manager**
 
-- **Purpose**: Stores every User's location and handles real-time location updates and sharing.
+- **Purpose**: Stores every User’s location and Handles real-time location updates and sharing.
 - **Interfaces**:
-  - **updateLocation(String userId, Coordinates location): boolean**
-    - **Purpose**: Updates the user's location in the database. Returns true if the update is successful.
-  - **getLocation(String userId): Coordinates**
-    - **Purpose**: Retrieves the user's current location from the database.
-  - **shareLocation(String userId, List<String> friendIds, Duration duration): boolean**
-    - **Purpose**: Shares the user's location with selected friends for a specified duration. Returns true if sharing is successfully enabled.
-  - **stopSharingLocation(String userId, List<String> friendIds): boolean**
-    - **Purpose**: Stops sharing the user's location with selected friends. Returns true if sharing is successfully disabled.
-  - **getNearbyFriends(String userId, double radius): List<String>**
-    - **Purpose**: Retrieves a list of friends within the specified radius of the user's location. Returns a list of user IDs.
+  - **updateUserLocation(currentLocation: LocationObject): boolean**
+    - REST API (client <-> server)
+      - URI: PUT /location/{userID}
+      - Body: { "currentLocation": {"latitude": Number, "longitude": Number, "timestamp": Number} }
+      - Response: 200/OK (location updated successfully)
+    - **Purpose**: Updates the user's current location in the database
 
 #### **Notification Manager**
 
 - **Purpose**: Manages sending notifications to friends.
 - **Interfaces**:
-  - **sendNotification(String userId, String message): boolean**
-    - **Purpose**: Sends a notification with the given message to the specified userId. Returns true if the notification is successfully sent.
-  - **getNotificationStatus(String notificationId): Status**
-    - **Purpose**: Retrieves the current status of a sent notification using notificationId. Returns the status (e.g., SENT, DELIVERED, READ).
-  - **sendGroupNotification(List<String> userIds, String message): boolean**
-    - **Purpose**: Sends a notification with the given message to multiple users specified in userIds. Returns true if the notifications are successfully sent.
-  - **markNotificationAsRead(String notificationId): boolean**
-    - **Purpose**: Marks the notification identified by notificationId as read. Returns true if the update is successful.
-  - **getUserNotifications(String userId): List<Notification>**
-    - **Purpose**: Retrieves a list of all notifications received by the user identified by userId. Returns a list of Notification objects.
-  - **updateActivityLog(List<String> users, String activity): Boolean**
-    - **Purpose**: Updates user activity log. Returns updateStatus as Boolean.
+  - **setFCMToken(fcmToken: String): boolean**
+    - REST API (client <-> server)
+      - URI: PUT /fcm/{userID}
+      - Body: { "fcmToken": String }
+      - Response: 200/OK (token set successfully)
+    - **Purpose**: Updates the Firebase Cloud Messaging token for a user to enable push notifications
+  - **sendEventNotification(eventName: String): boolean**
+    - REST API (client <-> server)
+      - URI: POST /send-event/{userID}
+      - Body: { "eventName": String }
+      - Response: 200/OK (notification sent successfully)
+    - **Purpose**: Sends notifications to nearby friends (within 1km) about an event the user is starting
+  - **getNotifications(): List\<Log\>**
+    - REST API (client <-> server)
+      - URI: GET /notifications/{userID}
+      - Response: 200/OK with array of notification log objects
+    - **Purpose**: Retrieves the user's notification history (log list)
 
 #### **User Manager**
 
-- **Purpose**: Manages user & friend-related operations such as adding, removing, and blocking users.
+- **Purpose**: Manages user-related operations such as creating the user profile.
 - **Interfaces**:
-  - **sendFriendRequest(String userId, String friendId): boolean**
-    - **Purpose**: Sends a friend request from userId to friendId. Returns true if the request is sent successfully.
-  - **acceptFriendRequest(String userId, String friendId): boolean**
-    - **Purpose**: Accepts a pending friend request, establishing a connection between users. Returns true if successful.
-  - **removeFriend(String userId, String friendId): boolean**
-    - **Purpose**: Removes friendId from userId’s friend list. Returns true if the friend is successfully removed.
-  - **blockUser(String userId, String blockedUserId): boolean**
-    - **Purpose**: Blocks blockedUserId, preventing further interactions. Returns true if the action is successful.
-  - **getFriendList(String userId): List<String>**
-    - **Purpose**: Retrieves the list of friends for the given userId. Returns a list of friend IDs.
-  - **updateStatus(String userId, String status): Boolean**
-    - **Purpose**: Updates a user’s status. Returns Boolean, where True is success and False is fail.
-  - **updateUserProfile(String userId, Object newUserInfo): Boolean**
-    - **Purpose**: Updates a user’s profile. Returns Boolean, where True is success and False is fail.
-  - **updateUserProfileImg(String userId, String img): Boolean**
-    - **Purpose**: Updates a user’s profile image. Returns Boolean, where True is success and False is fail.
+  - **createUserProfile(): boolean**
+    - REST API (client <-> server)
+      - URI: POST /user
+      - Body: { “userID”: String, “displayName”: String, “email”: String, “photoURL”: String, “fcmToken”: String, “currentLocation”: {“latitude”, “longitude”, “timestamp”} }
+      - Response: 200/OK (successfully created)
+    - **Purpose**: To create a new user profile
+
+#### **Friend Manager**
+
+- **Purpose**: Manages friend-related operations such as sending and accepting friend requests.
+- **Interfaces**:
+  - **getFriends(): List\<Friend\>**
+    - REST API (client <-> server)
+      - URI: GET /friends/{userID}
+      - Response: 200/OK with array of friend objects
+    - **Purpose**: Retrieves all friends for a specific user
+  - **sendFriendRequest(friendEmail: String): boolean**
+    - REST API (client <-> server)
+      - URI: URI: POST /friends/{userID}/sendRequest/{friendEmail}
+      - Response: 200/OK (request sent successfully)
+    - **Purpose**: Sends a friend request to another user by email
+  - **getFriendRequests(): List\<FriendRequest\>**
+    - REST API (client <-> server)
+      - URI: GET /friends/{userID}/friendRequests
+      - Response: 200/OK with array of friend request objects
+    - **Purpose**: Retrieves all pending friend requests for a user
+  - **acceptFriendRequest(friendID: String): boolean**
+    - REST API (client <-> server)
+      - URI: POST /friends/{userID}/acceptRequest/{friendID}
+      - Response: 200/OK (request accepted successfully)
+    - **Purpose**: Accepts a pending friend request
+  - **declineFriendRequest(friendID: String): boolean**
+    - REST API (client <-> server)
+      - URI: POST /friends/{userID}/declineRequest/{friendID}
+      - Response: 200/OK (request declined successfully)
+    - **Purpose**: Declines a pending friend request
+  - **deleteFriend(friendID: String): boolean**
+    - REST API (client <-> server)
+      - URI: PUT /friends/{userID}/deleteFriend/{friendID}
+      - Response: 200/OK (friend removed successfully)
+    - **Purpose**: Removes a friend from the user's friend list
 
 ### 4.2. Databases
 
 1. **MongoDB**
    - **User Table**
      - **Purpose**: Stores `userID`, `Name`, `List of friends`, `userPhoto`, and `Last known location`.
-     - **Reason**: We need a persistent store of User information and their friends. This data should not be lost when the server is restarted.
+     - **Reason**: We need a persistent store of User information and their friends. This data should not be lost when the server is restarted. We chose MongoDB for our project due to its flexibility, scalability, and ability to handle data efficiently. Its schema-less structure allows us to store dynamic user data without rigid migrations, and its JSON-like document structure integrates seamlessly with our Node.js backend, enabling fast development.
    - **Activity Logs Table**
      - **Purpose**: We need a persistent store for every user, the event logs they receive
      - **Reason**: Activity logs are ground truth and should persist between server restarts.
@@ -375,7 +414,7 @@
 
 1. **Real-Time Performance**
 
-   - **Validation**: Conduct stress tests to ensure updates occur within 2 seconds.
+   - **Validation**: Conduct tests on the app to make sure that it provides a seamless and easy experience for the user. Worst case it should take 2 seconds to update the location.
 
 2. **Scalability**
 
@@ -390,7 +429,8 @@
 
 #### **Component: Location Manager**
 
-- **Description**: Store location data of each user and detect nearby friends efficiently using a quadtree proximity search algorithm.
+- **Description**: Store location data of each user and detect nearby friends efficiently using a quadtree proximity search algorithm. We plan on doing this every single time a broadcast event is called as storing the tree and updating it whenever a location is updated doesn’t make sense, as there will need to be a tree for each set of friends then
+
 - **Why complex?**:
 
   - The unoptimized version of the location manager involves storing the key-value pair `{UserID : {latitude, longitude}}` for each `UserID`. On location updates, we would update the corresponding value. However, computing if another friend is nearby requires searching all friends’ locations. This linear time computation does not scale well when we have more users with more friends.
