@@ -20,6 +20,10 @@ object UserRepository {
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser
 
+    // Add registration complete flag
+    private val _isRegistrationComplete = MutableStateFlow(false)
+    val isRegistrationComplete: StateFlow<Boolean> = _isRegistrationComplete
+
     private val _logs = MutableStateFlow<List<Log>>(emptyList())
     val logs: StateFlow<List<Log>> = _logs
 
@@ -115,7 +119,7 @@ object UserRepository {
     }
 
     fun isAuthenticated(): Boolean {
-        return _currentUser.value != null
+        return isRegistrationComplete.value
     }
 
     fun getCurrentUserId(): String {
@@ -179,6 +183,7 @@ object UserRepository {
             if (!response.isSuccessful) {
                 throw Exception("Failed to register user: ${response.code()}")
             }
+            _isRegistrationComplete.value = true
 
             // Handle admin status and banned status
             response.body()?.let {

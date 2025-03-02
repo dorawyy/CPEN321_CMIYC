@@ -38,11 +38,20 @@ fun HomeScreen(
     // Collect isAdmin state from repository
     val isAdmin by UserRepository.isAdmin.collectAsState()
 
-    // Start polling when screen becomes active, stop when inactive
-    DisposableEffect(Unit) {
-        viewModel.startPolling()
+    // Collect registration complete state
+    val isRegistrationComplete by UserRepository.isRegistrationComplete.collectAsState()
+
+    // Start polling when screen becomes active AND registration is complete, stop when inactive
+    DisposableEffect(isRegistrationComplete) {
+        // Only start polling if registration is complete
+        if (isRegistrationComplete) {
+            viewModel.startPolling()
+        }
+
         onDispose {
-            viewModel.stopPolling()
+            if (isRegistrationComplete) {
+                viewModel.stopPolling()
+            }
         }
     }
 

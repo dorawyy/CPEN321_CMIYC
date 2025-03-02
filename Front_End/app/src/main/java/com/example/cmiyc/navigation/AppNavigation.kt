@@ -25,7 +25,10 @@ import com.example.cmiyc.repositories.UserRepository
 fun AppNavigation() {
     val navController = rememberNavController()
     val currentUser by UserRepository.currentUser.collectAsState()
-    val isLoggedIn = currentUser != null  // Derived state
+    val isRegistrationComplete by UserRepository.isRegistrationComplete.collectAsState()
+
+    // User is fully authenticated if there's a current user AND registration is complete
+    val isFullyAuthenticated = currentUser != null && isRegistrationComplete
 
     // Location permission handling
     val context = LocalContext.current
@@ -58,45 +61,52 @@ fun AppNavigation() {
         if (!hasLocationPermission && !permissionRequested) {
             locationPermissionLauncher.launch(locationPermissions)
         }
+    }
 
-        currentUser?.let { user ->
-            if (activity.intent.getBooleanExtra("NAVIGATE_TO_LOG", false)) {
-                navController.navigate("log")
-                // Clear the flag to avoid repeated navigation
-                activity.intent.removeExtra("NAVIGATE_TO_LOG")
-            }
+    // Handle notification navigation
+    LaunchedEffect(isFullyAuthenticated) {
+        if (isFullyAuthenticated && activity.intent.getBooleanExtra("NAVIGATE_TO_LOG", false)) {
+            navController.navigate("log")
+            // Clear the flag to avoid repeated navigation
+            activity.intent.removeExtra("NAVIGATE_TO_LOG")
         }
     }
 
     NavHost(
         navController = navController,
-        startDestination = if (isLoggedIn) "home" else "login"
+        startDestination = if (isFullyAuthenticated) "home" else "login"
     ) {
         composable("login") {
             LoginScreen(
                 onLoginSuccess = { _, _, _ ->
-                    navController.navigate("home") {
-                        popUpTo("login") { inclusive = true }
+                    // Only navigate to home once we're fully authenticated
+                    if (isRegistrationComplete) {
+                        navController.navigate("home") {
+                            popUpTo("login") { inclusive = true }
+                        }
                     }
                 }
             )
         }
 
         composable("home") {
-            HomeScreen(
-                onNavigateToProfile = {
-                    navController.navigate("profile")
-                },
-                onNavigateToLog = {
-                    navController.navigate("log")
-                },
-                onNavigateToFriends = {
-                    navController.navigate("friends")
-                },
-                onNavigateToAdmin = {
-                    navController.navigate("admin")
-                }
-            )
+            // Extra check to prevent HomeScreen from showing if registration isn't complete
+            if (isFullyAuthenticated) {
+                HomeScreen(
+                    onNavigateToProfile = {
+                        navController.navigate("profile")
+                    },
+                    onNavigateToLog = {
+                        navController.navigate("log")
+                    },
+                    onNavigateToFriends = {
+                        navController.navigate("friends")
+                    },
+                    onNavigateToAdmin = {
+                        navController.navigate("admin")
+                    }
+                )
+            }
         }
 
         composable("profile") {
