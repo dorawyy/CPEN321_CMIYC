@@ -6,7 +6,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-COPY ssl /app/ssl
+COPY ~/ssl /app/ssl
 RUN chmod 600 /app/ssl/server.key && chmod 644 /app/ssl/server.crt
 
 RUN npm ci
