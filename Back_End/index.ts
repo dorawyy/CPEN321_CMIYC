@@ -41,8 +41,8 @@ Routes.forEach((route) => {
 
 // HTTPS options
 const httpsOptions = {
-  key: fs.readFileSync('/ssl/server.key'),
-  cert: fs.readFileSync('/ssl/server.crt')
+  key: fs.readFileSync('~/ssl/server.key'),
+  cert: fs.readFileSync('~/ssl/server.crt')
 };
 
 client.connect().then(() => {
