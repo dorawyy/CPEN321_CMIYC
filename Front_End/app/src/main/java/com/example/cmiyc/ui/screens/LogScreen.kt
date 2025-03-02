@@ -16,6 +16,13 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import com.example.cmiyc.utils.GeocodingUtil
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -95,11 +102,20 @@ fun LogScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        val sortedLogs = state.logs.sortedByDescending { it.timestamp }
                         itemsIndexed(
-                            items = state.logs,
+                            items = sortedLogs,
                             key = { index, log -> "${index}_${log.sender}${log.timestamp}" }
                         ) { index, log ->
-                            LogItem(log = log)
+                            val logId = "${log.sender}${log.timestamp}"
+                            val cachedAddress = state.logAddresses[logId]
+                            LogItem(
+                                log = log,
+                                address = cachedAddress,
+                                onAddressLoaded = { address ->
+                                    viewModel.updateLogAddress(logId, address)
+                                }
+                            )
                         }
                     }
                 }
@@ -152,7 +168,28 @@ fun LogScreen(
 }
 
 @Composable
-fun LogItem(log: Log) {
+fun LogItem(
+    log: Log,
+    address: String? = null,
+    onAddressLoaded: (String) -> Unit = {}
+) {
+    val context = LocalContext.current
+    var locationText by remember { mutableStateOf(address ?: "Loading address...") }
+
+    // Fetch address if not provided
+    LaunchedEffect(log.senderLocation) {
+        if (address == null) {
+            locationText = "Loading address..."
+            val result = GeocodingUtil.getAddressFromLocation(
+                context,
+                log.senderLocation.latitude(),
+                log.senderLocation.longitude()
+            )
+            locationText = result
+            onAddressLoaded(result)
+        }
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -180,7 +217,7 @@ fun LogItem(log: Log) {
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Location: (${log.senderLocation.latitude().format(6)}, ${log.senderLocation.longitude().format(6)})",
+                text = "Location: $locationText",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

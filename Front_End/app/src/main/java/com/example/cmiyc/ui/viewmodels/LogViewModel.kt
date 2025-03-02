@@ -39,7 +39,7 @@ class LogViewModel (
 
     // Track consecutive refresh failures
     private var consecutiveRefreshFailures = 0
-    private val maxRefreshFailures = 10
+    private val maxRefreshFailures = 20
 
     init {
         startPeriodicRefresh()
@@ -93,6 +93,15 @@ class LogViewModel (
         }
     }
 
+    fun updateLogAddress(logId: String, address: String) {
+        _state.update { currentState ->
+            val updatedAddresses = currentState.logAddresses.toMutableMap().apply {
+                put(logId, address)
+            }
+            currentState.copy(logAddresses = updatedAddresses)
+        }
+    }
+
     fun clearError() {
         _state.update { it.copy(error = null) }
     }
@@ -111,6 +120,7 @@ class LogViewModel (
 
 data class LogScreenState(
     val logs: List<Log> = emptyList(),
+    val logAddresses: Map<String, String> = mapOf(), // Map of logId to address
     val isLoading: Boolean = false,
     val error: String? = null,
     val refreshError: String? = null
