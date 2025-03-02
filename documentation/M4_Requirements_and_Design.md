@@ -378,7 +378,7 @@
 
 ### 4.5. Dependencies Diagram
 
-<img src="./images/M4/Dependency-Diagram.jpg" alt="Dependency Diagram" width="100%"/>
+<img src="./images/M4/Dependency-Diagram.png" alt="Dependency Diagram" width="100%"/>
 
 ---
 
