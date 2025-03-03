@@ -101,9 +101,9 @@ export class NotificationController {
                 return res.status(400).send({ message: "User location not set" });
             }
 
-            // Get all friends' documents
             const friends = await collection.find({ 
-                userID: { $in: user.friends || [] }
+                userID: { $in: user.friends || [] },
+                isBanned: { $ne: true } // Only get non-banned users
             }).toArray();
 
             // Use quadtree to find nearby friends
