@@ -60,16 +60,10 @@ class LoginViewModel(
                 )
                 userRepository.setCurrentUser(user)
 
-                try {
-                    userRepository.setFCMToken(token)
-                } catch (e: Exception) {
-                    // Continue even if FCM token setting fails
-                    println("FCM token setting failed: ${e.message}")
-                }
-
                 // Check if user is banned during registration
                 try {
                     val registrationSuccess = userRepository.registerUser()
+                    userRepository.setFCMToken(token)
                     if (!registrationSuccess) {
                         _loginState.value = LoginState.Banned
                         return@launch
