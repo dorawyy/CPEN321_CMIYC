@@ -58,8 +58,8 @@
       3. Google Authentication succeeds.
       4. User is redirected out of the login page and into the app’s main page: The map page.
     - **Failure scenario(s)**:
-      - 2a. Google authentication service is non-responsive.
-        - 2a1. Display error message that Google service is non-responsive and show an OK button.
+      - 2a. Network error while contacting Google Auth services
+        - 2a1. Display the following: “Login Error: Network Error during Registration
         - 2a2. When the OK button is clicked, User is redirected back to the login page.
       - 3a. Google authentication fails.
         - 3a1. Users can retry entering their Google email and password.

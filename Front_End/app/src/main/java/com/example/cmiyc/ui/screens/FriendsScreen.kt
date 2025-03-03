@@ -3,6 +3,7 @@ package com.example.cmiyc.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
@@ -169,10 +170,10 @@ fun FriendsScreen(
                             contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(
+                            itemsIndexed(
                                 items = state.filteredFriends,
-                                key = { friend -> friend.userId }
-                            ) { friend ->
+                                key = { index, friend -> "${friend.userId}_${index}" }
+                            ) { index, friend ->
                                 FriendItem(
                                     friend = friend,
                                     onRemoveFriend = {
@@ -357,10 +358,10 @@ fun FriendRequestDialog(
                     modifier = Modifier.heightIn(max = 300.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(
+                    itemsIndexed(
                         items = requests,
-                        key = { request -> request.userId }
-                    ) { request ->
+                        key = { index, request -> "${request.userId}_${index}" }
+                    ) { index, request ->
                         FriendRequestItem(
                             request = request,
                             onAccept = onAccept,
