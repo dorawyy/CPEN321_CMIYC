@@ -39,7 +39,7 @@ class LogViewModel (
 
     // Track consecutive refresh failures
     private var consecutiveRefreshFailures = 0
-    private val maxRefreshFailures = 20
+    private val maxRefreshFailures = 5
 
     init {
         startPeriodicRefresh()
