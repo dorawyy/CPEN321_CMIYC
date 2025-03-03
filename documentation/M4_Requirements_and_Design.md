@@ -4,11 +4,11 @@
 
 | Date     | Modification Description | Rationale                                                                |
 | -------- | ------------------------ | ------------------------------------------------------------------------ |
-| 2025.3.1 | Use case diagram         | Implemented feedback from TA                                             |
-| 2025.3.1 | 4.1 Main Components      | Updated to accurately reflect our app’s use cases                        |
-| 2025.3.1 | Functional Requirements  | Update some functional requirements' wording                             |
-| 2025.3.1 | Sequence Diagrams        | Update and improve sequence diagrams based on the modification in design |
-| 2025.3.1 | Dependency Diagram       | Correct the Dependency Diagram (Firebase Notification)                   |
+| 2025.3.1 | 4.0 Sequence Diagrams        | Update and improve sequence diagrams based on the modification in design |
+| 2025.3.1 | 4.0 Dependency Diagram: Correct the arrows to firebase and google auth. fix loop between location and notification manager       | During implementation, the relationships between ocmponents became very clear. Updated diagram to reflect this.                     |
+| 2025.3.1 | 4.0 main components: Added REST api routes instead of java funtion signatures        | REST api routes are more clear in terms of URI, req/res/body which better helps explain the interactions between client and server. |
+| 2025.3.1 | 3.3 Functional Requirements: removed FRs we dont need. Added NFRs such as polling average latency which directly describe our app's performance  | Some of our FRs were redundant and this was realized during implementation. Since out app uses polling, an NFR to test average polling latency is an effective indicator.                             |
+| 2025.3.1 | 3.1 Use case diagram: Modified Use cases    | Our use cases did not matc FRs.                                             |
 
 ---
 
