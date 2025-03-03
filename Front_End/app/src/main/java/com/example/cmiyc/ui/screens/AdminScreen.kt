@@ -3,6 +3,7 @@ package com.example.cmiyc.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -82,10 +83,10 @@ fun AdminScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(
+                        itemsIndexed(
                             items = state.filteredUsers,
-                            key = { user -> user.userId }
-                        ) { user ->
+                            key = { index, user -> "${user.userId}_${index}" }
+                        ) { index, user ->
                             AdminUserItem(
                                 user = user,
                                 onBanClick = { userToBan = user }
