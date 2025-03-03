@@ -15,6 +15,7 @@ export const UserRoutes = [
             body("photoURL").notEmpty().isString(),
             body("fcmToken").notEmpty().isString(),
             body("currentLocation").notEmpty().isObject(), // { latitude: number, longitude: number, timestamp: number }
+            body("isAdmin").notEmpty().isBoolean(),
         ]
     },
 
@@ -29,6 +30,6 @@ export const UserRoutes = [
         method: "post",
         route: "/user/ban/:userID",
         action: controller.banUser,
-        validation: [body("adminID").notEmpty().isString()]
+        validation: []
     }
 ]
