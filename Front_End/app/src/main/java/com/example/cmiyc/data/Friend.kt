@@ -9,4 +9,5 @@ data class Friend(
     val photoURL: String? = null,
     val location: Point? = null,
     val lastUpdated: Long? = null,
+    val isBanned: Boolean,
 )

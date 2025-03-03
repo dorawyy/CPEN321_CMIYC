@@ -104,6 +104,8 @@ fun MapComponent(
             )
 
             friends.forEach { friend ->
+                if (friend.isBanned) return@forEach
+
                 friend.location?.let { location ->
                     val friendIcon = if (!friend.photoURL.isNullOrEmpty()) {
                         LoadFriendIcon(

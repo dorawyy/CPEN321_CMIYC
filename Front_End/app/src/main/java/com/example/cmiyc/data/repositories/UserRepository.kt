@@ -209,7 +209,6 @@ object UserRepository {
             if (!response.isSuccessful) {
                 throw Exception("Failed to register user: ${response.code()}")
             }
-            _isRegistrationComplete.value = true
 
             // Handle admin status and banned status
             response.body()?.let {
@@ -218,6 +217,8 @@ object UserRepository {
                     return false
                 }
             }
+
+            _isRegistrationComplete.value = true
             return true
         } catch (e: SocketTimeoutException) {
             println("Network timeout when registering user: ${e.message}")
