@@ -257,18 +257,24 @@ class FriendsViewModel : ViewModel() {
     }
 
     // Remove a friend
-    fun removeFriend(targetUserId: String) {
+    fun removeFriend(targetUserId: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             try {
                 val result = FriendsRepository.removeFriend(targetUserId)
-                result.onFailure { e ->
-                    val errorMsg = when (e) {
-                        is SocketTimeoutException -> "Network timeout while removing friend. Please try again."
-                        is IOException -> "Network error while removing friend. Please check your connection."
-                        else -> "Failed to remove friend: ${e.message}"
+                result.fold(
+                    onSuccess = {
+                        // Call the success callback
+                        onSuccess()
+                    },
+                    onFailure = { e ->
+                        val errorMsg = when (e) {
+                            is SocketTimeoutException -> "Network timeout while removing friend. Please try again."
+                            is IOException -> "Network error while removing friend. Please check your connection."
+                            else -> "Failed to remove friend: ${e.message}"
+                        }
+                        _uiState.update { it.copy(error = errorMsg) }
                     }
-                    _uiState.update { it.copy(error = errorMsg) }
-                }
+                )
             } catch (e: Exception) {
                 val errorMsg = when (e) {
                     is SocketTimeoutException -> "Network timeout while removing friend. Please try again."

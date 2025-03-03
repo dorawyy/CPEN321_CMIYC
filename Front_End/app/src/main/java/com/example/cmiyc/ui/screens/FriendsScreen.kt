@@ -176,10 +176,11 @@ fun FriendsScreen(
                                 FriendItem(
                                     friend = friend,
                                     onRemoveFriend = {
-                                        viewModel.removeFriend(friend.userId)
-                                        // Show success message for friend removal
-                                        successMessage = "Removed ${friend.name} from your friends"
-                                        showSuccessSnackbar = true
+                                        viewModel.removeFriend(friend.userId, onSuccess = {
+                                            // Show success message only after successful removal
+                                            successMessage = "Removed ${friend.name} from your friends"
+                                            showSuccessSnackbar = true
+                                        })
                                     }
                                 )
                             }

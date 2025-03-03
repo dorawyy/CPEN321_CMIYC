@@ -38,7 +38,7 @@ interface ApiService {
         @Path("userID") userID: String,
     ): Response<List<FriendDTO>>
 
-    @PUT("friends/{userID}/declineRequest/{friendID}")
+    @PUT("friends/{userID}/deleteFriend/{friendID}")
     suspend fun removeFriend(
         @Path("userID") userId: String,
         @Path("friendID") friendID: String
