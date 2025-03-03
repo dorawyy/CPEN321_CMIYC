@@ -64,6 +64,24 @@ fun AppNavigation() {
         }
     }
 
+    LaunchedEffect(isFullyAuthenticated) {
+        if (isFullyAuthenticated) {
+            // Only navigate to home if we're on the login screen
+            if (navController.currentDestination?.route == "login") {
+                navController.navigate("home") {
+                    popUpTo("login") { inclusive = true }
+                }
+            }
+        } else {
+            // If user becomes unauthenticated while in the app, navigate back to login
+            if (navController.currentDestination?.route != "login") {
+                navController.navigate("login") {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+        }
+    }
+
     // Handle notification navigation
     LaunchedEffect(isFullyAuthenticated) {
         if (isFullyAuthenticated && activity.intent.getBooleanExtra("NAVIGATE_TO_LOG", false)) {
@@ -75,39 +93,32 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = if (isFullyAuthenticated) "home" else "login"
+        startDestination = "login"
     ) {
         composable("login") {
             LoginScreen(
                 onLoginSuccess = { _, _, _ ->
-                    // Only navigate to home once we're fully authenticated
-                    if (isRegistrationComplete) {
-                        navController.navigate("home") {
-                            popUpTo("login") { inclusive = true }
-                        }
-                    }
+                    // Navigation is now handled by the LaunchedEffect above
+                    // No need to navigate here
                 }
             )
         }
 
         composable("home") {
-            // Extra check to prevent HomeScreen from showing if registration isn't complete
-            if (isFullyAuthenticated) {
-                HomeScreen(
-                    onNavigateToProfile = {
-                        navController.navigate("profile")
-                    },
-                    onNavigateToLog = {
-                        navController.navigate("log")
-                    },
-                    onNavigateToFriends = {
-                        navController.navigate("friends")
-                    },
-                    onNavigateToAdmin = {
-                        navController.navigate("admin")
-                    }
-                )
-            }
+            HomeScreen(
+                onNavigateToProfile = {
+                    navController.navigate("profile")
+                },
+                onNavigateToLog = {
+                    navController.navigate("log")
+                },
+                onNavigateToFriends = {
+                    navController.navigate("friends")
+                },
+                onNavigateToAdmin = {
+                    navController.navigate("admin")
+                }
+            )
         }
 
         composable("profile") {
