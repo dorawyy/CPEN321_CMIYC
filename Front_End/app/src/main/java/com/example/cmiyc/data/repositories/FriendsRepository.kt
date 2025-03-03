@@ -87,6 +87,7 @@ object FriendsRepository {
         photoURL = photoURL,
         location = currentLocation.let { Point.fromLngLat(it.longitude, it.latitude) },
         lastUpdated = currentLocation.timestamp,
+        isBanned = isBanned
     )
 
     private fun FriendDTO.toFriendRequest(): FriendRequest = FriendRequest(

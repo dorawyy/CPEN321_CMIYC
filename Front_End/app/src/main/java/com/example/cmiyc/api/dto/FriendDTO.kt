@@ -7,4 +7,5 @@ data class FriendDTO(
     val photoURL: String,
     val fcmToken: String,
     val currentLocation: LocationDTO,
+    val isBanned: Boolean
 )
