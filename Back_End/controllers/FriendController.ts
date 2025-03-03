@@ -53,7 +53,7 @@ export class FriendController {
             }
 
             if (friend.friendRequests.includes(userID)) {
-                res.status(400).send("You have already sent a friend request to this user");
+                res.status(200).send("You have already sent a friend request to this user");
                 return;
             }
 
