@@ -9,45 +9,32 @@ export class UserController {
         // Check if user already exists
         const existingUser = await client.db("cmiyc").collection("users").findOne({ userID: body.userID });
         if (existingUser) {
-            if (body.email == "kdeepan240@gmail.com") {
-                return res.status(200).send({ message: "User profile already exists", isAdmin: true, isBanned: false });
-            }
             if (existingUser.isBanned) {
-                return res.status(200).send({ message: "User is banned", isAdmin: false, isBanned: true });
+                return res.status(200).send({ message: "User is banned", isAdmin: body.isAdmin, isBanned: true });
             }
-            return res.status(200).send({ message: "User profile already exists", isAdmin: false, isBanned: false });
+            return res.status(200).send({ message: "User profile already exists", isAdmin: body.isAdmin, isBanned: false });
         }
         body.friends = [];
         body.friendRequests = [];
         body.logList = [];
-        body.isBanned = false;
-        if (body.email == "kdeepan240@gmail.com") {
-            body.isAdmin = true;
-        } else {
-            body.isAdmin = false;
-        }
-        
+        body.isBanned = false;        
         const createdUserProfile = await client.db("cmiyc").collection("users").insertOne(body);
-        res.status(200).send({ message: "User profile created", isAdmin: body.isAdmin, isBanned: body.isBanned });
+        res.status(200).send({ message: "User profile created: " + createdUserProfile.insertedId, isAdmin: body.isAdmin, isBanned: false});
     }
 
     async getAllUsers(req: Request, res: Response, nextFunction: NextFunction) {
-        if (req.params.userID != "kdeepan240@gmail.com") {
-            return res.status(403).send("Unauthorized");
-        }
+        const userID = req.params.userID;
         const users = await client.db("cmiyc").collection("users").find({}).toArray();
-        const usersWithoutLists = users.map((user) => {
-            const { friends: _, friendRequests: __, ...userWithoutLists } = user;
-            return userWithoutLists;
-        });
+        const usersWithoutLists = users
+            .filter(user => user.userID !== userID)
+            .map((user) => {
+                const { friends: _, friendRequests: __, ...userWithoutLists } = user;
+                return userWithoutLists;
+            });
         res.status(200).send(usersWithoutLists);
     }
 
     async banUser(req: Request, res: Response, nextFunction: NextFunction) {
-        const adminID = req.body.adminID;
-        if (adminID != "kdeepan240@gmail.com") {
-            return res.status(403).send("Unauthorized");
-        }
         const userID = req.params.userID;
         const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
         if (!user) {
