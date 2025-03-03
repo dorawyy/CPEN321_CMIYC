@@ -52,10 +52,10 @@ export class FriendController {
                 return;
             }
 
-            // if (friend.friendRequests.includes(userID)) {
-            //     res.status(400).send("You have already sent a friend request to this user");
-            //     return;
-            // }
+            if (friend.friendRequests.includes(userID)) {
+                res.status(400).send("You have already sent a friend request to this user");
+                return;
+            }
 
             await client.db("cmiyc").collection("users").updateOne(
                 { userID: friend.userID }, 
