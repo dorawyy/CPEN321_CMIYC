@@ -51,7 +51,7 @@
   - **FR1_1**: Google Login
 
     - **Description**: When no session is active, new and existing users use Google Authentication service to start a session.
-    - **Primary Actors**: User, Admin
+    - **Primary Actors**: User, admin
     - **Main success scenario(s)**:
       1. New and existing users click on the Google login button on the App’s login page.
       2. User is redirected to a page view where the user enters their Google email and password.
@@ -65,7 +65,7 @@
         - 3a1. Users can retry entering their Google email and password.
 
   - **FR1_2: Logout**
-    - **Primary actor(s)**: User, Admin
+    - **Primary actor(s)**: User, admin
     - **Main success scenario(s)**:
       1. From a profile page, the user clicks logout.
       2. User logs out successfully.
@@ -87,43 +87,52 @@
   - **FR2_1: Add Friend**
 
     - **Description**: Users can add friends by sending friend requests.
-    - **Primary actor(s)**: User
+    - **Primary actor(s)**: User, admin
     - **Success scenario(s)**:
       1. User clicks the friends button to access the friend page
       2. User clicks the add friend button
       3. User enters friend’s email address
       4. User submit the friend request
     - **Failure scenario(s)**:
-      - 4a. Friend request fails due to a network error.
-        - 4a1. Display an error message.
-        - 4a2. Retry sending the invitation.
-      - 4b. Friend request is not received due to server issues.
-        - 4b1. Log the failure and notify the sender.
-        - 4b2. Retry sending the invitation.
+      - 4a. Sending friend request fails due to a network error.
+        - 4a1. Display the error message: “Error: Network error while sending friend request”
+        - 4a2. User clicks the only option “ok”
+        - 4a3. User redirected back to friend request dialog box
+      - 4b. Friend has never registered in the app
+        - 4b1. Display “Failed to send friend request: 404”
+        - 4b2. User clicks the only option “ok”
+        - 4b3. User redirected back to friend request dialog box
 
   - **FR2_2: Remove Friend**
 
     - **Description**: Users can remove friends from their friend list at any time.
-    - **Primary actor(s)**: User
+    - **Primary actor(s)**: User, admin
     - **Success scenario(s)**:
-      1. User selects a friend to remove.
-      2. The friend is removed from the user's friend list.
-      3. The user is also removed from the user's friend list.
+      1. User navigates to friends page
+      2. User clicks on the button beside the friend to remove them.
+      3. The friend is removed from the user's friend list.
+      4. The user is also removed from the user's friend list.
     - **Failure scenario(s)**:
-      - 1a. Removal fails due to a server issue.
-        - 1a1. Display an error message.
-        - 1a2. Prompt the user to retry removing the friend.
+      - 2a. Network error when removing friends.
+        - 2a1. Display the error message “Network error: failed to remove friend”.
+        - 2a2. User clicks the only option “ok”.
+        - 2a3. User is redirected back to friends page.
 
   - **FR2_3: Respond to Friend Requests**
     - **Description**: The user can accept or deny friend requests.
-    - **Primary actor(s)**: User, Friend
+    - **Primary actor(s)**: User, admin
     - **Success scenario(s)**:
       1. User receives a friend request.
-      2. If the user accepts, that friend is added to their friend list and the friend’s list adds the user.
-      3. If the user denies, the friend request is cleared.
+      2. User navigates to friends page
+      3. User clicks the friend requests icon
+      4. Friend requests to the User are displayed
+      5. If the user accepts, that friend is added to their friend list and the friend’s list adds the user.
+      6. If the user denies, the friend request is cleared.
     - **Failure scenario(s)**:
-      - 2a. Friend’s list does not update correctly.
-        - 2a1. Ensure server synchronization and retry adding the user to friend’s list.
+      - 5a. Network error when accepting or declining friend requests.
+        - 5a1. Display the error message: “Network error while accepting/declining friend request”.
+        - 5a2. User clicks the only option “ok”.
+        - 5a3. User is redirected back to friend requests dialog box
 
 #### **FR3: View Friends’ Location**
 
@@ -134,19 +143,17 @@
 - **Detailed Flow for Each Independent Scenarios**:
 
   - **FR3.1 Show Friends’ Locations**
-    - **Description**: Users can view their friend’s real-time location.
-    - **Primary actor(s)**: User
+    - **Description**: Users can view their friend’s location.
+    - **Primary actor(s)**: User, admin
     - **Main success scenario**:
       1. The user opens the app.
-      2. The user can scroll and move the map.
-      3. The user sees their friends' locations.
+      2. The user can drag and navigate the map.
+      3. The user sees their friends' locations markers.
+      4. Google profile image is displayed as their markers.
     - **Failure scenario(s)**:
-      - 1a. Server fails to update friend locations due to a network error.
-        - 1a1. Display an error message.
-        - 1a2. Retry location fetching.
-      - 2a. Map fails to move in response to the user.
-        - 2a1. Display an error message.
-        - 2a2. Prompt the user to reload the app
+      - 3a. Home screen fails to get friend location updates in 20 retries due to network error.
+        - 3a1. Display the error message: “Connection issue: The app will continue trying to update in background”
+        - 3a2. Continue retrying every 5 seconds until the user signs out of, leaves the home screen or closes the app.
 
 #### **FR4: Broadcast Activity**
 
@@ -160,29 +167,31 @@
   - **FR4.1 Set activity message & send a real-time push notification to all nearby friends**
 
     - **Description**: From the map page, users can enter their activity message and click on broadcast to let all their friends know.
-    - **Primary actor(s)**: User
+    - **Primary actor(s)**: User, admin
     - **Main success scenarios**:
-      1. The user is on the map page and sets their activity message.
-      2. User clicks "Broadcast".
-      3. The user’s current activity is sent via push notifications to the user’s friends in a specified radius.
+      1. The user is on the map page.
+      2. User clicks “Broadcast.”
+      3. In the dialog box, User enters current activity
+      4. User clicks update
+      5. The user’s current activity is sent via push notifications to the user’s friends within 1 km radius.
+      6. Nearby friend receives push notification.
+      7. Friend clicks on the notification and is redirected to log screen
     - **Failure scenarios**:
-      - 2a. Broadcasting fails due to network error.
-        - 2a1. Display network error message and prompt user to retry broadcasting.
-      - 3a. Push notification is not delivered due to network error
-        - 3a1. Retry sending push notification up to a maximum of 5 times without notifying user of the error
-        - 3a2. If the error still persists after 5 retries, show an error message to the user and prompt them to try broadcasting again.
+      - 4a. Broadcasting fails due to network error.
+        - 4a1. 4a1. Display network error message: “Your broadcast may not have been sent due to a network error. Your friends might not receive this update.”
+        - 4a2. User clicks ok and is redirected back to broadcast dialog box
 
   - **FR4.2 Post a new log to all friends’ log list**
     - **Description**: When a user broadcasts activity, a new log entry will be added to all friends’ activity logs.
-    - **Primary actor(s)**: User
+    - **Primary actor(s)**: User, admin
+    - **Pre-Condition**: User has successfully broadcasted activity to nearby friends
     - **Main success scenarios**:
-      1. User clicks on the broadcast with a set activity message.
-      2. Every User’s friends’ log list is updated with a new entry. We want it to update every time there is a new entry as we think real-time makes the app more enjoyable.
-      3. The new entry contains the broadcaster’s name, activity message, and location.
+      1. Nearby friend opens activity log page
+      2. A new entry contains the broadcaster’s name, activity message, broadcaster’s location when they broadcasted, time and date of broadcast.
     - **Failure scenarios**:
-      - 1a. Sending broadcast data fails due to network error.
-        - 1a1. App retries sending the log message 5 times without notifying the user.
-        - 1a2. If max attempts are exceeded, display error messages to the user and prompt them to retry broadcasting.
+      - 2a. Refreshing log page fails due to network error.
+        - 2a1. App retries getting the updated log list every 30 seconds for 5 retries.
+        - 2a2. If retries exceed, show the error message: “Sync problem, the app will continue to retry in the background” until the user leaves log screen or closes the app
 
 #### **FR5: View Activity Logs**
 
@@ -194,14 +203,15 @@
 
   - **FR5.1 View Notifications**
     - **Description**: The user can view a list of all activity logs received from their friends.
-    - **Primary actor(s)**: User
+    - **Primary actor(s)**: User, admin
     - **Main success scenario**:
       1. The user switches to the “Activity Log” page
       2. The user can scroll up and down the log to see all received activity logs.
+      3. The logs are sorted from most recent to least recent
     - **Failure scenario(s)**:
-      - 1a. Server fails to update the activity log of broadcasted activities.
-        - 1a1. Display an error message.
-        - 1a2. Retry activity fetching.
+      - 1a. Network error while fetching activity log
+        - 1a1. Display the “Sync Problem” Alert to ask user to check internet connection
+        - 1a2. When the OK button is clicked, App will keep trying to fetch the activity log
 
 #### **FR6: Manage Users**
 
@@ -216,27 +226,39 @@
 
     - **Description**: Admins can permanently ban users who engage in harmful behavior, ensuring a safe environment. The criteria for banning users is up to the admin. It could be because someone is using the app in a harmful manner as if they are stalking their friends.
     - **Primary actor(s)**: Admin
+    - **Pre-condition(s)**: User is an admin. For testing purposes, any user can become an admin by clicking on the “Test admin” checkbox in the login page.
     - **Main success scenarios**:
-      1. Admin selects a user to ban from the system.
-      2. The user is banned, preventing them from logging in or accessing the app.
-      3. The system notifies the banned user of their status.
+      1. Admin can see admin page icon in home/map page
+      2. Admin clicks on admin page icon
+      3. Admin view all users
+      4. Admin clicks on ban user icon beside a user
+      5. The user is banned. Future log in attempts display “You are banned, contact support
+      6. User can only click on exit to exit the app.
     - **Failure scenarios**:
-      - 1a. Ban action fails due to a server issue.
-        - 1a1. System logs the failure and retries the operation.
-        - 1a2. Admin receives an error message if retries fail.
+
+      - 3a. Network error while retrieving all users.
+        - 3a1. Display error “Network error while retrieving users”
+        - 3a2. 3a2. Admin click ok, and the app will continue retry
+      - 4a. Network error while banning user
+        - 4a1: Display error “Network error while banning users”
+        - 4a2: Admin clicks ok, and is redirected back to view all users.
 
   - **FR6.2 View All Users**
     - **Description**: The admin can view a list of all users currently registered to the app.
     - **Primary actor(s)**: Admin
+    - **Pre-condition(s)**: User is an admin. For testing purposes, any user can become an admin by clicking on the “Test admin” checkbox in the login page.
     - **Main success scenarios**:
-      1. Admin views all users
+      1. Admin can see admin page icon in home/map page.
+      2. Admin clicks on admin page
+      3. Admin views all users
     - **Failure scenarios**:
-      - 1a. Admin is unable to see any users due to a server error.
-        - 1a1. System logs the failure and prompts the admin to reload the app.
+      - 3a. Network error while retrieving all users.
+        - 3a1. Display error “Network error while retrieving users”
+        - 3a2. 3a2. Admin click ok, and the app will continue retry
 
 ### 3.5. Non-Functional Requirements
 
-1. **NFR1: Real-Time Performance**
+1. **NFR1: Close to Real-Time Performance**
 
    - **Description**: The app follows the Android vitals startup suggestions:
      - Cold startup takes 5 seconds or less.
@@ -304,19 +326,19 @@
     - REST API (client <-> server)
       - URI: POST /user
       - Body: { “userID”: String, “displayName”: String, “email”: String, “photoURL”: String, “fcmToken”: String, “currentLocation”: {“latitude”, “longitude”, “timestamp”} }
-      - Response: 200/OK (successfully created)
-    - **Purpose**: To create a new user profile
+      - Response: {“isAdmin”: boolean, “isBanned”: boolean}
+    - **Purpose**: To create a new user profile. Existing profile requests are updated in the DB with any changed information
   - **getUsers(): List\<User\>**
     - REST API (client <-> server)
-      - URI: GET /user/:userID
+      - URI: GET /user/:adminUserID
       - Response: 200/OK (successfully created)
-    - **Purpose**: To get all users for admin to view
+    - **Purpose**: To get all users for the admin page. adminUserID is passed for verification on the server side.
   - **banUserProfile(): boolean**
     - REST API (client <-> server)
-      - URI: POST /user/ban/:userID
+      - URI: POST /user/ban/:adminUserID
       - Body: { “userID”: String}
       - Response: 200/OK (successfully created)
-    - **Purpose**: To ban a user from using the app
+    - **Purpose**: To ban a user for the admin page. adminUserID is used for verification. userID is the user admin wants to ban
 
 #### **Friend Manager**
 
