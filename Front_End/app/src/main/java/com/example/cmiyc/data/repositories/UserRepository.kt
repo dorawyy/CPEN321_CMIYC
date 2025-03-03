@@ -202,6 +202,7 @@ object UserRepository {
                 photoURL = _currentUser.value?.photoUrl ?: "",
                 fcmToken = _currentUser.value?.fcmToken ?: "",
                 currentLocation = LocationDTO(0.0, 0.0, 0),
+                isAdmin = _isAdmin.value,
             )
             val response = api.registerUser(userRegistrationRequest)
             println("Register user response: $response")
@@ -216,8 +217,6 @@ object UserRepository {
                     // User is banned
                     return false
                 }
-                // Set admin status
-                _isAdmin.value = it.isAdmin
             }
             return true
         } catch (e: SocketTimeoutException) {
@@ -367,5 +366,9 @@ object UserRepository {
 
     fun cleanup() {
         scope.cancel()
+    }
+
+    fun setAdminRequested(requested: Boolean) {
+        _isAdmin.value = requested
     }
 }

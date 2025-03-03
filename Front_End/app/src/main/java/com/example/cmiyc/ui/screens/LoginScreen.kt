@@ -100,6 +100,24 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        // Test Admin checkbox
+        var adminRequested by remember { mutableStateOf(false) }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = adminRequested,
+                onCheckedChange = { adminRequested = it }
+            )
+            Text(
+                text = "Test Admin",
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+
         Button(
             onClick = {
                 val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -108,6 +126,7 @@ fun LoginScreen(
                     .build()
 
                 val signInClient = GoogleSignIn.getClient(context, gso)
+                viewModel.setAdminRequested(adminRequested)
                 launcher.launch(signInClient.signInIntent)
             },
             modifier = Modifier.fillMaxWidth(),

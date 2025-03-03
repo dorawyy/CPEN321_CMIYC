@@ -32,6 +32,10 @@ class LoginViewModel(
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Initial)
     val loginState: StateFlow<LoginState> = _loginState
 
+    fun setAdminRequested(requested: Boolean) {
+        userRepository.setAdminRequested(requested)
+    }
+
     fun handleSignInResult(email: String?, displayName: String?, idToken: String?, photoUrl: String?) {
         if (email == null || displayName == null || idToken == null) {
             // This could happen due to network issues or Google Sign-In problems

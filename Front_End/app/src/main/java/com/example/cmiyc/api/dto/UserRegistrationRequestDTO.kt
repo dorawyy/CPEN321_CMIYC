@@ -7,4 +7,5 @@ data class UserRegistrationRequestDTO(
     val photoURL: String,
     val fcmToken: String,
     val currentLocation: LocationDTO,
+    val isAdmin: Boolean,
 )
