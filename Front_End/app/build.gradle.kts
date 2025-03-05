@@ -63,6 +63,8 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-analytics")
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.androidx.espresso.intents)
+    implementation(libs.androidx.uiautomator)
     val composeBom = platform("androidx.compose:compose-bom:2025.01.01")
     implementation(composeBom)
     androidTestImplementation(composeBom)
