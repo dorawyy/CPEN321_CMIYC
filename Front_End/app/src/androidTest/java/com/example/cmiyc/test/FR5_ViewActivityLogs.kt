@@ -31,7 +31,7 @@ import org.junit.runners.MethodSorters
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(AndroidJUnit4::class)
-class FR1_LoginWithGoogleAuthentication {
+class FR5_ViewActivityLogs {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
@@ -45,81 +45,51 @@ class FR1_LoginWithGoogleAuthentication {
         Intents.init()
         // Ensure test account is added to device settings
         uiDevice.executeShellCommand("pm grant ${composeTestRule.activity.packageName} android.permission.ACCESS_FINE_LOCATION")
-    }
 
-    @Test
-    fun test1Login() {
+        uiAutomation.executeShellCommand("svc wifi enable")
+        uiAutomation.executeShellCommand("svc data enable")
+
         login()
     }
 
-    @Test
-    fun test2Signout() {
-        login()
-        composeTestRule.onNodeWithTag("profile_button").performClick()
 
-        // Verify main screen elements
-        composeTestRule.waitUntil(5000) {
+    @Test
+    fun test1ViewLogs() {
+        composeTestRule.onNodeWithTag("log_button").performClick()
+
+        // Verify log screen elements
+        composeTestRule.waitUntil(1000*30*5) {
             try {
-                composeTestRule.onNodeWithTag("signout_button").assertExists()
+                composeTestRule.onNodeWithText("Test").assertExists()
                 true
             } catch (e: AssertionError) {
                 false
             }
         }
-        composeTestRule.onNodeWithTag("signout_button").performClick()
-
-        // Verify main screen elements
-        composeTestRule.waitUntil(5000) {
-            try {
-                composeTestRule.onNodeWithTag("login_button").assertExists()
-                true
-            } catch (e: AssertionError) {
-                false
-            }
-        }
-        composeTestRule.onNodeWithTag("login_button").assertExists()
+        composeTestRule.onNodeWithText("Test").assertIsDisplayed()
     }
 
     @Test
-    fun test3LoginFailure() {
-        // Get the UiAutomation instance
+    fun test2ViewLogsFailure() {
+        composeTestRule.onNodeWithTag("log_button").performClick()
+
         // Execute the shell command to disable WiFi
         uiAutomation.executeShellCommand("svc wifi disable")
         uiAutomation.executeShellCommand("svc data disable")
 
-        // Handle location permission dialog
-        handleLocationPermission()
-
-        // Click Google login button
-        composeTestRule.onNodeWithTag("login_button").performClick()
-
-        // Handle Google account selection
-        selectGoogleAccount(testAccountEmail)
-
-        // Verify main screen elements
-        composeTestRule.waitUntil(5000) {
+        // Verify log screen elements
+        composeTestRule.waitUntil(1000*30*6) {
             try {
-                composeTestRule.onNodeWithText("Login Error").assertExists()
+                composeTestRule.onNodeWithText("Sync Problem").assertExists()
                 true
             } catch (e: AssertionError) {
                 false
             }
         }
-        composeTestRule.onNodeWithText("Login Error").assertExists()
+        composeTestRule.onNodeWithText("Sync Problem").assertIsDisplayed()
 
-        // Click Google login button
-        composeTestRule.onNodeWithText("OK").performClick()
-
-        // Verify main screen elements
-        composeTestRule.waitUntil(5000) {
-            try {
-                composeTestRule.onNodeWithTag("login_button").assertExists()
-                true
-            } catch (e: AssertionError) {
-                false
-            }
-        }
-        composeTestRule.onNodeWithTag("login_button").assertExists()
+        uiAutomation.executeShellCommand("svc wifi enable")
+        uiAutomation.executeShellCommand("svc data enable")
     }
 
     private fun login() {
@@ -184,9 +154,9 @@ class FR1_LoginWithGoogleAuthentication {
 
     @After
     fun tearDown() {
-        // Sign out after test
         UserRepository.clearCurrentUser()
 
+        // Sign out after test
         composeTestRule.activity.runOnUiThread {
             GoogleSignIn.getClient(
                 composeTestRule.activity,

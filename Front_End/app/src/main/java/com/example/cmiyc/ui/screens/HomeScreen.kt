@@ -6,6 +6,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -61,7 +62,10 @@ fun HomeScreen(
             TopAppBar(
                 title = {},
                 navigationIcon = {
-                    IconButton(onClick = onNavigateToLog) {
+                    IconButton(
+                        onClick = onNavigateToLog,
+                        modifier = Modifier.testTag("log_button")
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.log_icon),
                             contentDescription = "Log"
@@ -86,7 +90,10 @@ fun HomeScreen(
                         }
                     }
 
-                    IconButton(onClick = onNavigateToProfile) {
+                    IconButton(
+                        onClick = onNavigateToProfile,
+                        modifier = Modifier.testTag("profile_button")
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.user_profile_icon),
                             contentDescription = "Profile"
@@ -125,6 +132,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
+                        .testTag("broadcast_button")
                 ) {
                     Text("Broadcast")
                 }
