@@ -99,7 +99,8 @@ fun FriendsScreen(
                         IconButton(
                             onClick = {
                                 viewModel.loadFriendRequests()
-                            }
+                            },
+                            modifier = Modifier.testTag("friendRequests_button")
                         ) {
                             Icon(
                                 Icons.Default.Email,
@@ -424,12 +425,13 @@ fun FriendRequestItem(
                     onClick = { onAccept(request.userId) },
                     colors = IconButtonDefaults.filledTonalIconButtonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
+                    ),
+                    modifier = Modifier.testTag("acceptFriend_button")
                 ) {
                     Icon(
                         Icons.Default.Check,
                         contentDescription = "Accept",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                 }
 

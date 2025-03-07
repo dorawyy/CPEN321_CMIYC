@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.cmiyc.data.Friend
 
@@ -80,7 +81,8 @@ fun FriendItem(
                 Icon(
                     Icons.Default.Delete,
                     contentDescription = "Remove Friend",
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag("removeFriend_button")
                 )
             }
         }
