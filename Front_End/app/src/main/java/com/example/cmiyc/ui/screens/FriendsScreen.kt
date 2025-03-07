@@ -348,7 +348,7 @@ fun FriendRequestDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 16.dp),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = "No pending friend requests",
@@ -375,7 +375,9 @@ fun FriendRequestDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+            ) {
                 Text("Close")
             }
         }

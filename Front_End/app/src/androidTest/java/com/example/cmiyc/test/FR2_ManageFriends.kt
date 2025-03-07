@@ -37,7 +37,8 @@ class FR2_ManageFriends {
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
     private val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-    private val testAccountEmail = "guanhua.qiao2020@gmail.com" // Replace with actual test account
+    private val testAccountEmail1 = "guanhua.qiao2020@gmail.com" // Replace with actual test account
+    private val testAccountEmail2 = "omiduckai@gmail.com" // Replace with actual test account
 
     private val uiAutomation = InstrumentationRegistry.getInstrumentation().uiAutomation
 
@@ -49,13 +50,12 @@ class FR2_ManageFriends {
 
         uiAutomation.executeShellCommand("svc wifi enable")
         uiAutomation.executeShellCommand("svc data enable")
-
-        login()
     }
 
 
     @Test
     fun test1AddFriend() {
+        login(testAccountEmail1)
         composeTestRule.onNodeWithTag("friends_button").performClick()
 
         // Verify log screen elements
@@ -77,7 +77,7 @@ class FR2_ManageFriends {
                 false
             }
         }
-        composeTestRule.onNodeWithTag("friendEmail_Input").performTextInput("kdeepan240@gmail.com") // replay with test email 2
+        composeTestRule.onNodeWithTag("friendEmail_Input").performTextInput(testAccountEmail2) // replay with test email 2
 
         composeTestRule.onNodeWithTag("submitFriendEmail_button").performClick()
 
@@ -94,7 +94,70 @@ class FR2_ManageFriends {
 
     @Test
     fun test2AddFriendFailure() {
+        login(testAccountEmail1)
+        composeTestRule.onNodeWithTag("friends_button").performClick()
 
+        // Verify log screen elements
+        composeTestRule.waitUntil(5000) {
+            try {
+                composeTestRule.onNodeWithTag("addFriends_button").assertExists()
+                true
+            } catch (e: AssertionError) {
+                false
+            }
+        }
+        composeTestRule.onNodeWithTag("addFriends_button").performClick()
+
+        // test adding non-exisitng email
+        composeTestRule.waitUntil(5000) {
+            try {
+                composeTestRule.onNodeWithTag("friendEmail_Input").assertExists()
+                true
+            } catch (e: AssertionError) {
+                false
+            }
+        }
+        composeTestRule.onNodeWithTag("friendEmail_Input").performTextInput("invalidEmail@invalid.com") // replay with test email 2
+
+        composeTestRule.onNodeWithTag("submitFriendEmail_button").performClick()
+
+        composeTestRule.waitUntil(5000) {
+            try {
+                composeTestRule.onNodeWithText("Error").assertExists()
+                true
+            } catch (e: AssertionError) {
+                false
+            }
+        }
+        composeTestRule.onNodeWithText("OK").performClick()
+
+        // testing network error
+        // Execute the shell command to disable WiFi
+        uiAutomation.executeShellCommand("svc wifi disable")
+        uiAutomation.executeShellCommand("svc data disable")
+
+        composeTestRule.waitUntil(5000) {
+            try {
+                composeTestRule.onNodeWithTag("friendEmail_Input").assertExists()
+                true
+            } catch (e: AssertionError) {
+                false
+            }
+        }
+        composeTestRule.onNodeWithTag("friendEmail_Input").performTextInput(testAccountEmail2) // replay with test email 2
+
+        composeTestRule.onNodeWithTag("submitFriendEmail_button").performClick()
+
+        // Verify log screen elements
+        composeTestRule.waitUntil(1000) {
+            try {
+                composeTestRule.onNodeWithText("Error").assertExists()
+                true
+            } catch (e: AssertionError) {
+                false
+            }
+        }
+        composeTestRule.onNodeWithText("Error").assertExists()
     }
 
     @Test
@@ -113,7 +176,7 @@ class FR2_ManageFriends {
     fun test6RemoveFriendRequest() {
     }
 
-    private fun login() {
+    private fun login(email: String) {
         // Handle location permission dialog
         handleLocationPermission()
 
@@ -129,7 +192,7 @@ class FR2_ManageFriends {
         composeTestRule.onNodeWithTag("login_button").performClick()
 
         // Handle Google account selection
-        selectGoogleAccount(testAccountEmail)
+        selectGoogleAccount(email)
 
         // Verify main screen elements
         composeTestRule.waitUntil(5000) {
