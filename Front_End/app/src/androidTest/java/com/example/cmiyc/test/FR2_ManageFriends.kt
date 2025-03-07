@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.matcher.IntentMatchers
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -31,7 +32,7 @@ import org.junit.runners.MethodSorters
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(AndroidJUnit4::class)
-class FR5_ViewActivityLogs {
+class FR2_ManageFriends {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
@@ -54,39 +55,62 @@ class FR5_ViewActivityLogs {
 
 
     @Test
-    fun test1ViewLogs() {
-        composeTestRule.onNodeWithTag("log_button").performClick()
+    fun test1AddFriend() {
+        composeTestRule.onNodeWithTag("friends_button").performClick()
 
         // Verify log screen elements
-        composeTestRule.waitUntil(1000*30*5) {
+        composeTestRule.waitUntil(5000) {
             try {
-                composeTestRule.onNodeWithText("Test").assertExists()
+                composeTestRule.onNodeWithTag("addFriends_button").assertExists()
                 true
             } catch (e: AssertionError) {
                 false
             }
         }
-        composeTestRule.onNodeWithText("Test").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("addFriends_button").performClick()
+
+        composeTestRule.waitUntil(5000) {
+            try {
+                composeTestRule.onNodeWithTag("friendEmail_Input").assertExists()
+                true
+            } catch (e: AssertionError) {
+                false
+            }
+        }
+        composeTestRule.onNodeWithTag("friendEmail_Input").performTextInput("kdeepan240@gmail.com") // replay with test email 2
+
+        composeTestRule.onNodeWithTag("submitFriendEmail_button").performClick()
+
+        composeTestRule.waitUntil(5000) {
+            try {
+                composeTestRule.onNodeWithTag("friendEmail_Input").assertExists()
+                false
+            } catch (e: AssertionError) {
+                true
+            }
+        }
+        composeTestRule.onNodeWithTag("friendEmail_Input").assertDoesNotExist()
     }
 
     @Test
-    fun test2ViewLogsFailure() {
-        composeTestRule.onNodeWithTag("log_button").performClick()
+    fun test2AddFriendFailure() {
 
-        // Execute the shell command to disable WiFi
-        uiAutomation.executeShellCommand("svc wifi disable")
-        uiAutomation.executeShellCommand("svc data disable")
+    }
 
-        // Verify log screen elements
-        composeTestRule.waitUntil(1000*30*6) {
-            try {
-                composeTestRule.onNodeWithText("Sync Problem").assertExists()
-                true
-            } catch (e: AssertionError) {
-                false
-            }
-        }
-        composeTestRule.onNodeWithText("Sync Problem").assertIsDisplayed()
+    @Test
+    fun test3RespondFriendRequest() {
+    }
+
+    @Test
+    fun test4RespondFriendRequestFailure() {
+    }
+
+    @Test
+    fun test5RemoveFriendFailure() {
+    }
+
+    @Test
+    fun test6RemoveFriendRequest() {
     }
 
     private fun login() {

@@ -73,7 +73,10 @@ fun HomeScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onNavigateToFriends) {
+                    IconButton(
+                        onClick = onNavigateToFriends,
+                        modifier = Modifier.testTag("friends_button")
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.friends_svg),
                             contentDescription = "Friends"

@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -78,7 +79,8 @@ fun FriendsScreen(
                     IconButton(
                         onClick = {
                             viewModel.updateState { it.copy(showAddFriendDialog = true) }
-                        }
+                        },
+                        modifier = Modifier.testTag("addFriends_button")
                     ) {
                         Icon(
                             Icons.Default.Add,
@@ -295,13 +297,14 @@ fun AddFriendDialog(
                 keyboardActions = KeyboardActions(
                     onDone = { onSendRequest() }
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().testTag("friendEmail_Input")
             )
         },
         confirmButton = {
             TextButton(
                 onClick = onSendRequest,
-                enabled = email.isNotBlank()
+                enabled = email.isNotBlank(),
+                modifier = Modifier.testTag("submitFriendEmail_button")
             ) {
                 Text("Send Request")
             }
