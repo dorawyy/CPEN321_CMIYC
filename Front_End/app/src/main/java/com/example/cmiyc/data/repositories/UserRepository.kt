@@ -55,80 +55,10 @@ object UserRepository {
     private val maxConsecutiveFailures = 20
 
     init {
-//        startLocationUpdateWorker()
-        fun isAuthenticated(): Boolean {
-            return isRegistrationComplete.value
-        }
+        startLocationUpdateWorker()
+    }
 
-        suspend fun processLocationUpdates() {
-            fun checkConsecutiveFailures(errorMessage: String) {
-                if (consecutiveFailures >= maxConsecutiveFailures) {
-                    _locationUpdateError.value = errorMessage
-                }
-            }
-            if (isUpdating) return
-            isUpdating = true
-
-            try {
-                val userId = getCurrentUserId()
-                val latestUpdate = locationUpdateQueue.poll() ?: return
-
-                try {
-                    val locationUpdateRequest = LocationUpdateRequestDTO(latestUpdate)
-                    val startTime = System.currentTimeMillis()
-                    val response = api.updateUserLocation(userId, locationUpdateRequest)
-                    val endTime = System.currentTimeMillis()
-                    println("Location Update API call took ${endTime - startTime} ms")
-                    if (response.isSuccessful) {
-                        _currentUser.value = latestUpdate.timestamp.let {
-                            _currentUser.value?.copy(
-                                currentLocation = Point.fromLngLat(
-                                    latestUpdate.longitude,
-                                    latestUpdate.latitude,
-                                ),
-                                lastLocationUpdate = it
-                            )
-                        }
-                        locationUpdateQueue.clear()
-                        consecutiveFailures = 0 // Reset failure counter on success
-
-                        // Clear any existing error
-                        _locationUpdateError.value = null
-                    } else {
-                        locationUpdateQueue.offer(latestUpdate)
-                        consecutiveFailures++
-                        println("Failed to update location: ${response.code()} (Failures: $consecutiveFailures)")
-                        checkConsecutiveFailures("Failed to update location. Your friends may not see your current position.")
-                    }
-                } catch (e: SocketTimeoutException) {
-                    // Handle timeout specifically
-                    locationUpdateQueue.offer(latestUpdate)
-                    consecutiveFailures++
-                    println("Network timeout when updating location: ${e.message} (Failures: $consecutiveFailures)")
-                    checkConsecutiveFailures("Network timeout when updating location. Your friends may not see your current position.")
-                } catch (e: IOException) {
-                    // Handle network errors
-                    locationUpdateQueue.offer(latestUpdate)
-                    consecutiveFailures++
-                    println("Network error when updating location: ${e.message} (Failures: $consecutiveFailures)")
-                    checkConsecutiveFailures("Network error when updating location. Your friends may not see your current position.")
-                } catch (e: HttpException) {
-                    locationUpdateQueue.offer(latestUpdate)
-                    consecutiveFailures++
-                    println("Error updating location: ${e.message} (Failures: $consecutiveFailures)")
-                    checkConsecutiveFailures("Error updating location: ${e.message}. Your friends may not see your current position.")
-                }
-                catch (e: IllegalStateException) {
-                    locationUpdateQueue.offer(latestUpdate)
-                    consecutiveFailures++
-                    println("Error updating location: ${e.message} (Failures: $consecutiveFailures)")
-                    checkConsecutiveFailures("Error updating location: ${e.message}. Your friends may not see your current position.")
-                }
-            } finally {
-                isUpdating = false
-            }
-        }
-
+    private fun startLocationUpdateWorker() {
         scope.launch {
             while (isActive) {
                 if (isAuthenticated() && locationUpdateQueue.isNotEmpty()) {
@@ -146,33 +76,84 @@ object UserRepository {
         }
     }
 
-//    private fun startLocationUpdateWorker() {
-//        fun isAuthenticated(): Boolean {
-//            return isRegistrationComplete.value
-//        }
-//
-//        scope.launch {
-//            while (isActive) {
-//                if (isAuthenticated() && locationUpdateQueue.isNotEmpty()) {
-//                    processLocationUpdates()
-//                }
-//                // Exponential backoff for retry delay
-//                val delay = if (consecutiveFailures > 0) {
-//                    val backoffDelay = (1.seconds * (1 shl minOf(consecutiveFailures, 5)))
-//                    minOf(backoffDelay, maxRetryDelay)
-//                } else {
-//                    1.seconds
-//                }
-//                delay(delay)
-//            }
-//        }
-//    }
+    private suspend fun processLocationUpdates() {
+        if (isUpdating) return
+        isUpdating = true
 
+        try {
+            val userId = getCurrentUserId()
+            val latestUpdate = locationUpdateQueue.poll() ?: return
 
-//    fun clearLocationUpdateError() {
-//        _locationUpdateError.value = null
-//        // Don't reset the counter here, let the system try to recover naturally
-//    }
+            try {
+                val locationUpdateRequest = LocationUpdateRequestDTO(latestUpdate)
+                val startTime = System.currentTimeMillis()
+                val response = api.updateUserLocation(userId, locationUpdateRequest)
+                val endTime = System.currentTimeMillis()
+                println("Location Update API call took ${endTime - startTime} ms")
+                if (response.isSuccessful) {
+                    _currentUser.value = latestUpdate.timestamp.let {
+                        _currentUser.value?.copy(
+                            currentLocation = Point.fromLngLat(
+                                latestUpdate.longitude,
+                                latestUpdate.latitude,
+                            ),
+                            lastLocationUpdate = it
+                        )
+                    }
+                    locationUpdateQueue.clear()
+                    consecutiveFailures = 0 // Reset failure counter on success
+
+                    // Clear any existing error
+                    _locationUpdateError.value = null
+                } else {
+                    locationUpdateQueue.offer(latestUpdate)
+                    consecutiveFailures++
+                    println("Failed to update location: ${response.code()} (Failures: $consecutiveFailures)")
+                    checkConsecutiveFailures("Failed to update location. Your friends may not see your current position.")
+                }
+            } catch (e: SocketTimeoutException) {
+                // Handle timeout specifically
+                locationUpdateQueue.offer(latestUpdate)
+                consecutiveFailures++
+                println("Network timeout when updating location: ${e.message} (Failures: $consecutiveFailures)")
+                checkConsecutiveFailures("Network timeout when updating location. Your friends may not see your current position.")
+            } catch (e: IOException) {
+                // Handle network errors
+                locationUpdateQueue.offer(latestUpdate)
+                consecutiveFailures++
+                println("Network error when updating location: ${e.message} (Failures: $consecutiveFailures)")
+                checkConsecutiveFailures("Network error when updating location. Your friends may not see your current position.")
+            } catch (e: HttpException) {
+                locationUpdateQueue.offer(latestUpdate)
+                consecutiveFailures++
+                println("Error updating location: ${e.message} (Failures: $consecutiveFailures)")
+                checkConsecutiveFailures("Error updating location: ${e.message}. Your friends may not see your current position.")
+            }
+            catch (e: IllegalStateException) {
+                locationUpdateQueue.offer(latestUpdate)
+                consecutiveFailures++
+                println("Error updating location: ${e.message} (Failures: $consecutiveFailures)")
+                checkConsecutiveFailures("Error updating location: ${e.message}. Your friends may not see your current position.")
+            }
+        } finally {
+            isUpdating = false
+        }
+    }
+
+    private fun checkConsecutiveFailures(errorMessage: String) {
+        if (consecutiveFailures >= maxConsecutiveFailures) {
+            _locationUpdateError.value = errorMessage
+        }
+    }
+
+    fun clearLocationUpdateError() {
+        _locationUpdateError.value = null
+        // Don't reset the counter here, let the system try to recover naturally
+    }
+
+    fun isAuthenticated(): Boolean {
+        return isRegistrationComplete.value
+    }
 
     fun getCurrentUserId(): String {
         return currentUser.value?.userId
@@ -296,14 +277,14 @@ object UserRepository {
         _isRegistrationComplete.value = false
     }
 
-    suspend fun refreshLogs() {
-        fun LogDTO.toLog(): Log = Log(
-            sender = fromName,
-            activity = eventName,
-            senderLocation = location.let { Point.fromLngLat(it.longitude, it.latitude) },
-            timestamp = location.timestamp
-        )
+    private fun LogDTO.toLog(): Log = Log(
+        sender = fromName,
+        activity = eventName,
+        senderLocation = location.let { Point.fromLngLat(it.longitude, it.latitude) },
+        timestamp = location.timestamp
+    )
 
+    suspend fun refreshLogs() {
         try {
             val userId = _currentUser.value?.userId ?: return
             val startTime = System.currentTimeMillis()
@@ -333,17 +314,17 @@ object UserRepository {
         return _logs.value
     }
 
+    // Convert UserDTO to AdminUserItem
+    private fun UserDTO.toAdminUserItem(): AdminUserItem = AdminUserItem(
+        userId = userID,
+        name = displayName,
+        email = email,
+        photoURL = photoURL,
+        isBanned = isBanned
+    )
+
     // Get all users for admin screen
     suspend fun getAllUsers(): Result<List<AdminUserItem>> {
-        // Convert UserDTO to AdminUserItem
-        fun UserDTO.toAdminUserItem(): AdminUserItem = AdminUserItem(
-            userId = userID,
-            name = displayName,
-            email = email,
-            photoURL = photoURL,
-            isBanned = isBanned
-        )
-
         return try {
             val userId = _currentUser.value?.userId ?:
             return Result.failure(Exception("User not authenticated"))
