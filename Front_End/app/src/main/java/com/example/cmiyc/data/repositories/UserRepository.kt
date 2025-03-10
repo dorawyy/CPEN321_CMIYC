@@ -360,6 +360,7 @@ object UserRepository {
             try {
                 clearCurrentUser()
             } catch (e: Exception) {
+                println("Error during sign out: ${e.message}")
                 throw e
             }
         }

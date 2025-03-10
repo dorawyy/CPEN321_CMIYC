@@ -22,7 +22,6 @@ class FriendsViewModelFactory : ViewModelProvider.Factory {
 }
 
 class FriendsViewModel : ViewModel() {
-
     // Internal state
     private val _uiState = MutableStateFlow(FriendsScreenState())
     val state: StateFlow<FriendsScreenState> = _uiState

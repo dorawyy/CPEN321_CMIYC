@@ -57,6 +57,7 @@ object FriendsRepository {
                     _lastError.value = null
                 } catch (e: CancellationException) {
                     // Handle cancellation during delay
+                    println("Handle cancellation during delay: ${e.message}")
                     throw e
                 } catch (e: Exception) {
                     // Track failures and the error
@@ -69,6 +70,7 @@ object FriendsRepository {
                     delay(5000)
                 } catch (e: CancellationException) {
                     // Handle cancellation during delay
+                    println("Handle cancellation during delay: ${e.message}")
                     throw e
                 }
             }
