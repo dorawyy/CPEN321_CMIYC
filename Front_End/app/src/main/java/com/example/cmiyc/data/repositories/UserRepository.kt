@@ -129,12 +129,12 @@ object UserRepository {
                 println("Error updating location: ${e.message} (Failures: $consecutiveFailures)")
                 checkConsecutiveFailures("Error updating location: ${e.message}. Your friends may not see your current position.")
             }
-//            catch (e: exception) {
-//                locationUpdateQueue.offer(latestUpdate)
-//                consecutiveFailures++
-//                println("Error updating location: ${e.message} (Failures: $consecutiveFailures)")
-//                checkConsecutiveFailures("Error updating location: ${e.message}. Your friends may not see your current position.")
-//            }
+            catch (e: IllegalStateException) {
+                locationUpdateQueue.offer(latestUpdate)
+                consecutiveFailures++
+                println("Error updating location: ${e.message} (Failures: $consecutiveFailures)")
+                checkConsecutiveFailures("Error updating location: ${e.message}. Your friends may not see your current position.")
+            }
         } finally {
             isUpdating = false
         }
@@ -157,7 +157,7 @@ object UserRepository {
 
     fun getCurrentUserId(): String {
         return currentUser.value?.userId
-            ?: throw RuntimeException("User not authenticated")
+            ?: throw IllegalStateException("User not authenticated")
     }
 
     fun setCurrentUser(credentials: User) {
@@ -187,7 +187,7 @@ object UserRepository {
             val endTime = System.currentTimeMillis()
             println("Set FCM Token API call took ${endTime - startTime} ms")
             if (!response.isSuccessful) {
-                throw RuntimeException("Failed to set FCM token: ${response.code()}")
+                throw HttpException(response)
             }
         } catch (e: SocketTimeoutException) {
             println("Network timeout when registering user: ${e.message}")
@@ -196,6 +196,9 @@ object UserRepository {
             println("Network error when registering user: ${e.message}")
             throw e
         } catch (e: HttpException) {
+            println("Error registering user: ${e.message}")
+            throw e
+        } catch (e: IllegalStateException) {
             println("Error registering user: ${e.message}")
             throw e
         }
@@ -215,7 +218,7 @@ object UserRepository {
             val response = api.registerUser(userRegistrationRequest)
             println("Register user response: $response")
             if (!response.isSuccessful) {
-                throw RuntimeException("Failed to register user: ${response.code()}")
+                throw HttpException(response)
             }
 
             // Handle admin status and banned status
@@ -251,7 +254,7 @@ object UserRepository {
             val endTime = System.currentTimeMillis()
             println("Broadcast Message API call took ${endTime - startTime} ms")
             if (!response.isSuccessful) {
-                throw RuntimeException("Failed to broadcast message: ${response.code()}")
+                throw HttpException(response)
             }
         } catch (e: SocketTimeoutException) {
             println("Network timeout when broadcasting message: ${e.message}")
@@ -260,6 +263,9 @@ object UserRepository {
             println("Network error when broadcasting message: ${e.message}")
             throw e
         } catch (e: HttpException) {
+            println("Error broadcasting message: ${e.message}")
+            throw e
+        } catch (e: IllegalStateException) {
             println("Error broadcasting message: ${e.message}")
             throw e
         }
@@ -290,7 +296,7 @@ object UserRepository {
                 val logs = response.body()?.map { it.toLog() } ?: emptyList()
                 _logs.value = logs
             } else {
-                throw RuntimeException("Failed to fetch logs: ${response.code()}")
+                throw HttpException(response)
             }
         } catch (e: SocketTimeoutException) {
             println("Network timeout when refreshing logs: ${e.message}")
