@@ -1,6 +1,5 @@
 package com.example.cmiyc.repository
 
-import android.util.Log
 import com.example.cmiyc.api.ApiClient
 import com.example.cmiyc.data.Friend
 import com.example.cmiyc.data.FriendRequest
@@ -14,6 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException
+
+
 
 object FriendsRepository {
     private val api = ApiClient.apiService
@@ -96,14 +97,14 @@ object FriendsRepository {
         isBanned = isBanned
     )
 
-    private fun FriendDTO.toFriendRequest(): FriendRequest = FriendRequest(
-        userId = userID,
-        displayName = displayName,
-        timestamp = currentLocation.timestamp,
-    )
-
     // Fetch friend requests once
     suspend fun fetchFriendRequestsOnce(): Result<List<FriendRequest>> {
+        fun FriendDTO.toFriendRequest(): FriendRequest = FriendRequest(
+            userId = userID,
+            displayName = displayName,
+            timestamp = currentLocation.timestamp,
+        )
+
         return try {
             _isRequestsLoading.value = true
             val startTime = System.currentTimeMillis()
