@@ -119,8 +119,13 @@ object FriendsRepository {
             } else {
                 Result.failure(Exception("Failed to fetch friend requests: ${response.code()}"))
             }
-        } catch (e: Exception) {
-            println("Error fetching friend requests: ${e.message}")
+        } catch (e: SocketTimeoutException) {
+            Result.failure(e)
+        }
+        catch (e: IOException) {
+            Result.failure(e)
+        }
+        catch (e: HttpException) {
             Result.failure(e)
         } finally {
             _isRequestsLoading.value = false
@@ -149,7 +154,7 @@ object FriendsRepository {
         } catch (e: IOException) {
             println("Network error when fetching friends: ${e.message}")
             throw e
-        } catch (e: Exception) {
+        } catch (e: HttpException) {
             if (e is CancellationException) throw e
             println("Error fetching friends: ${e.message}")
             throw e
@@ -173,8 +178,13 @@ object FriendsRepository {
             } else {
                 Result.failure(Exception("Failed to fetch friends: ${response.code()}"))
             }
-        } catch (e: Exception) {
-            println("Error fetching friends: ${e.message}")
+        } catch (e: SocketTimeoutException) {
+            Result.failure(e)
+        }
+        catch (e: IOException) {
+            Result.failure(e)
+        }
+        catch (e: HttpException) {
             Result.failure(e)
         } finally {
             _isFriendsLoading.value = false
@@ -201,7 +211,13 @@ object FriendsRepository {
             } else {
                 Result.failure(Exception("Failed to accept friend request: ${response.code()}"))
             }
-        } catch (e: Exception) {
+        } catch (e: SocketTimeoutException) {
+            Result.failure(e)
+        }
+        catch (e: IOException) {
+            Result.failure(e)
+        }
+        catch (e: HttpException) {
             Result.failure(e)
         }
     }
@@ -224,7 +240,13 @@ object FriendsRepository {
             } else {
                 Result.failure(Exception("Failed to decline friend request: ${response.code()}"))
             }
-        } catch (e: Exception) {
+        } catch (e: SocketTimeoutException) {
+            Result.failure(e)
+        }
+        catch (e: IOException) {
+            Result.failure(e)
+        }
+        catch (e: HttpException) {
             Result.failure(e)
         }
     }
@@ -245,7 +267,13 @@ object FriendsRepository {
             } else {
                 Result.failure(Exception("Failed to send friend request: ${response.code()}"))
             }
-        } catch (e: Exception) {
+        } catch (e: SocketTimeoutException) {
+            Result.failure(e)
+        }
+        catch (e: IOException) {
+            Result.failure(e)
+        }
+        catch (e: HttpException) {
             Result.failure(e)
         }
     }
@@ -268,7 +296,14 @@ object FriendsRepository {
             } else {
                 Result.failure(Exception("Failed to remove friend: ${response.code()}"))
             }
-        } catch (e: Exception) {
+        }
+        catch (e: SocketTimeoutException) {
+            Result.failure(e)
+        }
+        catch (e: IOException) {
+            Result.failure(e)
+        }
+        catch (e: HttpException) {
             Result.failure(e)
         }
     }

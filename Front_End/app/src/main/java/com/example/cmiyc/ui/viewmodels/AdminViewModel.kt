@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.IOException
+import java.net.SocketTimeoutException
 
 class AdminViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -55,7 +57,23 @@ class AdminViewModel : ViewModel() {
                         }
                     }
                 )
-            } catch (e: HttpException) {
+            } catch (e: SocketTimeoutException) {
+                _state.update {
+                    it.copy(
+                        error = e.message ?: "Failed to load users",
+                        isLoading = false
+                    )
+                }
+            }
+            catch (e: IOException) {
+                _state.update {
+                    it.copy(
+                        error = e.message ?: "Failed to load users",
+                        isLoading = false
+                    )
+                }
+            }
+            catch (e: HttpException) {
                 _state.update {
                     it.copy(
                         error = e.message ?: "Failed to load users",
@@ -81,7 +99,15 @@ class AdminViewModel : ViewModel() {
                         }
                     }
                 )
-            } catch (e: Exception) {
+            } catch (e: SocketTimeoutException) {
+                _state.update {
+                    it.copy(error = e.message ?: "Failed to ban user")
+                }
+            } catch (e: IOException) {
+                _state.update {
+                    it.copy(error = e.message ?: "Failed to ban user")
+                }
+            } catch (e: HttpException) {
                 _state.update {
                     it.copy(error = e.message ?: "Failed to ban user")
                 }

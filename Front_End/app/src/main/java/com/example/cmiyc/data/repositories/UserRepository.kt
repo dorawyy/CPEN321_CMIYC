@@ -10,6 +10,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import retrofit2.HttpException
 import java.io.IOException
+import java.lang.RuntimeException
 import java.net.SocketTimeoutException
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.time.Duration.Companion.seconds
@@ -156,7 +157,7 @@ object UserRepository {
 
     fun getCurrentUserId(): String {
         return currentUser.value?.userId
-            ?: throw Exception("User not authenticated")
+            ?: throw RuntimeException("User not authenticated")
     }
 
     fun setCurrentUser(credentials: User) {
@@ -186,7 +187,7 @@ object UserRepository {
             val endTime = System.currentTimeMillis()
             println("Set FCM Token API call took ${endTime - startTime} ms")
             if (!response.isSuccessful) {
-                throw Exception("Failed to set FCM token: ${response.code()}")
+                throw RuntimeException("Failed to set FCM token: ${response.code()}")
             }
         } catch (e: SocketTimeoutException) {
             println("Network timeout when registering user: ${e.message}")
@@ -194,7 +195,7 @@ object UserRepository {
         } catch (e: IOException) {
             println("Network error when registering user: ${e.message}")
             throw e
-        } catch (e: Exception) {
+        } catch (e: HttpException) {
             println("Error registering user: ${e.message}")
             throw e
         }
@@ -214,7 +215,7 @@ object UserRepository {
             val response = api.registerUser(userRegistrationRequest)
             println("Register user response: $response")
             if (!response.isSuccessful) {
-                throw Exception("Failed to register user: ${response.code()}")
+                throw RuntimeException("Failed to register user: ${response.code()}")
             }
 
             // Handle admin status and banned status
@@ -233,7 +234,7 @@ object UserRepository {
         } catch (e: IOException) {
             println("Network error when registering user: ${e.message}")
             throw e
-        } catch (e: Exception) {
+        } catch (e: HttpException) {
             println("Error registering user: ${e.message}")
             throw e
         }
@@ -250,7 +251,7 @@ object UserRepository {
             val endTime = System.currentTimeMillis()
             println("Broadcast Message API call took ${endTime - startTime} ms")
             if (!response.isSuccessful) {
-                throw Exception("Failed to broadcast message: ${response.code()}")
+                throw RuntimeException("Failed to broadcast message: ${response.code()}")
             }
         } catch (e: SocketTimeoutException) {
             println("Network timeout when broadcasting message: ${e.message}")
@@ -258,7 +259,7 @@ object UserRepository {
         } catch (e: IOException) {
             println("Network error when broadcasting message: ${e.message}")
             throw e
-        } catch (e: Exception) {
+        } catch (e: HttpException) {
             println("Error broadcasting message: ${e.message}")
             throw e
         }
@@ -289,7 +290,7 @@ object UserRepository {
                 val logs = response.body()?.map { it.toLog() } ?: emptyList()
                 _logs.value = logs
             } else {
-                throw Exception("Failed to fetch logs: ${response.code()}")
+                throw RuntimeException("Failed to fetch logs: ${response.code()}")
             }
         } catch (e: SocketTimeoutException) {
             println("Network timeout when refreshing logs: ${e.message}")
@@ -297,7 +298,7 @@ object UserRepository {
         } catch (e: IOException) {
             println("Network error when refreshing logs: ${e.message}")
             throw e
-        } catch (e: Exception) {
+        } catch (e: HttpException) {
             println("Error refreshing logs: ${e.message}")
             throw e
         }
@@ -332,7 +333,7 @@ object UserRepository {
             } else {
                 Result.failure(Exception("Failed to fetch users: ${response.code()}"))
             }
-        } catch (e: Exception) {
+        } catch (e: HttpException) {
             Result.failure(e)
         }
     }
@@ -357,7 +358,7 @@ object UserRepository {
             } else {
                 Result.failure(Exception("Failed to ban user: ${response.code()}"))
             }
-        } catch (e: Exception) {
+        } catch (e: HttpException) {
             Result.failure(e)
         }
     }
@@ -366,7 +367,7 @@ object UserRepository {
         withContext(Dispatchers.IO) {
             try {
                 clearCurrentUser()
-            } catch (e: Exception) {
+            } catch (e: HttpException) {
                 println("Error during sign out: ${e.message}")
                 throw e
             }

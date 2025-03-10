@@ -86,10 +86,8 @@ class LoginViewModel(
                     _loginState.value = LoginState.Error("Network timeout during registration. Please check your connection and try again.")
                 } catch (e: IOException) {
                     _loginState.value = LoginState.Error("Network error during registration. Please check your connection and try again.")
-                } catch (e: HttpException) {
-                    _loginState.value = LoginState.Error("Registration failed: ${e.message ?: "Unknown error"}")
                 }
-            } catch (e: Exception) {
+            } catch (e: HttpException) {
                 _loginState.value = LoginState.Error("Login failed: ${e.message ?: "Unknown error"}")
                 resetState()
             }
