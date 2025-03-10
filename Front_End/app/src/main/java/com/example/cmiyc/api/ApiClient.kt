@@ -6,7 +6,6 @@ import okhttp3.Dispatcher
 import okhttp3.Cache
 import okhttp3.Protocol
 import okio.IOException
-import okhttp3.Interceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -14,6 +13,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import android.content.Context
 import java.io.File
+import java.net.UnknownHostException
 
 object RetrofitClient {
     private const val BASE_URL = "https://m32qmf20rf.execute-api.us-west-1.amazonaws.com/"
@@ -23,52 +23,54 @@ object RetrofitClient {
 
     fun initialize(context: Context) {
         if (okHttpClient != null) return
-
-        // Create cache directory
         val cacheDir = File(context.cacheDir, "http-cache")
         val cache = Cache(cacheDir, CACHE_SIZE)
-
-        // Configure Dispatcher for better concurrency handling
         val dispatcher = Dispatcher().apply {
-            maxRequests = 32 // Increased from default 64 to reduce resources
-            maxRequestsPerHost = 10 // Increased from default 5 for API communications
+            maxRequests = 32
+            maxRequestsPerHost = 10
         }
-
-        // Configure connection pool for connection reuse
         val connectionPool = ConnectionPool(
-            5, // Max idle connections
-            30, // Keep alive duration
+            5,
+            30,
             TimeUnit.SECONDS
         )
-
-        // Create OkHttpClient with optimized settings
         okHttpClient = OkHttpClient.Builder()
-            .connectTimeout(5, TimeUnit.SECONDS)
-            .readTimeout(5, TimeUnit.SECONDS)
-            .writeTimeout(5, TimeUnit.SECONDS)
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
+            .callTimeout(10, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .connectionPool(connectionPool)
             .dispatcher(dispatcher)
             .cache(cache)
-            .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1)) // Prefer HTTP/2
+            .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
             .addInterceptor { chain ->
-                // Add headers for all requests
                 val request = chain.request().newBuilder()
                     .addHeader("Connection", "keep-alive")
                     .build()
-
                 try {
                     chain.proceed(request)
-                } catch (e: IOException) {
-                    // Force a new connection on network errors
-                    val newRequest = request.newBuilder().build()
-                    chain.proceed(newRequest)
+                } catch (e: Exception) {
+                    if (e is UnknownHostException) {
+                        println("DNS resolution error: ${e.message}, trying with fresh connection")
+                        val freshRequest = request.newBuilder()
+                            .removeHeader("Connection")
+                            .addHeader("Connection", "close")
+                            .cacheControl(okhttp3.CacheControl.FORCE_NETWORK)
+                            .build()
+
+                        return@addInterceptor chain.proceed(freshRequest)
+                    }
+                    if (e is IOException) {
+                        val newRequest = request.newBuilder().build()
+                        return@addInterceptor chain.proceed(newRequest)
+                    }
+                    throw e
                 }
             }
             .build()
     }
 
-    // Optimize JSON parsing
     private val gson: Gson = GsonBuilder()
         .serializeNulls()
         .setLenient()
