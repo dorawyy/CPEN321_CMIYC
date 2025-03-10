@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import coil.network.HttpException
 import com.example.cmiyc.data.User
 import com.example.cmiyc.repositories.UserRepository
 import com.google.firebase.Firebase
@@ -49,7 +50,7 @@ class LoginViewModel(
                 val tokenTask = Firebase.messaging.token
                 val token = try {
                     tokenTask.await()
-                } catch (e: Exception) {
+                } catch (e: HttpException) {
                     // If FCM token retrieval fails due to network issues, we can still proceed
                     // with a placeholder value, and we'll update it later when network is available
                     println("FCM token retrieval failed: ${e.message}")
@@ -85,7 +86,7 @@ class LoginViewModel(
                     _loginState.value = LoginState.Error("Network timeout during registration. Please check your connection and try again.")
                 } catch (e: IOException) {
                     _loginState.value = LoginState.Error("Network error during registration. Please check your connection and try again.")
-                } catch (e: Exception) {
+                } catch (e: HttpException) {
                     _loginState.value = LoginState.Error("Registration failed: ${e.message ?: "Unknown error"}")
                 }
             } catch (e: Exception) {

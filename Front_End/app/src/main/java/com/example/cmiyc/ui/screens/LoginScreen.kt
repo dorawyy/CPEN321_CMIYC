@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.network.HttpException
 import com.example.cmiyc.repositories.UserRepository
 import com.example.cmiyc.ui.theme.CMIYCTheme
 import com.example.cmiyc.ui.viewmodels.LoginState
@@ -20,6 +21,7 @@ import com.example.cmiyc.ui.viewmodels.LoginViewModelFactory
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import java.io.IOException
 
 @Composable
 fun LoginScreen(
@@ -63,7 +65,7 @@ fun LoginScreen(
                 errorMessage = "Failed to sign in with Google: ${e.message ?: "Unknown error"}"
             }
             viewModel.handleSignInResult(null, null, null, null)
-        } catch (e: Exception) {
+        } catch (e: HttpException) {
             showErrorDialog = true
             errorMessage = "Network error during sign in. Please check your internet connection and try again."
             viewModel.handleSignInResult(null, null, null, null)

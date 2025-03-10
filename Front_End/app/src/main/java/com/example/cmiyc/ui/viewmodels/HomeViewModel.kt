@@ -3,6 +3,7 @@ package com.example.cmiyc.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import coil.network.HttpException
 import com.example.cmiyc.data.Friend
 import com.example.cmiyc.repositories.UserRepository
 import com.example.cmiyc.repository.FriendsRepository
@@ -108,7 +109,7 @@ class HomeViewModel : ViewModel() {
                 _state.update { it.copy(
                     error = "Your broadcast may not have been sent due to a network error. Your friends might not receive this update."
                 )}
-            } catch (e: Exception) {
+            } catch (e: HttpException) {
                 _state.update { it.copy(
                     error = "Error: ${e.message ?: "Failed to broadcast message"}"
                 )}

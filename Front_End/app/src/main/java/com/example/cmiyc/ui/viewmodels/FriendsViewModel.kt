@@ -3,6 +3,7 @@ package com.example.cmiyc.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import coil.network.HttpException
 import com.example.cmiyc.data.Friend
 import com.example.cmiyc.data.FriendRequest
 import com.example.cmiyc.repository.FriendsRepository
@@ -110,13 +111,12 @@ class FriendsViewModel : ViewModel() {
                         _uiState.update { it.copy(error = errorMsg) }
                     }
                 )
-            } catch (e: Exception) {
-                val errorMsg = when (e) {
-                    is SocketTimeoutException -> "Network timeout while loading friend requests. Please try again."
-                    is IOException -> "Network error while loading friend requests. Please check your connection."
-                    else -> "Failed to load friend requests: ${e.message}"
-                }
-                _uiState.update { it.copy(error = errorMsg) }
+            }
+            catch (e: SocketTimeoutException) {
+                _uiState.update { it.copy(error = "Network timeout while loading friend requests. Please try again.") }
+            }
+            catch (e: IOException) {
+                _uiState.update { it.copy(error = "Network error while loading friend requests. Please check your connection.") }
             }
         }
     }

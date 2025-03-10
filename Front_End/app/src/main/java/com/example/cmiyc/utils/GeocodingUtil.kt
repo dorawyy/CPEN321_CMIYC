@@ -57,9 +57,6 @@ object GeocodingUtil {
         } catch (e: HttpException) {
             return@withContext formatCoordinates(latitude, longitude)
         }
-        catch (e: Exception) {
-            return@withContext formatCoordinates(latitude, longitude)
-        }
     }
 
     private fun formatAddress(

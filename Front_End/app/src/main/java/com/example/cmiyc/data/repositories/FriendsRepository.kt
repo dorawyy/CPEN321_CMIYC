@@ -69,11 +69,6 @@ object FriendsRepository {
                     _lastError.value = e
                     println("Friend polling failed (${_consecutiveFailures.value}): ${e.message}")
                 }
-                catch (e: Exception) {
-                    _consecutiveFailures.value++
-                    _lastError.value = e
-                    println("Friend polling failed (${_consecutiveFailures.value}): ${e.message}")
-                }
 
                 try {
                     delay(5000)

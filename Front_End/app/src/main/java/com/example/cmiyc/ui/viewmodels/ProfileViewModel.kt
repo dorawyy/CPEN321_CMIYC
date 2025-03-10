@@ -74,14 +74,6 @@ class ProfileViewModel (
                     )
                 }
             }
-            catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        error = "Unexpected error: ${e.message}",
-                        isLoading = false
-                    )
-                }
-            }
         }
     }
 

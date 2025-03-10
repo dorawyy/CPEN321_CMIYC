@@ -3,6 +3,7 @@ package com.example.cmiyc.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import coil.network.HttpException
 import com.example.cmiyc.data.AdminUserItem
 import com.example.cmiyc.repositories.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,7 +55,7 @@ class AdminViewModel : ViewModel() {
                         }
                     }
                 )
-            } catch (e: Exception) {
+            } catch (e: HttpException) {
                 _state.update {
                     it.copy(
                         error = e.message ?: "Failed to load users",
