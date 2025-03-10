@@ -172,9 +172,6 @@ fun LocationResetButton(
                 )
             } ?: Toast.makeText(context, "User location not available", Toast.LENGTH_SHORT).show()
         },
-//        modifier = Modifier
-////            .align(Alignment.BottomEnd)
-//            .padding(16.dp)
     ) {
         Icon(
             painter = painterResource(id = R.drawable.locate_me),
