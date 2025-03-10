@@ -83,7 +83,7 @@ class FriendsViewModel : ViewModel() {
                 _uiState.update { it.copy(error = "Network timeout while loading friends. Please check your connection and try again.") }
             } catch (e: IOException) {
                 _uiState.update { it.copy(error = "Network error while loading friends. Please check your connection and try again.") }
-            } catch (e: Exception) {
+            } catch (e: HttpException) {
                 _uiState.update { it.copy(error = "Failed to load friends: ${e.message}") }
             }
         }
@@ -222,29 +222,31 @@ class FriendsViewModel : ViewModel() {
                 val email = state.value.emailInput.trim()
                 if (email.isEmpty()) {
                     _uiState.update { it.copy(error = "Please enter an email address") }
-                    return@launch
                 }
-
-                val result = FriendsRepository.sendFriendRequest(email)
-                result.fold(
-                    onSuccess = {
-                        _uiState.update { it.copy(
-                            showAddFriendDialog = false,
-                            emailInput = "",
-                            error = null,
-                            requestSentSuccessful = true,
-                            successMessage = "Friend request sent successfully to $email"
-                        )}
-                    },
-                    onFailure = { e ->
-                        val errorMsg = when (e) {
-                            is SocketTimeoutException -> "Network timeout while sending friend request. Please try again."
-                            is IOException -> "Network error while sending friend request. Please check your connection."
-                            else -> "Failed to send friend request: ${e.message}"
+                else {
+                    val result = FriendsRepository.sendFriendRequest(email)
+                    result.fold(
+                        onSuccess = {
+                            _uiState.update {
+                                it.copy(
+                                    showAddFriendDialog = false,
+                                    emailInput = "",
+                                    error = null,
+                                    requestSentSuccessful = true,
+                                    successMessage = "Friend request sent successfully to $email"
+                                )
+                            }
+                        },
+                        onFailure = { e ->
+                            val errorMsg = when (e) {
+                                is SocketTimeoutException -> "Network timeout while sending friend request. Please try again."
+                                is IOException -> "Network error while sending friend request. Please check your connection."
+                                else -> "Failed to send friend request: ${e.message}"
+                            }
+                            _uiState.update { it.copy(error = errorMsg) }
                         }
-                        _uiState.update { it.copy(error = errorMsg) }
-                    }
-                )
+                    )
+                }
             } catch (e: SocketTimeoutException) {
                 _uiState.update { it.copy(error = "Network timeout while accepting friend request. Please try again.") }
             } catch (e: IOException) {

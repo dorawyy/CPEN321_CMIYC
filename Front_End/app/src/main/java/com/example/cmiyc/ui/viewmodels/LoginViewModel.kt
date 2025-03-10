@@ -72,16 +72,16 @@ class LoginViewModel(
                     userRepository.setFCMToken(token)
                     if (!registrationSuccess) {
                         _loginState.value = LoginState.Banned
-                        return@launch
                     }
-
-                    _loginState.value = LoginState.Success(
-                        email = email,
-                        displayName = displayName,
-                        idToken = email,
-                        photoUrl = photoUrl,
-                        fcmToken = token,
-                    )
+                    else {
+                        _loginState.value = LoginState.Success(
+                            email = email,
+                            displayName = displayName,
+                            idToken = email,
+                            photoUrl = photoUrl,
+                            fcmToken = token,
+                        )
+                    }
                 } catch (e: SocketTimeoutException) {
                     _loginState.value = LoginState.Error("Network timeout during registration. Please check your connection and try again.")
                 } catch (e: IOException) {
@@ -99,7 +99,11 @@ class LoginViewModel(
             try {
                 userRepository.clearCurrentUser()
                 _loginState.value = LoginState.Initial
-            } catch (e: Exception) {
+            } catch (e: SocketTimeoutException) {
+                _loginState.value = LoginState.Error("Network timeout during registration. Please check your connection and try again: ${e.message}")
+            } catch (e: IOException) {
+                _loginState.value = LoginState.Error("Network error during registration. Please check your connection and try again: ${e.message}")
+            } catch (e: HttpException) {
                 _loginState.value = LoginState.Error("Failed to reset state: ${e.message}")
             }
         }

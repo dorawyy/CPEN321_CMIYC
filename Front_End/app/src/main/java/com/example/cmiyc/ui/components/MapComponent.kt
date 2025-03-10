@@ -104,30 +104,30 @@ fun MapComponent(
             )
 
             friends.forEach { friend ->
-                if (friend.isBanned) return@forEach
-
-                friend.location?.let { location ->
-                    val friendIcon = if (!friend.photoURL.isNullOrEmpty()) {
-                        LoadFriendIcon(
-                            context = context,
-                            photoUrl = friend.photoURL,
-                            iconSizePx = iconSizePx,
-                        )
-                    } else {
-                        defaultUserIcon
-                    }
-                    PointAnnotation(point = location) {
-                        interactionsState.onClicked {
-                            Toast.makeText(
-                                context,
-                                "Clicked on ${friend.name}'s annotation",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            true
+                if (!friend.isBanned) {
+                    friend.location?.let { location ->
+                        val friendIcon = if (!friend.photoURL.isNullOrEmpty()) {
+                            LoadFriendIcon(
+                                context = context,
+                                photoUrl = friend.photoURL,
+                                iconSizePx = iconSizePx,
+                            )
+                        } else {
+                            defaultUserIcon
                         }
-                        iconImage = friendIcon
-                        textField = friend.name
-                        textOffset = listOf(0.0, 2.0)
+                        PointAnnotation(point = location) {
+                            interactionsState.onClicked {
+                                Toast.makeText(
+                                    context,
+                                    "Clicked on ${friend.name}'s annotation",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                true
+                            }
+                            iconImage = friendIcon
+                            textField = friend.name
+                            textOffset = listOf(0.0, 2.0)
+                        }
                     }
                 }
             }

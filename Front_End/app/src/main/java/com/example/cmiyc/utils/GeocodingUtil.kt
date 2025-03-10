@@ -19,6 +19,10 @@ object GeocodingUtil {
         latitude: Double,
         longitude: Double
     ): String = withContext(Dispatchers.IO) {
+        fetchAddress(context, latitude, longitude)
+    }
+
+    private suspend fun fetchAddress(context: Context, latitude: Double, longitude: Double): String {
         try {
             val geocoder = Geocoder(context, Locale.getDefault())
 
@@ -35,7 +39,7 @@ object GeocodingUtil {
                             address.countryName)
                     }
                 }
-                return@withContext addressResult
+                return addressResult
             }
             // For API level below 33
             else {
@@ -43,7 +47,7 @@ object GeocodingUtil {
                 val addresses = geocoder.getFromLocation(latitude, longitude, 1)
                 if (addresses != null && addresses.isNotEmpty()) {
                     val address = addresses[0]
-                    return@withContext formatAddress(address.thoroughfare,
+                    return formatAddress(address.thoroughfare,
                         address.locality,
                         address.adminArea,
                         address.countryName)
@@ -51,11 +55,11 @@ object GeocodingUtil {
             }
 
             // Fallback to coordinates if geocoding fails
-            return@withContext formatCoordinates(latitude, longitude)
+            return formatCoordinates(latitude, longitude)
         } catch (e: IOException) {
-            return@withContext formatCoordinates(latitude, longitude)
+            return formatCoordinates(latitude, longitude)
         } catch (e: HttpException) {
-            return@withContext formatCoordinates(latitude, longitude)
+            return formatCoordinates(latitude, longitude)
         }
     }
 
