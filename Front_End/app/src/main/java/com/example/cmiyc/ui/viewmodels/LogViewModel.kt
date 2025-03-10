@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException
 
@@ -61,7 +62,7 @@ class LogViewModel (
                     handleRefreshFailure("Network timeout when refreshing activity logs. Please check your connection.")
                 } catch (e: IOException) {
                     handleRefreshFailure("Network error when refreshing activity logs. Please check your connection.")
-                } catch (e: Exception) {
+                } catch (e: HttpException) { // exception
                     handleRefreshFailure("Failed to refresh activity logs: ${e.message}")
                 } finally {
                     _state.update { it.copy(isLoading = false) }

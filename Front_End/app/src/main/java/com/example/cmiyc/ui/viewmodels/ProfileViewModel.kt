@@ -3,12 +3,15 @@ package com.example.cmiyc.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import coil.network.HttpException
 import com.example.cmiyc.data.User
 import com.example.cmiyc.repositories.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 
 class ProfileViewModelFactory (
     private val userRepository: UserRepository
@@ -46,10 +49,35 @@ class ProfileViewModel (
             try {
                 _state.update { it.copy(isLoading = true) }
                 userRepository.signOut()
-            } catch (e: Exception) {
+            }
+            catch (e: IOException) {
+                _state.update {
+                    it.copy(
+                        error = "Network error: Please check your connection.",
+                        isLoading = false
+                    )
+                }
+            }
+            catch (e: HttpException) {
                 _state.update {
                     it.copy(
                         error = "Failed to sign out: ${e.message}",
+                        isLoading = false
+                    )
+                }
+            }
+            catch (e: CancellationException) {
+                _state.update {
+                    it.copy(
+                        error = "Cancellation Error: Failed to cancel: ${e.message}",
+                        isLoading = false
+                    )
+                }
+            }
+            catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        error = "Unexpected error: ${e.message}",
                         isLoading = false
                     )
                 }

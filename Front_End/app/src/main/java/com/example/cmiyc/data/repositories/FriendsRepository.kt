@@ -11,6 +11,7 @@ import com.mapbox.geojson.Point
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException
 
@@ -59,8 +60,16 @@ object FriendsRepository {
                     // Handle cancellation during delay
                     println("Handle cancellation during delay: ${e.message}")
                     throw e
-                } catch (e: Exception) {
-                    // Track failures and the error
+                } catch (e: IOException) {
+                    _consecutiveFailures.value++
+                    _lastError.value = e
+                    println("Friend polling failed (${_consecutiveFailures.value}): ${e.message}")
+                } catch (e: HttpException) {
+                    _consecutiveFailures.value++
+                    _lastError.value = e
+                    println("Friend polling failed (${_consecutiveFailures.value}): ${e.message}")
+                }
+                catch (e: Exception) {
                     _consecutiveFailures.value++
                     _lastError.value = e
                     println("Friend polling failed (${_consecutiveFailures.value}): ${e.message}")

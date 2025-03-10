@@ -8,6 +8,7 @@ import com.example.cmiyc.data.User
 import com.mapbox.geojson.Point
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -121,12 +122,18 @@ object UserRepository {
                 consecutiveFailures++
                 println("Network error when updating location: ${e.message} (Failures: $consecutiveFailures)")
                 checkConsecutiveFailures("Network error when updating location. Your friends may not see your current position.")
-            } catch (e: Exception) {
+            } catch (e: HttpException) {
                 locationUpdateQueue.offer(latestUpdate)
                 consecutiveFailures++
                 println("Error updating location: ${e.message} (Failures: $consecutiveFailures)")
                 checkConsecutiveFailures("Error updating location: ${e.message}. Your friends may not see your current position.")
             }
+//            catch (e: exception) {
+//                locationUpdateQueue.offer(latestUpdate)
+//                consecutiveFailures++
+//                println("Error updating location: ${e.message} (Failures: $consecutiveFailures)")
+//                checkConsecutiveFailures("Error updating location: ${e.message}. Your friends may not see your current position.")
+//            }
         } finally {
             isUpdating = false
         }

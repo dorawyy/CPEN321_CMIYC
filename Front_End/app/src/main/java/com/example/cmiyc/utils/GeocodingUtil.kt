@@ -2,6 +2,7 @@ package com.example.cmiyc.utils
 
 import android.content.Context
 import android.location.Geocoder
+import coil.network.HttpException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -53,7 +54,10 @@ object GeocodingUtil {
             return@withContext formatCoordinates(latitude, longitude)
         } catch (e: IOException) {
             return@withContext formatCoordinates(latitude, longitude)
-        } catch (e: Exception) {
+        } catch (e: HttpException) {
+            return@withContext formatCoordinates(latitude, longitude)
+        }
+        catch (e: Exception) {
             return@withContext formatCoordinates(latitude, longitude)
         }
     }
