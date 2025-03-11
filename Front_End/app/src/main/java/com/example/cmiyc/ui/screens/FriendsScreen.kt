@@ -28,6 +28,7 @@ import com.example.cmiyc.ui.components.SearchBar
 import com.example.cmiyc.ui.viewmodels.FriendsScreenState
 import com.example.cmiyc.ui.viewmodels.FriendsViewModel
 import com.example.cmiyc.ui.viewmodels.FriendsViewModelFactory
+import com.mapbox.maps.extension.style.expressions.dsl.generated.mod
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlinx.coroutines.delay
@@ -121,13 +122,13 @@ fun FriendsTopBar(
             }
         },
         actions = {
-            IconButton(onClick = { viewModel.updateState { it.copy(showAddFriendDialog = true) } }) {
+            IconButton(onClick = { viewModel.updateState { it.copy(showAddFriendDialog = true) } }, modifier = Modifier.testTag("addFriends_button") ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Friend")
             }
             BadgedBox(
                 badge = { if (state.friendRequests.isNotEmpty()) Badge { Text(state.friendRequests.size.toString()) } }
             ) {
-                IconButton(onClick = { viewModel.loadFriendRequests() }) {
+                IconButton(onClick = { viewModel.loadFriendRequests() }, modifier = Modifier.testTag("friendRequests_button")) {
                     Icon(Icons.Default.Email, contentDescription = "Friend Requests")
                 }
             }
