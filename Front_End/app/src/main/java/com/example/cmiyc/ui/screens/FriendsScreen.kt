@@ -32,7 +32,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlinx.coroutines.delay
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FriendsScreen(
     onNavigateBack: () -> Unit,
@@ -71,7 +71,12 @@ fun FriendsScreen(
         topBar = { FriendsTopBar(onNavigateBack, viewModel, state) },
         snackbarHost = { SnackbarHandler(showSuccessSnackbar, successMessage, onClick = {showSuccessSnackbar = false}) }
     ) { padding ->
-        FriendsList(padding, pullRefreshState, state, viewModel, isManualRefresh) { name ->
+        FriendsList(FriendsListParams(
+            padding = padding,
+            pullRefreshState = pullRefreshState,
+            state = state,
+            isManualRefresh = isManualRefresh
+        ), viewModel) { name ->
             successMessage = "Removed ${name} from your friends"
             showSuccessSnackbar = true
         }
@@ -203,59 +208,48 @@ fun FriendsDialogs(state: FriendsScreenState, viewModel: FriendsViewModel, onDen
     }
 }
 
+data class FriendsListParams @OptIn(ExperimentalMaterialApi::class) constructor(
+    val padding: PaddingValues,
+    val pullRefreshState: PullRefreshState,
+    val state: FriendsScreenState,
+    val isManualRefresh: Boolean
+)
+
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun FriendsList(padding: PaddingValues, pullRefreshState: PullRefreshState, state: FriendsScreenState, viewModel: FriendsViewModel, isManualRefresh: Boolean, onRemoveFriend: (String) -> Unit) {
+fun FriendsList(params: FriendsListParams, viewModel: FriendsViewModel, onRemoveFriend: (String) -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(padding)
-            .pullRefresh(pullRefreshState)
+            .padding(params.padding)
+            .pullRefresh(params.pullRefreshState)
     ) {
         Column {
-            SearchBar(
-                query = state.filterQuery,
-                onQueryChange = viewModel::filterFriends,
-                modifier = Modifier.padding(16.dp)
-            )
+            SearchBar(query = params.state.filterQuery, onQueryChange = viewModel::filterFriends, modifier = Modifier.padding(16.dp))
 
             Box(modifier = Modifier.fillMaxSize()) {
-                // Only show the center loading indicator during initial load, not during pull-to-refresh
-                if (state.isLoading && !isManualRefresh && state.filteredFriends.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                if (params.state.isLoading && !params.isManualRefresh && params.state.filteredFriends.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
-                } else if (state.filteredFriends.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                } else if (params.state.filteredFriends.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = if (state.filterQuery.isEmpty())
-                                "No friends yet"
-                            else
-                                "No matching friends",
+                            text = if (params.state.filterQuery.isEmpty()) "No friends yet" else "No matching friends",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         itemsIndexed(
-                            items = state.filteredFriends,
+                            items = params.state.filteredFriends,
                             key = { index, friend -> "${friend.userId}_${index}" }
-                        ) { index, friend ->
+                        ) { _, friend ->
                             FriendItem(
                                 friend = friend,
                                 onRemoveFriend = {
-                                    viewModel.removeFriend(friend.userId, onSuccess = {onRemoveFriend(friend.name)})
+                                    viewModel.removeFriend(friend.userId, onSuccess = { onRemoveFriend(friend.name) })
                                 }
                             )
                         }
@@ -264,10 +258,9 @@ fun FriendsList(padding: PaddingValues, pullRefreshState: PullRefreshState, stat
             }
         }
 
-        // Show pull-to-refresh indicator only for manual refreshes
         PullRefreshIndicator(
-            refreshing = state.isLoading && isManualRefresh,
-            state = pullRefreshState,
+            refreshing = params.state.isLoading && params.isManualRefresh,
+            state = params.pullRefreshState,
             modifier = Modifier.align(Alignment.TopCenter)
         )
     }

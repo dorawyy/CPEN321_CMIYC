@@ -2,7 +2,6 @@ package com.example.cmiyc.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -10,12 +9,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cmiyc.data.AdminUserItem
 import com.example.cmiyc.ui.components.SearchBar
+import com.example.cmiyc.ui.viewmodels.AdminScreenState
 import com.example.cmiyc.ui.viewmodels.AdminViewModel
 import com.example.cmiyc.ui.viewmodels.AdminViewModelFactory
 
@@ -35,39 +34,18 @@ fun AdminScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Admin Panel") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        }
+        topBar = { TopAppBar(title = { Text("Admin Panel") }, navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") } }) }
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+            modifier = Modifier.fillMaxSize().padding(padding)
         ) {
-            SearchBar(
-                query = state.filterQuery,
-                onQueryChange = viewModel::filterUsers,
-                placeholder = "Search users",
-                modifier = Modifier.padding(16.dp)
-            )
+            SearchBar(query = state.filterQuery, onQueryChange = viewModel::filterUsers, placeholder = "Search users", modifier = Modifier.padding(16.dp))
 
             Box(modifier = Modifier.fillMaxSize()) {
                 if (state.isLoading && state.filteredUsers.isEmpty()) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 } else if (state.filteredUsers.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
                             text = if (state.filterQuery.isEmpty())
                                 "No users found"
@@ -78,67 +56,65 @@ fun AdminScreen(
                         )
                     }
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        itemsIndexed(
-                            items = state.filteredUsers,
-                            key = { index, user -> "${user.userId}_${index}" }
-                        ) { index, user ->
-                            AdminUserItem(
-                                user = user,
-                                onBanClick = { userToBan = user }
-                            )
-                        }
+                        itemsIndexed(items = state.filteredUsers, key = { index, user -> "${user.userId}_${index}" }) { index, user -> AdminUserItem(user = user, onBanClick = { userToBan = user }) }
                     }
                 }
             }
         }
 
-        // Ban confirmation dialog
-        userToBan?.let { user ->
-            AlertDialog(
-                onDismissRequest = { userToBan = null },
-                title = { Text("Ban User") },
-                text = {
-                    Text("Are you sure you want to ban ${user.name} (${user.email})?")
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            viewModel.banUser(user.userId)
-                            userToBan = null
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Text("Ban User")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { userToBan = null }) {
-                        Text("Cancel")
-                    }
-                }
-            )
+        userToBan?.let {
+            AdminDialog(state, it, viewModel) {
+                userToBan = null
+            }
         }
+    }
+}
 
-        // Error dialog
-        state.error?.let { error ->
-            AlertDialog(
-                onDismissRequest = viewModel::clearError,
-                title = { Text("Error") },
-                text = { Text(error) },
-                confirmButton = {
-                    TextButton(onClick = viewModel::clearError) {
-                        Text("OK")
-                    }
+@Composable
+fun AdminDialog(state: AdminScreenState, userToBan: AdminUserItem, viewModel: AdminViewModel, onDismiss: () -> Unit) {
+    // Ban confirmation dialog
+    userToBan.let { user ->
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Ban User") },
+            text = {
+                Text("Are you sure you want to ban ${user.name} (${user.email})?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.banUser(user.userId)
+                        onDismiss()
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Ban User")
                 }
-            )
-        }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Error dialog
+    state.error?.let { error ->
+        AlertDialog(
+            onDismissRequest = viewModel::clearError,
+            title = { Text("Error") },
+            text = { Text(error) },
+            confirmButton = {
+                TextButton(onClick = viewModel::clearError) {
+                    Text("OK")
+                }
+            }
+        )
     }
 }
 
