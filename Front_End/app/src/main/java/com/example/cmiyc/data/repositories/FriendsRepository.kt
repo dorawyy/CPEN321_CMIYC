@@ -127,6 +127,8 @@ object FriendsRepository {
         }
         catch (e: HttpException) {
             Result.failure(e)
+        } catch (e: IllegalStateException) {
+            Result.failure(e)
         } finally {
             _isRequestsLoading.value = false
         }
@@ -159,9 +161,10 @@ object FriendsRepository {
             throw e
         } catch (e: CancellationException) {
             println("Error fetching friends: ${e.message}")
-        }
-        catch (e: IllegalStateException) {
+            throw e
+        } catch (e: IllegalStateException) {
             println("Error fetching friends: ${e.message}")
+            throw e
         }
     }
 
@@ -190,6 +193,8 @@ object FriendsRepository {
             Result.failure(e)
         }
         catch (e: HttpException) {
+            Result.failure(e)
+        } catch (e: IllegalStateException) {
             Result.failure(e)
         } finally {
             _isFriendsLoading.value = false
@@ -224,6 +229,8 @@ object FriendsRepository {
         }
         catch (e: HttpException) {
             Result.failure(e)
+        } catch (e: IllegalStateException) {
+            Result.failure(e)
         }
     }
 
@@ -253,6 +260,8 @@ object FriendsRepository {
         }
         catch (e: HttpException) {
             Result.failure(e)
+        } catch (e: IllegalStateException) {
+            Result.failure(e)
         }
     }
 
@@ -279,6 +288,8 @@ object FriendsRepository {
             Result.failure(e)
         }
         catch (e: HttpException) {
+            Result.failure(e)
+        } catch (e: IllegalStateException) {
             Result.failure(e)
         }
     }
@@ -309,6 +320,8 @@ object FriendsRepository {
             Result.failure(e)
         }
         catch (e: HttpException) {
+            Result.failure(e)
+        } catch (e: IllegalStateException) {
             Result.failure(e)
         }
     }

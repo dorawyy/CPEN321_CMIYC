@@ -66,7 +66,7 @@ interface FriendApiService {
         @Path("friendID") friendID: String
     ): Response<Unit>
 
-    @GET("friends/{userID}/friendRequests}")
+    @GET("friends/{userID}/friendRequests")
     suspend fun getFriendRequests(
         @Path("userID") userId: String,
     ): Response<List<FriendDTO>>
