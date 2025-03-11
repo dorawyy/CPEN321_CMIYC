@@ -12,6 +12,7 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +25,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cmiyc.data.FriendRequest
 import com.example.cmiyc.ui.components.FriendItem
 import com.example.cmiyc.ui.components.SearchBar
+import com.example.cmiyc.ui.viewmodels.FriendsScreenState
 import com.example.cmiyc.ui.viewmodels.FriendsViewModel
 import com.example.cmiyc.ui.viewmodels.FriendsViewModelFactory
 import java.text.SimpleDateFormat
@@ -66,139 +68,12 @@ fun FriendsScreen(
     )
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Friends") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    // Add Friend Button
-                    IconButton(
-                        onClick = {
-                            viewModel.updateState { it.copy(showAddFriendDialog = true) }
-                        },
-                        modifier = Modifier.testTag("addFriends_button")
-                    ) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = "Add Friend"
-                        )
-                    }
-
-                    // Friend Requests Button with Badge
-                    BadgedBox(
-                        badge = {
-                            if (state.friendRequests.isNotEmpty()) {
-                                Badge { Text(state.friendRequests.size.toString()) }
-                            }
-                        }
-                    ) {
-                        IconButton(
-                            onClick = {
-                                viewModel.loadFriendRequests()
-                            },
-                            modifier = Modifier.testTag("friendRequests_button")
-                        ) {
-                            Icon(
-                                Icons.Default.Email,
-                                contentDescription = "Friend Requests"
-                            )
-                        }
-                    }
-                }
-            )
-        },
-        snackbarHost = {
-            if (showSuccessSnackbar) {
-                Snackbar(
-                    modifier = Modifier.padding(16.dp),
-                    action = {
-                        TextButton(onClick = { showSuccessSnackbar = false }) {
-                            Text("Dismiss")
-                        }
-                    },
-                    dismissAction = {
-                        IconButton(onClick = { showSuccessSnackbar = false }) {
-                            Icon(Icons.Filled.Close, contentDescription = "Dismiss")
-                        }
-                    }
-                ) {
-                    Text(successMessage)
-                }
-            }
-        }
+        topBar = { FriendsTopBar(onNavigateBack, viewModel, state) },
+        snackbarHost = { SnackbarHandler(showSuccessSnackbar, successMessage, onClick = {showSuccessSnackbar = false}) }
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .pullRefresh(pullRefreshState)
-        ) {
-            Column {
-                SearchBar(
-                    query = state.filterQuery,
-                    onQueryChange = viewModel::filterFriends,
-                    modifier = Modifier.padding(16.dp)
-                )
-
-                Box(modifier = Modifier.fillMaxSize()) {
-                    // Only show the center loading indicator during initial load, not during pull-to-refresh
-                    if (state.isLoading && !isManualRefresh && state.filteredFriends.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    } else if (state.filteredFriends.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = if (state.filterQuery.isEmpty())
-                                    "No friends yet"
-                                else
-                                    "No matching friends",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            itemsIndexed(
-                                items = state.filteredFriends,
-                                key = { index, friend -> "${friend.userId}_${index}" }
-                            ) { index, friend ->
-                                FriendItem(
-                                    friend = friend,
-                                    onRemoveFriend = {
-                                        viewModel.removeFriend(friend.userId, onSuccess = {
-                                            // Show success message only after successful removal
-                                            successMessage = "Removed ${friend.name} from your friends"
-                                            showSuccessSnackbar = true
-                                        })
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Show pull-to-refresh indicator only for manual refreshes
-            PullRefreshIndicator(
-                refreshing = state.isLoading && isManualRefresh,
-                state = pullRefreshState,
-                modifier = Modifier.align(Alignment.TopCenter)
-            )
+        FriendsList(padding, pullRefreshState, state, viewModel, isManualRefresh) { name ->
+            successMessage = "Removed ${name} from your friends"
+            showSuccessSnackbar = true
         }
 
         // Reset isManualRefresh when loading completes
@@ -216,62 +91,185 @@ fun FriendsScreen(
             }
         }
 
-        // Add Friend Dialog
-        if (state.showAddFriendDialog) {
-            AddFriendDialog(
-                email = state.emailInput,
-                onEmailChange = viewModel::updateEmailInput,
-                onSendRequest = {
-                    viewModel.sendFriendRequest()
-                    // Success message will be shown in the error dialog handling below if successful
-                },
-                onDismiss = {
-                    viewModel.updateState { it.copy(
-                        showAddFriendDialog = false,
-                        emailInput = ""
-                    )}
-                }
-            )
+        FriendsDialogs(state, viewModel) { requestId ->
+            val requestName = state.friendRequests.find { it.userId == requestId }?.displayName ?: "User"
+            viewModel.denyRequest(requestId)
+            successMessage = "Declined friend request from $requestName"
+            showSuccessSnackbar = true
         }
+    }
+}
 
-        // Friend Requests Dialog with loading state
-        if (state.showRequestsDialog) {
-            FriendRequestDialog(
-                requests = state.friendRequests,
-                isLoading = state.isRequestsLoading,
-                onAccept = { requestId ->
-                    // Find the friend request to get their name
-                    val requestName = state.friendRequests.find { it.userId == requestId }?.displayName ?: "User"
-                    viewModel.acceptRequest(requestId)
-                    successMessage = "Added $requestName as a friend"
-                    showSuccessSnackbar = true
-                },
-                onDeny = { requestId ->
-                    // Find the friend request to get their name
-                    val requestName = state.friendRequests.find { it.userId == requestId }?.displayName ?: "User"
-                    viewModel.denyRequest(requestId)
-                    successMessage = "Declined friend request from $requestName"
-                    showSuccessSnackbar = true
-                },
-                onDismiss = {
-                    viewModel.updateState { it.copy(showRequestsDialog = false) }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FriendsTopBar(
+    onNavigateBack: () -> Unit,
+    viewModel: FriendsViewModel,
+    state: FriendsScreenState
+) {
+    TopAppBar(
+        title = { Text("Friends") },
+        navigationIcon = {
+            IconButton(onClick = onNavigateBack) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+            }
+        },
+        actions = {
+            IconButton(onClick = { viewModel.updateState { it.copy(showAddFriendDialog = true) } }) {
+                Icon(Icons.Default.Add, contentDescription = "Add Friend")
+            }
+            BadgedBox(
+                badge = { if (state.friendRequests.isNotEmpty()) Badge { Text(state.friendRequests.size.toString()) } }
+            ) {
+                IconButton(onClick = { viewModel.loadFriendRequests() }) {
+                    Icon(Icons.Default.Email, contentDescription = "Friend Requests")
                 }
-            )
+            }
         }
+    )
+}
 
-        // Error Dialog
-        state.error?.let { error ->
-            AlertDialog(
-                onDismissRequest = viewModel::clearError,
-                title = { Text("Error") },
-                text = { Text(error) },
-                confirmButton = {
-                    TextButton(onClick = viewModel::clearError) {
-                        Text("OK")
+@Composable
+fun SnackbarHandler(showSuccessSnackbar: Boolean, successMessage: String, onClick: () -> Unit) {
+    if (showSuccessSnackbar) {
+        Snackbar(
+            modifier = Modifier.padding(16.dp),
+            action = {
+                TextButton(onClick = onClick) {
+                    Text("Dismiss")
+                }
+            },
+            dismissAction = {
+                IconButton(onClick = onClick) {
+                    Icon(Icons.Filled.Close, contentDescription = "Dismiss")
+                }
+            }
+        ) {
+            Text(successMessage)
+        }
+    }
+}
+
+@Composable
+fun FriendsDialogs(state: FriendsScreenState, viewModel: FriendsViewModel, onDeny: (String) -> Unit) {
+    // Add Friend Dialog
+    if (state.showAddFriendDialog) {
+        AddFriendDialog(
+            email = state.emailInput,
+            onEmailChange = viewModel::updateEmailInput,
+            onSendRequest = {
+                viewModel.sendFriendRequest()
+                // Success message will be shown in the error dialog handling below if successful
+            },
+            onDismiss = {
+                viewModel.updateState { it.copy(
+                    showAddFriendDialog = false,
+                    emailInput = ""
+                )}
+            }
+        )
+    }
+
+    // Friend Requests Dialog with loading state
+    if (state.showRequestsDialog) {
+        FriendRequestDialog(
+            requests = state.friendRequests,
+            isLoading = state.isRequestsLoading,
+            onAccept = { requestId ->
+                // Find the friend request to get their name
+                val requestName = state.friendRequests.find { it.userId == requestId }?.displayName ?: "User"
+                viewModel.acceptRequest(requestId)
+            },
+            onDeny = onDeny,
+            onDismiss = {
+                viewModel.updateState { it.copy(showRequestsDialog = false) }
+            }
+        )
+    }
+
+    // Error Dialog
+    state.error?.let { error ->
+        AlertDialog(
+            onDismissRequest = viewModel::clearError,
+            title = { Text("Error") },
+            text = { Text(error) },
+            confirmButton = {
+                TextButton(onClick = viewModel::clearError) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun FriendsList(padding: PaddingValues, pullRefreshState: PullRefreshState, state: FriendsScreenState, viewModel: FriendsViewModel, isManualRefresh: Boolean, onRemoveFriend: (String) -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)
+            .pullRefresh(pullRefreshState)
+    ) {
+        Column {
+            SearchBar(
+                query = state.filterQuery,
+                onQueryChange = viewModel::filterFriends,
+                modifier = Modifier.padding(16.dp)
+            )
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Only show the center loading indicator during initial load, not during pull-to-refresh
+                if (state.isLoading && !isManualRefresh && state.filteredFriends.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                } else if (state.filteredFriends.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (state.filterQuery.isEmpty())
+                                "No friends yet"
+                            else
+                                "No matching friends",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        itemsIndexed(
+                            items = state.filteredFriends,
+                            key = { index, friend -> "${friend.userId}_${index}" }
+                        ) { index, friend ->
+                            FriendItem(
+                                friend = friend,
+                                onRemoveFriend = {
+                                    viewModel.removeFriend(friend.userId, onSuccess = {onRemoveFriend(friend.name)})
+                                }
+                            )
+                        }
                     }
                 }
-            )
+            }
         }
+
+        // Show pull-to-refresh indicator only for manual refreshes
+        PullRefreshIndicator(
+            refreshing = state.isLoading && isManualRefresh,
+            state = pullRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 }
 

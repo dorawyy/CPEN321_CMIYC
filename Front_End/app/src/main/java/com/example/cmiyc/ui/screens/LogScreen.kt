@@ -11,11 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,7 +26,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +35,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -54,77 +50,19 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LogScreen(
-    onNavigateBack: () -> Unit
-) {
-    val viewModel: LogViewModel = viewModel(
-        factory = LogViewModelFactory(
-            userRepository = UserRepository
-        )
-    )
+fun LogScreen(onNavigateBack: () -> Unit) {
+    val viewModel: LogViewModel = viewModel(factory = LogViewModelFactory(UserRepository))
     val state by viewModel.state.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Activity Log") },
-                navigationIcon = {
-                    IconButton(
-                        onClick = onNavigateBack,
-                        modifier = Modifier.testTag("back_button")
-                    ) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
+                navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") } }
             )
-        },
+        }
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            if (state.isLoading && state.logs.isEmpty()) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            } else {
-                if (state.logs.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No activities yet",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        val sortedLogs = state.logs.sortedByDescending { it.timestamp }
-                        itemsIndexed(
-                            items = sortedLogs,
-                            key = { index, log -> "${index}_${log.sender}${log.timestamp}" }
-                        ) { index, log ->
-                            val logId = "${log.sender}${log.timestamp}"
-                            val cachedAddress = state.logAddresses[logId]
-                            LogItem(
-                                log = log,
-                                address = cachedAddress,
-                                onAddressLoaded = { address ->
-                                    viewModel.updateLogAddress(logId, address)
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             // Show loading spinner when refreshing with existing logs
             if (state.isLoading && state.logs.isNotEmpty()) {
                 CircularProgressIndicator(
@@ -133,43 +71,18 @@ fun LogScreen(
                         .padding(16.dp)
                 )
             }
-        }
 
-        // Error Dialog (for one-time errors)
-        state.error?.let { error ->
-            AlertDialog(
-                onDismissRequest = { viewModel.clearError() },
-                title = { Text("Error") },
-                text = { Text(error) },
-                confirmButton = {
-                    TextButton(onClick = { viewModel.clearError() }) {
-                        Text("OK")
-                    }
-                }
-            )
-        }
-
-        // Persistent Refresh Error Dialog (after multiple failures)
-        state.refreshError?.let { error ->
-            AlertDialog(
-                onDismissRequest = { viewModel.clearRefreshError() },
-                title = { Text("Sync Problem") },
-                text = {
-                    Column {
-                        Text(error)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("The app will continue to try refreshing in the background.")
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = { viewModel.clearRefreshError() }) {
-                        Text("OK")
-                    }
-                },
-            )
+            if (state.logs.isEmpty() && !state.isLoading) {
+                Text("No activities yet", modifier = Modifier.align(Alignment.Center), style = MaterialTheme.typography.bodyLarge)
+            } else {
+                LogList(state.logs, state.logAddresses, onAddressLoaded = { logId, address -> viewModel.updateLogAddress(logId, address) })
+            }
+            ErrorDialog(error = state.error, title = "Error", onDismiss = { viewModel.clearError() })
+            ErrorDialog(error = state.refreshError, title = "Sync Problem", onDismiss = { viewModel.clearRefreshError() })
         }
     }
 }
+
 
 @Composable
 fun LogItem(
@@ -242,3 +155,31 @@ private fun formatTimestamp(timestamp: Long): String {
     val format = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     return format.format(date)
 }
+
+@Composable
+fun LogList(logs: List<Log>, logAddresses: Map<String, String>, onAddressLoaded: (String, String) -> Unit) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        itemsIndexed(logs.sortedByDescending { it.timestamp }) { _, log ->
+            val logId = "${log.sender}${log.timestamp}"
+            LogItem(log = log, address = logAddresses[logId], onAddressLoaded = { onAddressLoaded(logId, it) })
+        }
+    }
+}
+
+@Composable
+fun ErrorDialog(error: String?, title: String, onDismiss: () -> Unit) {
+    error?.let {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(title) },
+            text = { Text(it) },
+            confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } }
+        )
+    }
+}
+
+

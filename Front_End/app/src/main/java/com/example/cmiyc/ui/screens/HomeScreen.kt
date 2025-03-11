@@ -34,7 +34,6 @@ fun HomeScreen(
     var userInput by remember { mutableStateOf("") }
     val state by viewModel.state.collectAsState()
     val mapViewportState = rememberMapViewportState()
-
     val isAdmin by UserRepository.isAdmin.collectAsState()
     val isRegistrationComplete by UserRepository.isRegistrationComplete.collectAsState()
 
@@ -42,35 +41,17 @@ fun HomeScreen(
         if (isRegistrationComplete) viewModel.startPolling()
         onDispose { if (isRegistrationComplete) viewModel.stopPolling() }
     }
-
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
         topBar = {
-            TopBar(
-                onNavigateToLog = onNavigateToLog,
-                onNavigateToFriends = onNavigateToFriends,
-                onNavigateToAdmin = onNavigateToAdmin,
-                onNavigateToProfile = onNavigateToProfile,
-                isAdmin = isAdmin
-            )
+            TopBar(onNavigateToLog = onNavigateToLog, onNavigateToFriends = onNavigateToFriends, onNavigateToAdmin = onNavigateToAdmin, onNavigateToProfile = onNavigateToProfile, isAdmin = isAdmin)
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues), verticalArrangement = Arrangement.SpaceBetween, horizontalAlignment = Alignment.CenterHorizontally) {
             Box(modifier = Modifier.weight(1f)) {
-                MapComponent(
-                    context = context,
-                    mapViewportState = mapViewportState,
-                    friends = state.friends,
-                    modifier = Modifier.fillMaxSize()
-                )
+                MapComponent(context = context, mapViewportState = mapViewportState, friends = state.friends, modifier = Modifier.fillMaxSize())
             }
 
             Box(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
@@ -81,18 +62,13 @@ fun HomeScreen(
             }
         }
 
-        BroadcastDialog(
-            showDialog = showDialog,
-            userInput = userInput,
-            onUserInputChange = { userInput = it },
+        BroadcastDialog(showDialog = showDialog, userInput = userInput, onUserInputChange = { userInput = it },
             onBroadcastConfirm = {
                 showDialog = false
                 viewModel.broadcastMessage(userInput)
                 userInput = ""
-            },
-            onDialogDismiss = { showDialog = false }
+            }, onDialogDismiss = { showDialog = false }
         )
-
         ErrorSnackbar(state = state, viewModel=viewModel, snackbarHostState = snackbarHostState)
     }
 }
@@ -130,6 +106,7 @@ fun TopBar(
     )
 }
 
+
 @Composable
 fun BroadcastDialog(
     showDialog: Boolean,
@@ -158,6 +135,7 @@ fun BroadcastDialog(
         )
     }
 }
+
 
 @Composable
 fun ErrorSnackbar(state: HomeScreenState, viewModel: HomeViewModel, snackbarHostState: SnackbarHostState) {
