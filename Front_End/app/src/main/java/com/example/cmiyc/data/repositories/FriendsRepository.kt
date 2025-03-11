@@ -15,7 +15,6 @@ import java.io.IOException
 import java.net.SocketTimeoutException
 
 
-
 object FriendsRepository {
     private val api = ApiClient.apiService
 
@@ -156,9 +155,13 @@ object FriendsRepository {
             println("Network error when fetching friends: ${e.message}")
             throw e
         } catch (e: HttpException) {
-            if (e is CancellationException) throw e
             println("Error fetching friends: ${e.message}")
             throw e
+        } catch (e: CancellationException) {
+            println("Error fetching friends: ${e.message}")
+        }
+        catch (e: IllegalStateException) {
+            println("Error fetching friends: ${e.message}")
         }
     }
 
@@ -177,6 +180,7 @@ object FriendsRepository {
                 _friends.value = friends
                 Result.success(friends)
             } else {
+                println("Failed to fetch friends: ${response.code()} ${response.message()}")
                 Result.failure(Exception("Failed to fetch friends: ${response.code()}"))
             }
         } catch (e: SocketTimeoutException) {

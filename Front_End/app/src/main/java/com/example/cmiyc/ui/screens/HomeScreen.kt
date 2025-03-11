@@ -76,7 +76,7 @@ fun HomeScreen(
             Box(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
                 Button(
                     onClick = { showDialog = true },
-                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("broadcast_button")
                 ) { Text("Broadcast") }
             }
         }
@@ -110,12 +110,12 @@ fun TopBar(
     TopAppBar(
         title = {},
         navigationIcon = {
-            IconButton(onClick = onNavigateToLog) {
+            IconButton(onClick = onNavigateToLog, modifier = Modifier.testTag("log_button")) {
                 Icon(painter = painterResource(id = R.drawable.log_icon), contentDescription = "Log")
             }
         },
         actions = {
-            IconButton(onClick = onNavigateToFriends) {
+            IconButton(onClick = onNavigateToFriends, modifier = Modifier.testTag("friends_button")) {
                 Icon(painter = painterResource(id = R.drawable.friends_svg), contentDescription = "Friends")
             }
             if (isAdmin) {
@@ -123,7 +123,7 @@ fun TopBar(
                     Icon(Icons.Default.AdminPanelSettings, contentDescription = "Admin Panel")
                 }
             }
-            IconButton(onClick = onNavigateToProfile) {
+            IconButton(onClick = onNavigateToProfile, modifier = Modifier.testTag("profile_button")) {
                 Icon(painter = painterResource(id = R.drawable.user_profile_icon), contentDescription = "Profile")
             }
         }
