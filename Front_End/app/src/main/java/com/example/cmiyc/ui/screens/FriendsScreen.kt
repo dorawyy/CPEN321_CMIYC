@@ -2,7 +2,6 @@ package com.example.cmiyc.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -25,10 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cmiyc.data.FriendRequest
 import com.example.cmiyc.ui.components.FriendItem
 import com.example.cmiyc.ui.components.SearchBar
-import com.example.cmiyc.ui.viewmodels.FriendsScreenState
-import com.example.cmiyc.ui.viewmodels.FriendsViewModel
-import com.example.cmiyc.ui.viewmodels.FriendsViewModelFactory
-import com.mapbox.maps.extension.style.expressions.dsl.generated.mod
+import com.example.cmiyc.ui.viewmodels.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlinx.coroutines.delay
@@ -48,14 +44,14 @@ fun FriendsScreen(
     var showSuccessSnackbar by remember { mutableStateOf(false) }
     var successMessage by remember { mutableStateOf("") }
 
-    // Call onScreenEnter once when the screen is entered
+    // Call handleScreenLifecycle once when the screen is entered
     LaunchedEffect(Unit) {
-        viewModel.onScreenEnter()
+        viewModel.handleScreenLifecycle(isEntering = true)
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            viewModel.onScreenExit()
+            viewModel.handleScreenLifecycle(isEntering = false)
         }
     }
 
@@ -64,7 +60,7 @@ fun FriendsScreen(
         refreshing = state.isLoading && isManualRefresh,
         onRefresh = {
             isManualRefresh = true
-            viewModel.refresh()
+            viewModel.manageFriend(FriendAction.Refresh)
         }
     )
 
@@ -99,7 +95,7 @@ fun FriendsScreen(
 
         FriendsDialogs(state, viewModel) { requestId ->
             val requestName = state.friendRequests.find { it.userId == requestId }?.displayName ?: "User"
-            viewModel.denyRequest(requestId)
+            viewModel.manageFriendRequests(FriendRequestAction.Deny(requestId))
             successMessage = "Declined friend request from $requestName"
             showSuccessSnackbar = true
         }
@@ -128,7 +124,7 @@ fun FriendsTopBar(
             BadgedBox(
                 badge = { if (state.friendRequests.isNotEmpty()) Badge { Text(state.friendRequests.size.toString()) } }
             ) {
-                IconButton(onClick = { viewModel.loadFriendRequests() }, modifier = Modifier.testTag("friendRequests_button")) {
+                IconButton(onClick = { viewModel.manageFriendRequests(FriendRequestAction.Load) }, modifier = Modifier.testTag("friendRequests_button")) {
                     Icon(Icons.Default.Email, contentDescription = "Friend Requests")
                 }
             }
@@ -163,10 +159,9 @@ fun FriendsDialogs(state: FriendsScreenState, viewModel: FriendsViewModel, onDen
     if (state.showAddFriendDialog) {
         AddFriendDialog(
             email = state.emailInput,
-            onEmailChange = viewModel::updateEmailInput,
+            onEmailChange = { email -> viewModel.manageFriendRequests(FriendRequestAction.Send(email, shouldSend = false)) },
             onSendRequest = {
-                viewModel.sendFriendRequest()
-                // Success message will be shown in the error dialog handling below if successful
+                viewModel.manageFriendRequests(FriendRequestAction.Send(state.emailInput))
             },
             onDismiss = {
                 viewModel.updateState { it.copy(
@@ -185,7 +180,7 @@ fun FriendsDialogs(state: FriendsScreenState, viewModel: FriendsViewModel, onDen
             onAccept = { requestId ->
                 // Find the friend request to get their name
                 val requestName = state.friendRequests.find { it.userId == requestId }?.displayName ?: "User"
-                viewModel.acceptRequest(requestId)
+                viewModel.manageFriendRequests(FriendRequestAction.Accept(requestId))
             },
             onDeny = onDeny,
             onDismiss = {
@@ -197,11 +192,11 @@ fun FriendsDialogs(state: FriendsScreenState, viewModel: FriendsViewModel, onDen
     // Error Dialog
     state.error?.let { error ->
         AlertDialog(
-            onDismissRequest = viewModel::clearError,
+            onDismissRequest = { viewModel.manageMessages(MessageAction.ClearError) },
             title = { Text("Error") },
             text = { Text(error) },
             confirmButton = {
-                TextButton(onClick = viewModel::clearError) {
+                TextButton(onClick = { viewModel.manageMessages(MessageAction.ClearError) }) {
                     Text("OK")
                 }
             }
@@ -250,7 +245,12 @@ fun FriendsList(params: FriendsListParams, viewModel: FriendsViewModel, onRemove
                             FriendItem(
                                 friend = friend,
                                 onRemoveFriend = {
-                                    viewModel.removeFriend(friend.userId, onSuccess = { onRemoveFriend(friend.name) })
+                                    viewModel.manageFriend(
+                                        FriendAction.Remove(
+                                            userId = friend.userId,
+                                            onSuccess = { onRemoveFriend(friend.name) }
+                                        )
+                                    )
                                 }
                             )
                         }
@@ -357,7 +357,7 @@ fun FriendRequestDialog(
                     itemsIndexed(
                         items = requests,
                         key = { index, request -> "${request.userId}_${index}" }
-                    ) { index, request ->
+                    ) { _, request ->
                         FriendRequestItem(
                             request = request,
                             onAccept = onAccept,
