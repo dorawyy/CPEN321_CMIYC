@@ -53,7 +53,7 @@ class LogViewModel (
             while (isActive) {
                 try {
                     _state.update { it.copy(isLoading = true) }
-                    userRepository.refreshLogs()
+                    userRepository.logManager.refreshLogs()
                     // Reset failure counter on success
                     consecutiveRefreshFailures = 0
                     // Clear any persistent refresh error
@@ -88,7 +88,7 @@ class LogViewModel (
 
     private fun observeLogs() {
         viewModelScope.launch {
-            userRepository.logs.collect { logs ->
+            userRepository.logManager.logs.collect { logs ->
                 _state.update { it.copy(logs = logs) }
             }
         }

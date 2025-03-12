@@ -59,7 +59,7 @@ fun MapComponent(
                 isFirstUpdate = isFirstUpdate,
                 onLocationUpdated = { point ->
                     lastUpdatedLocation = point
-                    UserRepository.updateUserLocation(point)
+                    UserRepository.locationManager.updateUserLocation(point)
                 }
             )
 

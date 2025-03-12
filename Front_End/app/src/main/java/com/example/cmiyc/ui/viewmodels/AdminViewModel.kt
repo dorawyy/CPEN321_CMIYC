@@ -36,7 +36,7 @@ class AdminViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isLoading = true) }
-                val result = UserRepository.getAllUsers()
+                val result = UserRepository.adminManager.getAllUsers()
                 result.fold(
                     onSuccess = { users ->
                         _state.update {
@@ -87,7 +87,7 @@ class AdminViewModel : ViewModel() {
     fun banUser(userId: String) {
         viewModelScope.launch {
             try {
-                val result = UserRepository.banUser(userId)
+                val result = UserRepository.adminManager.banUser(userId)
                 result.fold(
                     onSuccess = {
                         // Refresh user list after ban
