@@ -151,7 +151,7 @@ export class NotificationController {
             
         } catch (error) {
             console.error(error);
-            res.status(500).send({ error: (error as Error).message });
+            res.status(500).send("Error sending notification");
         }
     }
 
