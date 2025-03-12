@@ -3,7 +3,7 @@ import { client } from "../services";
 
 export class LocationController {
     // Used to update a location by the user ID.
-    async updateUserLocation(req: Request, res: Response, nextFunction: NextFunction) {
+    async updateUserLocation(req: Request, res: Response) {
         const userID = req.params.userID;
         const currentLocation = req.body.currentLocation;
         console.log(userID);

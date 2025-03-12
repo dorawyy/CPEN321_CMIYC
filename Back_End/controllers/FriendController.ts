@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction, request } from "express";
+import { Request, Response, NextFunction } from "express";
 import { client } from "../services";
 
 export class FriendController {
 
-    async getFriends(req: Request, res: Response, nextFunction: NextFunction) {
+    async getFriends(req: Request, res: Response) {
         const userID = req.params.userID;
         const user = await client.db("cmiyc").collection("users").findOne({ userID });
         if (user) {
@@ -25,7 +25,7 @@ export class FriendController {
     
     
     // Used to send a friend request to a user. POST request.
-    async sendFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
+    async sendFriendRequest(req: Request, res: Response) {
         const { userID, friendEmail } = req.params;
 
         const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
@@ -85,7 +85,7 @@ export class FriendController {
 
 
     // Used to respond to a friend request. POST request.
-    async acceptFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
+    async acceptFriendRequest(req: Request, res: Response) {
         const { userID, friendID } = req.params;
 
         console.log(userID, friendID);

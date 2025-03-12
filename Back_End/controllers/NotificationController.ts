@@ -3,7 +3,7 @@ import { client, messaging } from "../services";
 import { Quadtree, Point, Rectangle } from "../utils/Quadtree";
 
 export class NotificationController {
-    async setFCMToken(req: Request, res: Response, nextFunction: NextFunction) {
+    async setFCMToken(req: Request, res: Response) {
         const fcmToken = req.body.fcmToken;
         const userID = req.params.userID;
         const collection = client.db("cmiyc").collection("users");
@@ -85,7 +85,7 @@ export class NotificationController {
     }
 
     //notifications still have to be added to the database
-    async sendEventNotification(req: Request, res: Response, nextFunction: NextFunction) {
+    async sendEventNotification(req: Request, res: Response) {
         const userID = req.params.userID;
         const eventName = req.body.eventName;
         const collection = client.db("cmiyc").collection("users");
