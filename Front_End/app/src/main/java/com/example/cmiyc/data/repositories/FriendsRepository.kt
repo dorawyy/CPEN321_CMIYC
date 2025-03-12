@@ -68,6 +68,10 @@ object FriendsRepository {
                     _consecutiveFailures.value++
                     _lastError.value = e
                     println("Friend polling failed (${_consecutiveFailures.value}): ${e.message}")
+                } catch (e: IllegalStateException) {
+                    _consecutiveFailures.value++
+                    _lastError.value = e
+                    println("Friend polling failed (${_consecutiveFailures.value}): ${e.message}")
                 }
 
                 try {
