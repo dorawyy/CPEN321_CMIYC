@@ -163,7 +163,7 @@ fun FriendsDialogs(state: FriendsScreenState, viewModel: FriendsViewModel, onDen
     if (state.showAddFriendDialog) {
         AddFriendDialog(
             email = state.emailInput,
-            onEmailChange = viewModel::updateEmailInput,
+            onEmailChange = { email -> viewModel.updateInput(email) },
             onSendRequest = {
                 viewModel.sendFriendRequest()
                 // Success message will be shown in the error dialog handling below if successful
@@ -197,11 +197,11 @@ fun FriendsDialogs(state: FriendsScreenState, viewModel: FriendsViewModel, onDen
     // Error Dialog
     state.error?.let { error ->
         AlertDialog(
-            onDismissRequest = viewModel::clearError,
+            onDismissRequest = { viewModel.updateState { it.copy(error = null) } },
             title = { Text("Error") },
             text = { Text(error) },
             confirmButton = {
-                TextButton(onClick = viewModel::clearError) {
+                TextButton(onClick = { viewModel.updateState { it.copy(error = null) } }) {
                     Text("OK")
                 }
             }
@@ -226,7 +226,7 @@ fun FriendsList(params: FriendsListParams, viewModel: FriendsViewModel, onRemove
             .pullRefresh(params.pullRefreshState)
     ) {
         Column {
-            SearchBar(query = params.state.filterQuery, onQueryChange = viewModel::filterFriends, modifier = Modifier.padding(16.dp))
+            SearchBar(query = params.state.filterQuery, onQueryChange = { query -> viewModel.updateInput(query, isFilter = true) }, modifier = Modifier.padding(16.dp))
 
             Box(modifier = Modifier.fillMaxSize()) {
                 if (params.state.isLoading && !params.isManualRefresh && params.state.filteredFriends.isEmpty()) {

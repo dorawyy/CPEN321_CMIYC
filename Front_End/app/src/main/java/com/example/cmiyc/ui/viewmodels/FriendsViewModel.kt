@@ -76,21 +76,10 @@ class FriendsViewModel : ViewModel() {
     // Handle screen lifecycle
     fun onScreenEnter() {
         // Fetch friends once when entering screen
-        viewModelScope.launch {
-            try {
-                FriendsRepository.fetchFriendsOnce()
-            } catch (e: SocketTimeoutException) {
-                _uiState.update { it.copy(error = "Network timeout while loading friends. Please check your connection and try again.") }
-            } catch (e: IOException) {
-                _uiState.update { it.copy(error = "Network error while loading friends. Please check your connection and try again.") }
-            } catch (e: HttpException) {
-                _uiState.update { it.copy(error = "Failed to load friends: ${e.message}") }
-            }
-        }
+        refresh()
     }
 
     fun onScreenExit() {
-        // Nothing to clean up since we don't start polling in this screen
     }
 
     // Load friend requests when button is clicked
@@ -121,7 +110,7 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-    // Update UI state
+    // Update UI state and handle simple state changes
     fun updateState(update: (FriendsScreenState) -> FriendsScreenState) {
         _uiState.update(update)
     }
@@ -200,19 +189,18 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-    // Filter friends by name or email
-    fun filterFriends(query: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                filterQuery = query,
-                filteredFriends = filterFriendsWithQuery(currentState.friends, query)
-            )
+    // Filter friends by name or email and update email input
+    fun updateInput(input: String, isFilter: Boolean = false) {
+        if (isFilter) {
+            _uiState.update { currentState ->
+                currentState.copy(
+                    filterQuery = input,
+                    filteredFriends = filterFriendsWithQuery(currentState.friends, input)
+                )
+            }
+        } else {
+            _uiState.update { it.copy(emailInput = input) }
         }
-    }
-
-    // Update email input for adding friend
-    fun updateEmailInput(email: String) {
-        _uiState.update { it.copy(emailInput = email) }
     }
 
     // Send a friend request
@@ -264,7 +252,8 @@ class FriendsViewModel : ViewModel() {
                 val result = FriendsRepository.removeFriend(targetUserId)
                 result.fold(
                     onSuccess = {
-                        // Call the success callback
+                        // Clear any errors and call success callback
+                        _uiState.update { it.copy(error = null) }
                         onSuccess()
                     },
                     onFailure = { e ->
@@ -284,15 +273,6 @@ class FriendsViewModel : ViewModel() {
                 _uiState.update { it.copy(error = "Failed to accept friend request: ${e.message}") }
             }
         }
-    }
-
-    fun clearSuccessMessage() {
-        _uiState.update { it.copy(requestSentSuccessful = false, successMessage = null) }
-    }
-
-    // Clear any error message
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
     }
 }
 
