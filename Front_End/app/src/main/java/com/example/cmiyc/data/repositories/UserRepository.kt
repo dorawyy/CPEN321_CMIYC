@@ -197,18 +197,15 @@ class LocationManager(
             while (isActive) {
                 if (UserRepository.isAuthenticated() && locationUpdateQueue.isNotEmpty() && !isUpdating) {
                     isUpdating = true
-
                     try {
                         val userId = UserRepository.getCurrentUserId()
                         val latestUpdate = locationUpdateQueue.poll() ?: continue
-
                         try {
                             val locationUpdateRequest = LocationUpdateRequestDTO(latestUpdate)
                             val startTime = System.currentTimeMillis()
                             val response = api.updateUserLocation(userId, locationUpdateRequest)
                             val endTime = System.currentTimeMillis()
                             println("Location Update API call took ${endTime - startTime} ms")
-
                             if (response.isSuccessful) {
                                 _currentUser.value = latestUpdate.timestamp.let {
                                     _currentUser.value?.copy(
@@ -221,13 +218,11 @@ class LocationManager(
                                 }
                                 locationUpdateQueue.clear()
                                 consecutiveFailures = 0
-
                                 _locationUpdateError.value = null
                             } else {
                                 locationUpdateQueue.offer(latestUpdate)
                                 consecutiveFailures++
                                 println("Failed to update location: ${response.code()} (Failures: $consecutiveFailures)")
-
                                 if (consecutiveFailures >= maxConsecutiveFailures) {
                                     _locationUpdateError.value = "Failed to update location. Your friends may not see your current position."
                                 }
@@ -236,7 +231,6 @@ class LocationManager(
                             locationUpdateQueue.offer(latestUpdate)
                             consecutiveFailures++
                             println("Network timeout when updating location: ${e.message} (Failures: $consecutiveFailures)")
-
                             if (consecutiveFailures >= maxConsecutiveFailures) {
                                 _locationUpdateError.value = "Network timeout when updating location. Your friends may not see your current position."
                             }
@@ -244,32 +238,14 @@ class LocationManager(
                             locationUpdateQueue.offer(latestUpdate)
                             consecutiveFailures++
                             println("Network error when updating location: ${e.message} (Failures: $consecutiveFailures)")
-
                             if (consecutiveFailures >= maxConsecutiveFailures) {
                                 _locationUpdateError.value = "Network error when updating location. Your friends may not see your current position."
-                            }
-                        } catch (e: HttpException) {
-                            locationUpdateQueue.offer(latestUpdate)
-                            consecutiveFailures++
-                            println("Error updating location: ${e.message} (Failures: $consecutiveFailures)")
-
-                            if (consecutiveFailures >= maxConsecutiveFailures) {
-                                _locationUpdateError.value = "Error updating location: ${e.message}. Your friends may not see your current position."
-                            }
-                        } catch (e: IllegalStateException) {
-                            locationUpdateQueue.offer(latestUpdate)
-                            consecutiveFailures++
-                            println("Error updating location: ${e.message} (Failures: $consecutiveFailures)")
-
-                            if (consecutiveFailures >= maxConsecutiveFailures) {
-                                _locationUpdateError.value = "Error updating location: ${e.message}. Your friends may not see your current position."
                             }
                         }
                     } finally {
                         isUpdating = false
                     }
                 }
-
                 val delay = if (consecutiveFailures > 0) {
                     val backoffDelay = (1.seconds * (1 shl minOf(consecutiveFailures, 5)))
                     minOf(backoffDelay, maxRetryDelay)
