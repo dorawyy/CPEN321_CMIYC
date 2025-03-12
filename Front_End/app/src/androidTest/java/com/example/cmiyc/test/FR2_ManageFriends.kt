@@ -113,48 +113,33 @@ class FR2_ManageFriends {
         composeTestRule.waitUntil(5000) {
             try {
                 composeTestRule.onNodeWithTag("friends_button").assertExists().performClick()
-                Log.d(TAG, "Clicked on friends button")
-                true
-            } catch (e: AssertionError) {
-                false
-            }
+                Log.d(TAG, "Clicked on friends button"); true
+            } catch (e: AssertionError) { false }
         }
 
         // Verify log screen elements
         Log.d(TAG, "Friends screen opened")
         composeTestRule.waitUntil(5000) {
-            try {
-                composeTestRule.onNodeWithTag("addFriends_button").assertExists().performClick()
-                Log.d(TAG, "Clicked on add friends button")
-                true
-            } catch (e: AssertionError) {
-                false
-            }
+            try { composeTestRule.onNodeWithTag("addFriends_button").assertExists().performClick()
+                Log.d(TAG, "Clicked on add friends button"); true
+            } catch (e: AssertionError) { false }
         }
 
         // test adding non-exisitng email
         Log.d(TAG, "Attempting to add invalid email")
         composeTestRule.waitUntil(5000) {
-            try {
-                composeTestRule.onNodeWithTag("friendEmail_Input").assertExists().performTextInput("invalidEmail@invalid.com")
-                Log.d(TAG, "Entered invalid email: invalidEmail@invalid.com")
-                true
-            } catch (e: AssertionError) {
-                false
-            }
+            try { composeTestRule.onNodeWithTag("friendEmail_Input").assertExists().performTextInput("invalidEmail@invalid.com")
+                Log.d(TAG, "Entered invalid email: invalidEmail@invalid.com"); true
+            } catch (e: AssertionError) { false }
         }
 
         composeTestRule.onNodeWithTag("submitFriendEmail_button").performClick()
         Log.d(TAG, "Clicked submit friend email button")
 
         composeTestRule.waitUntil(5000) {
-            try {
-                composeTestRule.onNodeWithText("Error").assertExists()
-                Log.d(TAG, "Error dialog displayed for invalid email")
-                true
-            } catch (e: AssertionError) {
-                false
-            }
+            try { composeTestRule.onNodeWithText("Error").assertExists()
+                Log.d(TAG, "Error dialog displayed for invalid email"); true
+            } catch (e: AssertionError) { false }
         }
         composeTestRule.onNodeWithText("OK").performClick()
         Log.d(TAG, "Clicked OK on error dialog")
@@ -167,11 +152,8 @@ class FR2_ManageFriends {
 
         composeTestRule.waitUntil(5000) {
             try {
-                composeTestRule.onNodeWithTag("friendEmail_Input").assertExists()
-                true
-            } catch (e: AssertionError) {
-                false
-            }
+                composeTestRule.onNodeWithTag("friendEmail_Input").assertExists(); true
+            } catch (e: AssertionError) { false }
         }
         composeTestRule.onNodeWithTag("friendEmail_Input").performTextInput(testAccountEmail2) // replay with test email 2
         Log.d(TAG, "Entered friend email: $testAccountEmail2")
@@ -181,13 +163,9 @@ class FR2_ManageFriends {
 
         // Verify log screen elements
         composeTestRule.waitUntil(5000) {
-            try {
-                composeTestRule.onNodeWithText("Error").assertExists()
-                Log.d(TAG, "Error dialog displayed for network error")
-                true
-            } catch (e: AssertionError) {
-                false
-            }
+            try { composeTestRule.onNodeWithText("Error").assertExists()
+                Log.d(TAG, "Error dialog displayed for network error"); true
+            } catch (e: AssertionError) { false }
         }
         composeTestRule.onNodeWithText("Error").assertExists()
         Log.d(TAG, "Network error handled, error dialog shown")
@@ -206,9 +184,7 @@ class FR2_ManageFriends {
                 composeTestRule.onNodeWithTag("friendRequests_button").assertExists().performClick()
                 Log.d(TAG, "Clicked on friend requests button")
                 true
-            } catch (e: AssertionError) {
-                false
-            }
+            } catch (e: AssertionError) { false }
         }
 
         composeTestRule.waitUntil(5000) {
@@ -216,9 +192,7 @@ class FR2_ManageFriends {
                 composeTestRule.onAllNodesWithTag("acceptFriend_button", useUnmergedTree = true).onFirst().assertExists()
                 Log.d(TAG, "Found accept friend button")
                 true
-            } catch (e: AssertionError) {
-                false
-            }
+            } catch (e: AssertionError) { false }
         }
 
         // Execute the shell command to disable WiFi
@@ -236,9 +210,7 @@ class FR2_ManageFriends {
                 composeTestRule.onNodeWithText("Error").assertExists()
                 Log.d(TAG, "Error dialog displayed for friend request failure")
                 true
-            } catch (e: AssertionError) {
-                false
-            }
+            } catch (e: AssertionError) { false }
         }
         composeTestRule.onNodeWithText("Error").assertExists()
         Log.d(TAG, "Error dialog shown for friend request failure")
