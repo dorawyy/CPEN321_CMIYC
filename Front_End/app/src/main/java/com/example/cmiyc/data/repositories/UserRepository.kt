@@ -209,10 +209,7 @@ class LocationManager(
                             if (response.isSuccessful) {
                                 _currentUser.value = latestUpdate.timestamp.let {
                                     _currentUser.value?.copy(
-                                        currentLocation = Point.fromLngLat(
-                                            latestUpdate.longitude,
-                                            latestUpdate.latitude,
-                                        ),
+                                        currentLocation = Point.fromLngLat(latestUpdate.longitude, latestUpdate.latitude,),
                                         lastLocationUpdate = it
                                     )
                                 }

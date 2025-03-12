@@ -48,80 +48,50 @@ fun MapComponent(
     val iconSizePx = with(density) { iconSizeDp.roundToPx() }
 
     Box(modifier = modifier.fillMaxSize()) {
-        MapboxMap(
-            mapViewportState = mapViewportState,
-            modifier = modifier
-        ) {
-            LocationUpdateHandler(
-                mapViewportState = mapViewportState,
-                lastUpdatedLocation = lastUpdatedLocation,
-                thresholdDistance = thresholdDistance,
-                isFirstUpdate = isFirstUpdate,
+        MapboxMap(mapViewportState = mapViewportState, modifier = modifier) {
+            LocationUpdateHandler(mapViewportState = mapViewportState, lastUpdatedLocation = lastUpdatedLocation, thresholdDistance = thresholdDistance, isFirstUpdate = isFirstUpdate,
                 onLocationUpdated = { point ->
                     lastUpdatedLocation = point
                     UserRepository.locationManager.updateUserLocation(point)
                 }
             )
 
-            FriendAnnotations(
-                context = context,
-                friends = friends,
-                iconSizePx = iconSizePx
+            val defaultUserIcon = rememberIconImage(
+                key = R.drawable.default_user_icon,
+                painter = painterResource(id = R.drawable.default_user_icon)
             )
+
+            friends.forEach { friend ->
+                if (!friend.isBanned) {
+                    friend.location?.let { location ->
+                        val friendIcon = if (!friend.photoURL.isNullOrEmpty()) {
+                            LoadFriendIcon(context = context, photoUrl = friend.photoURL, iconSizePx = iconSizePx)
+                        } else {
+                            defaultUserIcon
+                        }
+                        PointAnnotation(point = location) {
+                            interactionsState.onClicked {
+                                Toast.makeText(context, "Clicked on ${friend.name}'s annotation", Toast.LENGTH_SHORT).show()
+                                true
+                            }
+                            iconImage = friendIcon
+                            textField = friend.name
+                            textOffset = listOf(0.0, 2.0)
+                        }
+                    }
+                }
+            }
         }
 
         Box(
-            modifier = Modifier
-            .align(Alignment.BottomEnd)
-            .padding(16.dp)) {
-            LocationResetButton(
-                context = context,
-                lastUpdatedLocation = lastUpdatedLocation,
-                mapViewportState = mapViewportState,
-            )
+            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)) {
+            LocationResetButton(context = context, lastUpdatedLocation = lastUpdatedLocation, mapViewportState = mapViewportState,)
         }
     }
 }
 
 fun calculateDistance(from: Point, to: Point): Double {
     return TurfMeasurement.distance(from, to) * 1000 // Convert km to meters
-}
-
-@Composable
-fun FriendAnnotations(
-    context: Context,
-    friends: List<Friend>,
-    iconSizePx: Int
-) {
-    val defaultUserIcon = rememberIconImage(
-        key = R.drawable.default_user_icon,
-        painter = painterResource(id = R.drawable.default_user_icon)
-    )
-
-    friends.forEach { friend ->
-        if (!friend.isBanned) {
-            friend.location?.let { location ->
-                val friendIcon = if (!friend.photoURL.isNullOrEmpty()) {
-                    LoadFriendIcon(
-                        context = context,
-                        photoUrl = friend.photoURL,
-                        iconSizePx = iconSizePx
-                    )
-                } else {
-                    defaultUserIcon
-                }
-                PointAnnotation(point = location) {
-                    interactionsState.onClicked {
-                        Toast.makeText(context, "Clicked on ${friend.name}'s annotation", Toast.LENGTH_SHORT).show()
-                        true
-                    }
-                    iconImage = friendIcon
-                    textField = friend.name
-                    textOffset = listOf(0.0, 2.0)
-                }
-            }
-        }
-    }
 }
 
 @Composable

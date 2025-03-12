@@ -28,48 +28,56 @@ class FriendsViewModel : ViewModel() {
     val state: StateFlow<FriendsScreenState> = _uiState
 
     init {
-        // Collect friends data from repository
+//        // Collect friends data from repository
+//        viewModelScope.launch {
+//            FriendsRepository.friends.collect { friends ->
+//                _uiState.update { currentState ->
+//                    currentState.copy(
+//                        friends = friends,
+//                        filteredFriends = filterFriendsWithQuery(friends, currentState.filterQuery)
+//                    )
+//                }
+//            }
+//        }
+//
+//        // Collect loading state
+//        viewModelScope.launch {
+//            FriendsRepository.isFriendsLoading.collect { isLoading ->
+//                _uiState.update { it.copy(isLoading = isLoading) }
+//            }
+//        }
+//
+//        // Collect friend requests data
+//        viewModelScope.launch {
+//            FriendsRepository.friendRequests.collect { requests ->
+//                _uiState.update { it.copy(friendRequests = requests) }
+//            }
+//        }
+//
+//        // Collect requests loading state
+//        viewModelScope.launch {
+//            FriendsRepository.isRequestsLoading.collect { isLoading ->
+//                _uiState.update { it.copy(isRequestsLoading = isLoading) }
+//            }
+//        }
         viewModelScope.launch {
-            FriendsRepository.friends.collect { friends ->
+            combine(
+                FriendsRepository.friends,
+                FriendsRepository.isFriendsLoading,
+                FriendsRepository.friendRequests,
+                FriendsRepository.isRequestsLoading
+            ) { friends, isFriendsLoading, friendRequests, isRequestsLoading ->
+                // This block is called whenever any of the combined flows emit a new value
                 _uiState.update { currentState ->
                     currentState.copy(
                         friends = friends,
-                        filteredFriends = filterFriendsWithQuery(friends, currentState.filterQuery)
+                        filteredFriends = filterFriendsWithQuery(friends, currentState.filterQuery),
+                        isLoading = isFriendsLoading,
+                        friendRequests = friendRequests,
+                        isRequestsLoading = isRequestsLoading
                     )
                 }
-            }
-        }
-
-        // Collect loading state
-        viewModelScope.launch {
-            FriendsRepository.isFriendsLoading.collect { isLoading ->
-                _uiState.update { it.copy(isLoading = isLoading) }
-            }
-        }
-
-        // Collect friend requests data
-        viewModelScope.launch {
-            FriendsRepository.friendRequests.collect { requests ->
-                _uiState.update { it.copy(friendRequests = requests) }
-            }
-        }
-
-        // Collect requests loading state
-        viewModelScope.launch {
-            FriendsRepository.isRequestsLoading.collect { isLoading ->
-                _uiState.update { it.copy(isRequestsLoading = isLoading) }
-            }
-        }
-    }
-
-    private fun filterFriendsWithQuery(friends: List<Friend>, query: String): List<Friend> {
-        return if (query.isEmpty()) {
-            friends
-        } else {
-            friends.filter { friend ->
-                friend.name.contains(query, ignoreCase = true) ||
-                        friend.email.contains(query, ignoreCase = true)
-            }
+            }.collect()
         }
     }
 
@@ -272,6 +280,18 @@ class FriendsViewModel : ViewModel() {
             } catch (e: HttpException) {
                 _uiState.update { it.copy(error = "Failed to accept friend request: ${e.message}") }
             }
+        }
+    }
+}
+
+
+private fun filterFriendsWithQuery(friends: List<Friend>, query: String): List<Friend> {
+    return if (query.isEmpty()) {
+        friends
+    } else {
+        friends.filter { friend ->
+            friend.name.contains(query, ignoreCase = true) ||
+                    friend.email.contains(query, ignoreCase = true)
         }
     }
 }
