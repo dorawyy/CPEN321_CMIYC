@@ -2,13 +2,14 @@
 
 ## 1. Change History
 
-| Date     | Modification Description                                                                                                                        | Rationale                                                                                                                                                                 |
-| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2025.3.1 | 4.0 Sequence Diagrams                                                                                                                           | Update and improve sequence diagrams based on the modification in design                                                                                                  |
-| 2025.3.1 | 4.0 Dependency Diagram: Correct the arrows to firebase and google auth. fix loop between location and notification manager                      | During implementation, the relationships between ocmponents became very clear. Updated diagram to reflect this.                                                           |
-| 2025.3.1 | 4.0 main components: Added REST api routes instead of java funtion signatures                                                                   | REST api routes are more clear in terms of URI, req/res/body which better helps explain the interactions between client and server.                                       |
-| 2025.3.1 | 3.3 Functional Requirements: removed FRs we dont need. Added NFRs such as polling average latency which directly describe our app's performance | Some of our FRs were redundant and this was realized during implementation. Since out app uses polling, an NFR to test average polling latency is an effective indicator. |
-| 2025.3.1 | 3.1 Use case diagram: Modified Use cases                                                                                                        | Our use cases did not matc FRs.                                                                                                                                           |
+| Date      | Modification Description                                                                                                                        | Rationale                                                                                                                                                                 |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2025.3.1  | 4.0 Sequence Diagrams                                                                                                                           | Update and improve sequence diagrams based on the modification in design                                                                                                  |
+| 2025.3.1  | 4.0 Dependency Diagram: Correct the arrows to firebase and google auth. fix loop between location and notification manager                      | During implementation, the relationships between ocmponents became very clear. Updated diagram to reflect this.                                                           |
+| 2025.3.1  | 4.0 main components: Added REST api routes instead of java funtion signatures                                                                   | REST api routes are more clear in terms of URI, req/res/body which better helps explain the interactions between client and server.                                       |
+| 2025.3.1  | 3.3 Functional Requirements: removed FRs we dont need. Added NFRs such as polling average latency which directly describe our app's performance | Some of our FRs were redundant and this was realized during implementation. Since out app uses polling, an NFR to test average polling latency is an effective indicator. |
+| 2025.3.1  | 3.1 Use case diagram: Modified Use cases                                                                                                        | Our use cases did not matc FRs.                                                                                                                                           |
+| 2025.3.12 | Non-Functional Requirements: Modified NFR1 and NFR2                                                                                             | Change Non-Functional Requirements to something measureable and more specific                                                                                             |
 
 ---
 
@@ -258,26 +259,24 @@
 
 ### 3.5. Non-Functional Requirements
 
-1. **NFR1: Close to Real-Time Performance**
+1. **NFR1: App Startup Time**
 
    - **Description**: The app follows the Android vitals startup suggestions:
+
      - Cold startup takes 5 seconds or less.
      - Warm startup takes 2 seconds or less.
      - Hot startup takes 1.5 seconds or less.
-     - Friend Location Refresh: The average latency for refreshing friend locations on the home screen shall be approximately 500 ms (with an acceptable error margin).
-     - User Location Update: The average latency to update the user's own location shall be approximately 500 ms (each individual call has a round-trip time of about 100 ms, aggregating to the target value).
-   - **Justification**: Quick startup and near-real-time location updates ensure a seamless and coordinated user experience.
 
-2. **NFR2: Resilience and Error Handling**
+   - **Justification**: Quick startup ensures a seamless user experience, reducing wait times and improving engagement.
+
+2. **NFR2: Real-Time Performance**
 
    - **Description**: The app must be designed to handle errors and unexpected conditions gracefully. This includes:
 
-     - Implementing robust error handling mechanisms (e.g., automatic retries with exponential backoff, graceful degradation of non-critical services).
-     - Comprehensive logging and monitoring of errors to facilitate rapid troubleshooting and recovery.
-     - Providing clear and actionable feedback to users when issues occur, ensuring minimal disruption to the overall experience.
-     - Ensuring that transient failures (such as temporary network outages or API errors) do not result in extended downtime or data loss.
+     - Friend Location Refresh: The average latency for refreshing friend locations on the home screen shall be approximately 500 ms (with an acceptable error margin).
+     - User Location Update: The average latency to update the user's own location shall be approximately 500 ms (each individual call has a round-trip time of about 100 ms, aggregating to the target value).
 
-   - **Justification**: A resilient design with robust error handling minimizes disruptions and enhances reliability, ensuring that users enjoy a stable experience even when facing adverse conditions.
+   - **Justification**: Near-real-time location updates ensure smooth and coordinated interactions, enhancing the overall user experience.
 
 ---
 
@@ -454,13 +453,16 @@
 
 ### 4.7. Non-Functional Requirements Design
 
-1. **Real-Time Performance**
+1. **App Startup Time**
 
-   - **Validation**: Conduct comprehensive tests (both unit and integration tests) to ensure that the app delivers a seamless, fluid user experience. In all scenarios, location updates must complete within 2 seconds at worst.
+   - **Validation**: Measure startup times under various conditions to ensure compliance with the following benchmarks:
+   - Cold startup: ≤5 seconds
+   - Warm startup: ≤2 seconds
+   - Hot startup: ≤1.5 seconds
 
-2. **Resilience and Error Handling**
+2. **Real-Time Performance**
 
-   - **Validation**: Simulate network outages, transient errors, and other failure conditions to verify that the app gracefully handles errors. This includes employing retry mechanisms with exponential backoff, logging errors for later analysis, and providing clear feedback to users when issues occur.
+   - **Validation**: Conduct comprehensive tests (both unit and integration tests) to ensure that the app delivers a seamless, fluid user experience. Location updates must complete within 500 ms on average and within 2 seconds at worst.
 
 3. **Compatibility**
    - **Validation**: The app should be compatible with Android devices running Android 12 (API 31) and above.

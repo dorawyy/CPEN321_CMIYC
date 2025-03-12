@@ -207,24 +207,24 @@ class FR1_LoginWithGoogleAuthentication {
 
     @After
     fun tearDown() {
-        Log.d("FR1_LoginWithGoogleAuthentication", "Test teardown started")
+        Log.d(TAG, "Test teardown started")
         // Sign out after test
         UserRepository.clearCurrentUser()
-        Log.d("FR1_LoginWithGoogleAuthentication", "Cleared current user")
+        Log.d(TAG, "Cleared current user")
 
         composeTestRule.activity.runOnUiThread {
             GoogleSignIn.getClient(
                 composeTestRule.activity,
                 GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()
             ).signOut()
-            Log.d("FR1_LoginWithGoogleAuthentication", "Signed out from Google")
+            Log.d(TAG, "Signed out from Google")
         }
 
         uiAutomation.executeShellCommand("svc wifi enable")
         uiAutomation.executeShellCommand("svc data enable")
-        Log.d("FR1_LoginWithGoogleAuthentication", "WiFi and data enabled")
+        Log.d(TAG, "WiFi and data enabled")
 
         Intents.release()
-        Log.d("FR1_LoginWithGoogleAuthentication", "Test teardown completed")
+        Log.d(TAG, "Test teardown completed")
     }
 }

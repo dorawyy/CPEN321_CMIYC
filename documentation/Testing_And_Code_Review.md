@@ -50,23 +50,65 @@ _(Placeholder for Jest coverage screenshot without mocks)_
 
 ---
 
-## 3. Back-end Test Specification: Tests of Non-Functional Requirements
+## 3. App Test Specification: Tests of Non-Functional Requirements
 
 ### 3.1. Test Locations in Git
 
-| **Non-Functional Requirement**  | **Location in Git**                              |
-| ------------------------------- | ------------------------------------------------ |
-| **Performance (Response Time)** | [`tests/nonfunctional/response_time.test.js`](#) |
-| **Chat Data Security**          | [`tests/nonfunctional/chat_security.test.js`](#) |
+| **Non-Functional Requirement** | **Location in Git**                                                                  |
+| ------------------------------ | ------------------------------------------------------------------------------------ |
+| **App Startup Time**           | [`Front_End\app\src\androidTest\java\com\example\cmiyc\test\NFR1_StartupTime.kt`](#) |
+| **Chat Data Security**         | [`tests/nonfunctional/chat_security.test.js`](#)                                     |
 
 ### 3.2. Test Verification and Logs
 
-- **Performance (Response Time)**
+- **App Startup Time**
 
-  - **Verification:** This test suite simulates multiple concurrent API calls using Jest along with a load-testing utility to mimic real-world user behavior. The focus is on key endpoints such as user login and study group search to ensure that each call completes within the target response time of 2 seconds under normal load. The test logs capture metrics such as average response time, maximum response time, and error rates. These logs are then analyzed to identify any performance bottlenecks, ensuring the system can handle expected traffic without degradation in user experience.
+  - **Verification:** The enhanced startup time tests now include comprehensive verification steps for cold, warm, and hot starts, ensuring accurate measurement and validation of app performance against Android Vitals benchmarks. For cold starts, the app is launched from a clean state (force-stopped and data-cleared) to verify the login screen appears within 5 seconds. Warm starts simulate a logged-in user returning after a backgrounded app kill, measuring time until the main UI (e.g., broadcast_button) loads under 2 seconds. Hot starts replicate real-world resumption via Recent Apps navigation, validating foreground restoration under 1.5 seconds. Each test incorporates explicit state management (e.g., permission grants, login flows), UI verification (checking critical elements like login_button or profile_button), and reliable timing using ActivityScenario and UiDevice interactions. Logging and assertions ensure thresholds are enforced, while cleanup steps (sign-out, process termination) maintain test isolation. The updates align with Android testing best practices, focusing on real user interactions and system behavior for accurate performance validation.
   - **Log Output**
-    ```
-    [Placeholder for response time test logs]
+    ```text
+    2025-03-12 15:43:45.604 16222-16289 TestRunner              com.example.cmiyc                    I  started: test1ColdStartTime(com.example.cmiyc.test.NFR1_StartupTime)
+    2025-03-12 15:43:46.632 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Test setup started
+    2025-03-12 15:43:46.643 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Test setup completed
+    2025-03-12 15:43:46.643 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  test1ColdStartTime Start
+    2025-03-12 15:43:46.643 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  StartTime -------
+    2025-03-12 15:43:46.746 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Duration: 103
+    2025-03-12 15:43:46.746 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  test1ColdStartTime End
+    2025-03-12 15:43:46.746 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Test teardown started
+    2025-03-12 15:43:46.747 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Cleared current user
+    2025-03-12 15:43:46.752 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  WiFi and data enabled
+    2025-03-12 15:43:46.775 16222-16222 NFR1_StartupTime        com.example.cmiyc                    D  Signed out from Google
+    2025-03-12 15:43:46.775 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Test teardown completed
+    2025-03-12 15:43:47.083 16222-16289 TestRunner              com.example.cmiyc                    I  finished: test1ColdStartTime(com.example.cmiyc.test.NFR1_StartupTime)
+    2025-03-12 15:43:47.543 16222-16289 TestRunner              com.example.cmiyc                    I  started: test2WarmStartTime(com.example.cmiyc.test.NFR1_StartupTime)
+    2025-03-12 15:43:47.914 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Test setup started
+    2025-03-12 15:43:47.926 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Test setup completed
+    2025-03-12 15:43:47.926 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  test2WarmStartTime Start
+    2025-03-12 15:43:47.926 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  setup for warm start
+    2025-03-12 15:43:47.929 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Kill the app process
+    2025-03-12 15:43:47.930 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Relaunch and measure warm start time
+    2025-03-12 15:43:47.933 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Duration: 3
+    2025-03-12 15:43:47.933 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  test2WarmStartTime End
+    2025-03-12 15:43:47.933 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Test teardown started
+    2025-03-12 15:43:47.933 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Cleared current user
+    2025-03-12 15:43:47.934 16222-16222 NFR1_StartupTime        com.example.cmiyc                    D  Signed out from Google
+    2025-03-12 15:43:47.936 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  WiFi and data enabled
+    2025-03-12 15:43:47.936 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Test teardown completed
+    2025-03-12 15:43:48.102 16222-16289 TestRunner              com.example.cmiyc                    I  finished: test2WarmStartTime(com.example.cmiyc.test.NFR1_StartupTime)
+    2025-03-12 15:43:48.729 16222-16289 TestRunner              com.example.cmiyc                    I  started: test3HotStartTime(com.example.cmiyc.test.NFR1_StartupTime)
+    2025-03-12 15:43:49.099 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Test setup started
+    2025-03-12 15:43:49.112 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Test setup completed
+    2025-03-12 15:43:49.112 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  test3HotStartTime Start
+    2025-03-12 15:43:49.112 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  setup for Hot start
+    2025-03-12 15:43:49.115 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Send the app to the background by pressing the Home button
+    2025-03-12 15:43:50.883 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Re-start the app from background
+    2025-03-12 15:43:51.483 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Duration: 1
+    2025-03-12 15:43:51.484 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  test3HotStartTime End
+    2025-03-12 15:43:51.484 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Test teardown started
+    2025-03-12 15:43:51.484 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Cleared current user
+    2025-03-12 15:43:51.486 16222-16222 NFR1_StartupTime        com.example.cmiyc                    D  Signed out from Google
+    2025-03-12 15:43:51.487 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  WiFi and data enabled
+    2025-03-12 15:43:51.487 16222-16289 NFR1_StartupTime        com.example.cmiyc                    D  Test teardown completed
+    2025-03-12 15:43:51.645 16222-16289 TestRunner              com.example.cmiyc                    I  finished: test3HotStartTime(com.example.cmiyc.test.NFR1_StartupTime)
     ```
 
 - **Chat Data Security**
