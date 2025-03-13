@@ -155,7 +155,7 @@ export class NotificationController {
         }
     }
 
-    async getNotifications(req: Request, res: Response, nextFunction: NextFunction) {
+    async getNotifications(req: Request, res: Response) {
         const userID = req.params.userID;
         const collection = client.db("cmiyc").collection("users");
         const user = await collection.findOne({ userID });
