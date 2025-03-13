@@ -28,7 +28,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            cd /home/ubuntu/cmiyc/CPEN321_CMIYC/Back_End
+            cd /home/ubuntu/cmiyc/Back_End
             sudo rm -rf node_modules
             npm install
             # Write secrets into .env
