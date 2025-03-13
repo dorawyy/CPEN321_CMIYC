@@ -6,6 +6,7 @@ module.exports = {
   collectCoverage: true,
   coverageDirectory: 'coverage',
   collectCoverageFrom: [
+    'controllers/**/*.ts',
     'routes/**/*.ts',
     '!**/node_modules/**',
     '!**/vendor/**'

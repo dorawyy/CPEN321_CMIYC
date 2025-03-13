@@ -100,8 +100,7 @@ describe('NotificationController - Integration with Quadtree', () => {
     // Call the method
     await notificationController.sendEventNotification(
       mockRequest as Request,
-      mockResponse as Response,
-      mockNext
+      mockResponse as Response
     );
     
     // Verify findNearbyFriendsWithQuadtree was called with correct params
@@ -121,8 +120,7 @@ describe('NotificationController - Integration with Quadtree', () => {
     // Call the method
     await notificationController.sendEventNotification(
       mockRequest as Request,
-      mockResponse as Response,
-      mockNext
+      mockResponse as Response
     );
     
     // Verify the response
@@ -149,8 +147,7 @@ describe('NotificationController - Integration with Quadtree', () => {
     // Call the method
     await notificationController.sendEventNotification(
       mockRequest as Request,
-      mockResponse as Response,
-      mockNext
+      mockResponse as Response
     );
     
     // Verify the response
@@ -209,8 +206,7 @@ describe('NotificationController - Integration with Quadtree', () => {
     // Call the method
     await notificationController.sendEventNotification(
       mockRequest as Request,
-      mockResponse as Response,
-      mockNext
+      mockResponse as Response
     );
     
     // Verify updateOne was called for each friend to update logList
@@ -333,8 +329,7 @@ describe('NotificationController - Integration with Quadtree', () => {
     // Call the method
     await notificationController.sendEventNotification(
       mockRequest as Request,
-      mockResponse as Response,
-      mockNext
+      mockResponse as Response
     );
     
     // Verify updateOne was called for all friends to update logList (8 calls = 4 friends × 2 updates each)

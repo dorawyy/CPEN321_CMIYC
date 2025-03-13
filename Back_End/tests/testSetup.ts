@@ -33,7 +33,7 @@ export function setupTestApp(): Express {
       ...route.validation,
       validationMiddleware,
       (req: any, res: any, next: any) => {
-        const result = route.action(req, res, next);
+        const result = route.action(req, res);
         if (result instanceof Promise) {
           result.catch(err => next(err));
         }
@@ -48,7 +48,7 @@ export function setupTestApp(): Express {
       ...route.validation,
       validationMiddleware,
       (req: any, res: any, next: any) => {
-        const result = route.action(req, res, next);
+        const result = route.action(req, res);
         if (result instanceof Promise) {
           result.catch(err => next(err));
         }
@@ -78,7 +78,7 @@ export function setupTestApp(): Express {
       ...route.validation,
       validationMiddleware,
       (req: any, res: any, next: any) => {
-        const result = route.action(req, res, next);
+        const result = route.action(req, res);
         if (result instanceof Promise) {
           result.catch(err => next(err));
         }
