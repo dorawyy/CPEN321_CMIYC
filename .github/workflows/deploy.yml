@@ -35,6 +35,9 @@ jobs:
             cat > .env <<EOF
             PORT=${{ secrets.PROD_PORT }}
             DB_URI=${{ secrets.PROD_DB_URI }}
+            FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
+            FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }}
+            FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }}
             EOF
 
             # Give .env permissions
