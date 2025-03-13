@@ -6,7 +6,40 @@ on:
       - main
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install Back-End Dependencies
+        run: |
+          cd Back_End
+          npm install
+          
+      - name: Setup Environment Variables
+        run: |
+          cd Back_End
+          cat > .env <<EOF
+          PORT=${{ secrets.PROD_PORT || '3001' }}
+          DB_URI=${{ secrets.PROD_DB_URI }}
+          FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }}
+          EOF
+          
+      - name: Run Back-End Tests
+        run: |
+          cd Back_End
+          npm run test
+          
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -47,13 +80,3 @@ jobs:
             docker-compose down
             docker-compose --env-file .env build
             docker-compose --env-file .env up -d
-    
-      - name: Run Post-Deployment Test
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_KEY }}
-          script: |
-            cd /home/ubuntu/cmiyc/Back_End
-            npm run test
