@@ -1,1 +1,1 @@
-# CPEN321ProjectCMIYC
+# CPEN321Project
