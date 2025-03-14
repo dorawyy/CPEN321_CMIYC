@@ -121,7 +121,7 @@ export class FriendController {
     }
 
     // Used to decline a friend request. POST request.
-    async declineFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
+    async declineFriendRequest(req: Request, res: Response) {
         const { userID, friendID } = req.params;
 
         try {
