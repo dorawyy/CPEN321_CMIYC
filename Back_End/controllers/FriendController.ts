@@ -29,43 +29,35 @@ export class FriendController {
         const { userID, friendEmail } = req.params;
 
         const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
-        if (!user) {
-            res.status(404).send("User not found");
-            return;
-        }
-        if (user.email === friendEmail) {
+        
+        if (user && user.email === friendEmail) {
             res.status(400).send("Cannot send friend request to yourself");
             return;
         }
 
-        try {
-            const friend = await client.db("cmiyc").collection("users").findOne({ email: friendEmail });
+        const friend = await client.db("cmiyc").collection("users").findOne({ email: friendEmail });
 
-            if (!friend) {
-                res.status(404).send("Friend not found");
-                return;
-            }
-
-            // Check if already friends
-            if (user.friends.includes(friend.userID)) {
-                res.status(400).send("You are already friends");
-                return;
-            }
-
-            if (friend.friendRequests.includes(userID)) {
-                res.status(200).send("You have already sent a friend request to this user");
-                return;
-            }
-
-            await client.db("cmiyc").collection("users").updateOne(
-                { userID: friend.userID }, 
-                { $push: { friendRequests: userID } } as any
-            );
-            res.status(200).send("Friend request sent successfully");
-
-        } catch (err) {
-            res.status(404).send("Error sending friend request");
+        if (!friend) {
+            res.status(404).send("Friend not found");
+            return;
         }
+
+        // Check if already friends
+        if (user && user.friends.includes(friend.userID)) {
+            res.status(400).send("You are already friends");
+            return;
+        }
+
+        if (friend.friendRequests.includes(userID)) {
+            res.status(200).send("You have already sent a friend request to this user");
+            return;
+        }
+
+        await client.db("cmiyc").collection("users").updateOne(
+            { userID: friend.userID }, 
+            { $push: { friendRequests: userID } } as any
+        );
+        res.status(200).send("Friend request sent successfully");
     }
 
     // Used to get a user's friend requests. GET request.
@@ -81,7 +73,7 @@ export class FriendController {
                         const { friends: _, friendRequests: __, ...friendWithoutLists } = friend;
                         return friendWithoutLists;
                     }
-                    return null;
+                    // return null;
                 })
             );
             res.send(friendRequests.filter(Boolean));

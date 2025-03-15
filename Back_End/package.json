@@ -7,7 +7,11 @@
     "start": "ts-node index.ts",
     "dev": "nodemon -e .ts --exec 'node -r dotenv/config -r ts-node/register index.ts'",
     "docker:up": "docker-compose --env-file .env up",
-    "docker:down": "docker-compose --env-file .env down"
+    "docker:down": "docker-compose --env-file .env down",
+    "test": "jest",
+    "test:mocks": "jest tests/withMocks",
+    "test:nomocks": "jest tests/withoutMocks",
+    "test:coverage": "jest --coverage"
   },
   "author": "",
   "license": "ISC",
@@ -15,15 +19,20 @@
     "@types/express": "^5.0.0",
     "express": "^4.21.2",
     "express-validator": "^7.2.1",
+    "firebase-admin": "^13.1.0",
     "mongodb": "^6.13.0",
     "morgan": "^1.10.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.3",
-    "firebase-admin": "^13.1.0"
+    "typescript": "^5.7.3"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "@types/morgan": "^1.9.9",
+    "@types/supertest": "^6.0.2",
     "dotenv": "^16.4.7",
-    "nodemon": "^3.1.9"
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.9",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.6"
   }
 }
