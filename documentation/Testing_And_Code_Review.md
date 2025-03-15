@@ -459,7 +459,7 @@ _(Placeholder for Jest coverage screenshot without mocks)_
     2025-03-11 16:16:36.493 15823-15870 TestRunner              com.example.cmiyc                    I  finished: test6RemoveFriendRequest(com.example.cmiyc.test.FR2_ManageFriends)
     ```
 
-- **Use Case: FR5_1 User views the activity logs (Success)**
+- **Use Case: FR5_1 - User views the activity logs (Success)**
 
   - **Expected Behaviors:**
 
@@ -497,7 +497,7 @@ _(Placeholder for Jest coverage screenshot without mocks)_
     2025-03-11 16:21:32.260 19900-19939 TestRunner              com.example.cmiyc                    I  finished: test1ViewLogs(com.example.cmiyc.test.FR5_ViewActivityLogs)
     ```
 
-- **Use Case: FR5_1 User views the activity logs (Failure)**
+- **Use Case: FR5_1 - User views the activity logs (Failure)**
 
   - **Expected Behaviors:**
 
