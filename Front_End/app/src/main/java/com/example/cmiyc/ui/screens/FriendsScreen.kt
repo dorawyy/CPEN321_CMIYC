@@ -197,11 +197,11 @@ fun FriendsDialogs(state: FriendsScreenState, viewModel: FriendsViewModel, onDen
     // Error Dialog
     state.error?.let { error ->
         AlertDialog(
-            onDismissRequest = viewModel::clearError,
+            onDismissRequest = viewModel::clearMessages,
             title = { Text("Error") },
             text = { Text(error) },
             confirmButton = {
-                TextButton(onClick = viewModel::clearError) {
+                TextButton(onClick = viewModel::clearMessages) {
                     Text("OK")
                 }
             }
