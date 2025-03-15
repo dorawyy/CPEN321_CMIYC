@@ -1,5 +1,4 @@
 import { FriendController } from "../controllers/FriendController";
-import { body } from "express-validator";
 
 const controller = new FriendController();
 

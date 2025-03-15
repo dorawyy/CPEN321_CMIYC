@@ -1,10 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { client } from "../services";
-import { ObjectId } from "mongodb";
 
 export class UserController {
     // Used to create a user profile with a name, email, profile picture, and status.    
-    async createUserProfile(req: Request, res: Response, nextFunction: NextFunction) {
+    async createUserProfile(req: Request, res: Response) {
         const body = req.body;
         // Check if user already exists
         const existingUser = await client.db("cmiyc").collection("users").findOne({ userID: body.userID });
@@ -22,7 +21,7 @@ export class UserController {
         res.status(200).send({ message: "User profile created: " + createdUserProfile.insertedId, isAdmin: body.isAdmin, isBanned: false});
     }
 
-    async getAllUsers(req: Request, res: Response, nextFunction: NextFunction) {
+    async getAllUsers(req: Request, res: Response) {
         const userID = req.params.userID;
         const users = await client.db("cmiyc").collection("users").find({}).toArray();
         const usersWithoutLists = users
@@ -34,7 +33,7 @@ export class UserController {
         res.status(200).send(usersWithoutLists);
     }
 
-    async banUser(req: Request, res: Response, nextFunction: NextFunction) {
+    async banUser(req: Request, res: Response) {
         const userID = req.params.userID;
         const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
         if (!user) {
