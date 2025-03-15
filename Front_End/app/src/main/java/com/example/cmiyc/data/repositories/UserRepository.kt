@@ -222,7 +222,6 @@ class LocationManager(
                             } else {
                                 locationUpdateQueue.offer(latestUpdate)
                                 consecutiveFailures++
-                                println("Failed to update location: ${response.code()} (Failures: $consecutiveFailures)")
                                 if (consecutiveFailures >= maxConsecutiveFailures) {
                                     _locationUpdateError.value = "Failed to update location. Your friends may not see your current position."
                                 }
@@ -230,14 +229,12 @@ class LocationManager(
                         } catch (e: SocketTimeoutException) {
                             locationUpdateQueue.offer(latestUpdate)
                             consecutiveFailures++
-                            println("Network timeout when updating location: ${e.message} (Failures: $consecutiveFailures)")
                             if (consecutiveFailures >= maxConsecutiveFailures) {
                                 _locationUpdateError.value = "Network timeout when updating location. Your friends may not see your current position."
                             }
                         } catch (e: IOException) {
                             locationUpdateQueue.offer(latestUpdate)
                             consecutiveFailures++
-                            println("Network error when updating location: ${e.message} (Failures: $consecutiveFailures)")
                             if (consecutiveFailures >= maxConsecutiveFailures) {
                                 _locationUpdateError.value = "Network error when updating location. Your friends may not see your current position."
                             }
