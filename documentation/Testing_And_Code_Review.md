@@ -330,6 +330,8 @@ These are the error catch blocks in the following methods:
 - **Error Path Interception**: When using Express, errors are often caught at the middleware level before they reach the specific catch blocks in the controllers.
 - **Race Conditions**: These error paths would typically be executed in real-world situations like database connection failures, timeouts, or when concurrent operations cause data inconsistencies.
 
+### These lines are covered in Mocked Tests as it is the best approach because I can explicitly mock the database methods to throw exceptions.
+
 
 ---
 
