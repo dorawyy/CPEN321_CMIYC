@@ -49,18 +49,12 @@
    ```
 
 3. **Environment Setup**:
-   - Create a `.env` file in the `Back_End` directory with the following variables:
-     ```
-     PORT=3001
-     DB_URI=mongodb://localhost:27017/cmiyc
-     FIREBASE_PROJECT_ID=your-firebase-project-id
-     FIREBASE_CLIENT_EMAIL=your-firebase-client-email
-     FIREBASE_PRIVATE_KEY=your-firebase-private-key
-     ```
+   - Since we push our enviorment variables, you do not have to do this.
+     
 
 4. **Run Tests Without Mocks**:
    ```
-   npm run test:no-mocks
+   npm run test:nomocks
    ```
    This will run tests using an actual MongoDB instance. Make sure MongoDB is running locally.
 
