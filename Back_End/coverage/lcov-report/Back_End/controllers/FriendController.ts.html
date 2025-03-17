@@ -485,13 +485,11 @@ export class FriendController {
     async acceptFriendRequest(req: Request, res: Response, nextFunction: NextFunction) {
         const { userID, friendID } = req.params;
 &nbsp;
-        console.log(userID, friendID);
 &nbsp;
         try {
             const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
             const friend = await client.db("cmiyc").collection("users").findOne({ userID: friendID });
 &nbsp;
-            console.log(user, friend);
 &nbsp;
             if (!user || !friend) {
                 return res.status(404).send("User or friend not found");

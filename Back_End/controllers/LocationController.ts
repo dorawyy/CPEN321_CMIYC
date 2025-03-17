@@ -6,7 +6,6 @@ export class LocationController {
     async updateUserLocation(req: Request, res: Response) {
         const userID = req.params.userID;
         const currentLocation = req.body.currentLocation;
-        console.log(userID);
 
         // Check if user exists
         const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });

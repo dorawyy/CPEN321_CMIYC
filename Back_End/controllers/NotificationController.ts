@@ -79,8 +79,7 @@ export class NotificationController {
         // Extract the friend data from the points
         const nearbyFriends = nearbyPoints.map(point => point.data);
 
-        
-        console.log("Nearby friends from quadtree:", nearbyFriends);
+
         return nearbyFriends;
     }
 
@@ -150,7 +149,6 @@ export class NotificationController {
             });
             
         } catch (error) {
-            console.error(error);
             res.status(500).send("Error sending notification");
         }
     }
