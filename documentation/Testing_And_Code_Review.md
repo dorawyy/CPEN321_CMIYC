@@ -309,23 +309,26 @@ Snapshots:   0 total
 Time:        1.728 s
 Ran all test suites matching /tests\/withoutMocks/i.
 ```
-Justification for lines with no coverage:
-In NotificationController.ts (lines 25, 152):
-Line 25: The conditional block in updateFCMToken when result.matchedCount === 0
-Line 152: The catch block in sendEventNotification
-Why these are challenging to cover:
-Result Conditioning: For line 25, we would need to have a scenario where a user exists (to pass initial validation) but then somehow doesn't match the update criteria. This is nearly impossible in a real database scenario without race conditions.
-External Dependencies: Line 152 involves Firebase messaging, which is an external service. Forcing it to throw errors in a controlled way is challenging without mocks.
+## Justification for Lines with No Coverage
 
-In FriendController.ts (lines 115, 136, 159):
+### NotificationController.ts (lines 25, 152)
+- **Line 25**: The conditional block in `updateFCMToken` when `result.matchedCount === 0`
+- **Line 152**: The catch block in `sendEventNotification`
+
+#### Why these are challenging to cover:
+- **Result Conditioning**: For line 25, we would need to have a scenario where a user exists (to pass initial validation) but then somehow doesn't match the update criteria. This is nearly impossible in a real database scenario without race conditions.
+- **External Dependencies**: Line 152 involves Firebase messaging, which is an external service. Forcing it to throw errors in a controlled way is challenging without mocks.
+
+### FriendController.ts (lines 115, 136, 159)
 These are the error catch blocks in the following methods:
-Line 115: catch block in the acceptFriendRequest method
-Line 136: catch block in the declineFriendRequest method
-Line 159: catch block in the deleteFriend method
-Why these are challenging to cover:
-Database Error Simulation: In a non-mocked environment, it's difficult to force the database to throw errors at specific points in the code. When we tried to use invalid IDs, the MongoDB driver handled them by returning null rather than throwing exceptions.
-Error Path Interception: When using Express, errors are often caught at the middleware level before they reach the specific catch blocks in the controllers.
-Race Conditions: These error paths would typically be executed in real-world situations like database connection failures, timeouts, or when concurrent operations cause data inconsistencies.
+- **Line 115**: Catch block in the `acceptFriendRequest` method
+- **Line 136**: Catch block in the `declineFriendRequest` method
+- **Line 159**: Catch block in the `deleteFriend` method
+
+#### Why these are challenging to cover:
+- **Database Error Simulation**: In a non-mocked environment, it's difficult to force the database to throw errors at specific points in the code. When we tried to use invalid IDs, the MongoDB driver handled them by returning null rather than throwing exceptions.
+- **Error Path Interception**: When using Express, errors are often caught at the middleware level before they reach the specific catch blocks in the controllers.
+- **Race Conditions**: These error paths would typically be executed in real-world situations like database connection failures, timeouts, or when concurrent operations cause data inconsistencies.
 
 
 ---
