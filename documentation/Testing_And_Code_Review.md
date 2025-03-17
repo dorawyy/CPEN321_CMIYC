@@ -16,10 +16,19 @@
 
 | **Interface**                 | **Describe Group Location, No Mocks**                | **Describe Group Location, With Mocks**            | **Mocked Components**              |
 | ----------------------------- | ---------------------------------------------------- | -------------------------------------------------- | ---------------------------------- |
-| **POST /user/login**          | [`tests/unmocked/authenticationLogin.test.js#L1`](#) | [`tests/mocked/authenticationLogin.test.js#L1`](#) | Google Authentication API, User DB |
-| **POST /study-groups/create** | ...                                                  | ...                                                | Study Group DB                     |
-| ...                           | ...                                                  | ...                                                | ...                                |
-| ...                           | ...                                                  | ...                                                | ...                                |
+| **POST /user**                | `tests/withoutMocks/routes/UserRoutes.test.ts#L47`   | `tests/withMocks/routes/UserRoutes.test.ts#L60`    | MongoDB, Firebase |
+| **GET /user/:userID**         | `tests/withoutMocks/routes/UserRoutes.test.ts#L117`  | `tests/withMocks/routes/UserRoutes.test.ts#L168`   | MongoDB, Firebase |
+| **POST /user/ban/:userID**    | `tests/withoutMocks/routes/UserRoutes.test.ts#L149`  | `tests/withMocks/routes/UserRoutes.test.ts#L230`   | MongoDB, Firebase |
+| **PUT /fcm/:userID**          | `tests/withoutMocks/routes/NotificationRoutes.test.ts#L59` | `tests/withMocks/routes/NotificationRoutes.test.ts#L60` | MongoDB, Firebase |
+| **GET /notifications/:userID**| `tests/withoutMocks/routes/NotificationRoutes.test.ts#L122` | `tests/withMocks/routes/NotificationRoutes.test.ts#L175` | MongoDB, Firebase |
+| **POST /send-event/:userID**  | `tests/withoutMocks/routes/NotificationRoutes.test.ts#L166` | `tests/withMocks/routes/NotificationRoutes.test.ts#L290` | MongoDB, Firebase |
+| **PUT /location/:userID**     | `tests/withoutMocks/routes/LocationRoutes.test.ts#L58` | `tests/withMocks/routes/LocationRoutes.test.ts#L57` | MongoDB, Firebase |
+| **GET /friends/:userID**      | `tests/withoutMocks/routes/FriendRoutes.test.ts#L73` | `tests/withMocks/routes/FriendRoutes.test.ts#L62`  | MongoDB, Firebase |
+| **POST /friends/:userID/sendRequest/:friendEmail** | `tests/withoutMocks/routes/FriendRoutes.test.ts#L113` | `tests/withMocks/routes/FriendRoutes.test.ts#L163` | MongoDB, Firebase |
+| **GET /friends/:userID/friendRequests** | `tests/withoutMocks/routes/FriendRoutes.test.ts#L184` | `tests/withMocks/routes/FriendRoutes.test.ts#L359` | MongoDB, Firebase |
+| **POST /friends/:userID/acceptRequest/:friendID** | `tests/withoutMocks/routes/FriendRoutes.test.ts#L229` | `tests/withMocks/routes/FriendRoutes.test.ts#L455` | MongoDB, Firebase |
+| **POST /friends/:userID/declineRequest/:friendID** | `tests/withoutMocks/routes/FriendRoutes.test.ts#L341` | `tests/withMocks/routes/FriendRoutes.test.ts#L634` | MongoDB, Firebase |
+| **PUT /friends/:userID/deleteFriend/:friendID** | `tests/withoutMocks/routes/FriendRoutes.test.ts#L294` | `tests/withMocks/routes/FriendRoutes.test.ts#L730` | MongoDB, Firebase |
 
 #### 2.1.2. Commit Hash Where Tests Run
 
@@ -28,17 +37,54 @@
 #### 2.1.3. Explanation on How to Run the Tests
 
 1. **Clone the Repository**:
+   ```
+   git clone [repository URL]
+   cd CPEN321_CMIYC
+   ```
 
-   - Open your terminal and run:
+2. **Install Dependencies**:
+   ```
+   cd Back_End
+   npm install
+   ```
+
+3. **Environment Setup**:
+   - Create a `.env` file in the `Back_End` directory with the following variables:
      ```
-     git clone https://github.com/example/your-project.git
+     PORT=3001
+     DB_URI=mongodb://localhost:27017/cmiyc
+     FIREBASE_PROJECT_ID=your-firebase-project-id
+     FIREBASE_CLIENT_EMAIL=your-firebase-client-email
+     FIREBASE_PRIVATE_KEY=your-firebase-private-key
      ```
 
-2. **...**
+4. **Run Tests Without Mocks**:
+   ```
+   npm run test:no-mocks
+   ```
+   This will run tests using an actual MongoDB instance. Make sure MongoDB is running locally.
+
+5. **Run Tests With Mocks**:
+   ```
+   npm run test:mocks
+   ```
+   This will run tests with mocked MongoDB and Firebase dependencies.
+
+6. **Run All Tests**:
+   ```
+   npm run test
+   ```
+   This will run both mocked and unmocked tests.
 
 ### 2.2. GitHub Actions Configuration Location
 
-`~/.github/workflows/backend-tests.yml`
+`.github/workflows/deploy.yml`
+
+The GitHub Actions workflow is configured to run all tests in a CI environment before deployment. Key points:
+- Tests run on push to the main branch
+- MongoDB is set up as a service container for the tests
+- Environment variables are configured from repository secrets
+- Backend tests must pass before deployment proceeds to the EC2 instance
 
 ### 2.3. Jest Coverage Report Screenshots With Mocks
 
@@ -133,8 +179,8 @@ _(Placeholder for Jest coverage screenshot without mocks)_
   - **Expected Behaviors:**
     | **Scenario Steps** | **Test Case Steps (Derived from Code)** |
     | ------------------ | ----------------------------------------- |
-    | 1. New and existing users click on the Google login button on the App’s login page. | - Handle the location permission dialog (wait for and click the “Allow” button if it appears).<br>- Wait until the UI element with tag `login_button` exists.<br>- Click the UI element with tag `login_button`. |
-    | 2. User is redirected to a page view where the user enters their Google email and password. | - The app displays the Google account picker. The test waits for a dialog containing the text “Choose an account”.<br>- Simulate account selection by clicking on the account matching the test email (via `selectGoogleAccount(testAccountEmail)`). |
+    | 1. New and existing users click on the Google login button on the App's login page. | - Handle the location permission dialog (wait for and click the "Allow" button if it appears).<br>- Wait until the UI element with tag `login_button` exists.<br>- Click the UI element with tag `login_button`. |
+    | 2. User is redirected to a page view where the user enters their Google email and password. | - The app displays the Google account picker. The test waits for a dialog containing the text "Choose an account".<br>- Simulate account selection by clicking on the account matching the test email (via `selectGoogleAccount(testAccountEmail)`). |
     | 3. Google Authentication succeeds. | - After selecting the account, the test waits until the main screen loads by checking for the UI element with tag `broadcast_button`, which indicates successful authentication. |
     | 4. User is redirected out of the login page and into the app's main page (Map/Main Screen). | - The appearance of the `broadcast_button` confirms the app has navigated to the main screen. Additional main-screen interactions (if any) would be handled here. |
 
@@ -166,10 +212,10 @@ _(Placeholder for Jest coverage screenshot without mocks)_
   - **Expected Behaviors:**
     | **Scenario Steps** | **Test Case Steps (Derived from Code)** |
     | ------------------ | ----------------------------------------- |
-    | 1. New and existing users click on the Google login button on the App’s login page. | - Disable network connectivity by executing shell commands to turn off WiFi and mobile data (simulating a network error).<br>- Handle the location permission dialog (wait for and click the “Allow” button if it appears).<br>- Wait until the UI element with tag `login_button` exists and click it. |
+    | 1. New and existing users click on the Google login button on the App's login page. | - Disable network connectivity by executing shell commands to turn off WiFi and mobile data (simulating a network error).<br>- Handle the location permission dialog (wait for and click the "Allow" button if it appears).<br>- Wait until the UI element with tag `login_button` exists and click it. |
     | 2. User is redirected to a page view where the user enters their Google email and password. | - The Google account picker is displayed. The test attempts to select the test account, which, due to the disabled network, causes the authentication process to fail. |
-    | 2a. Network error while contacting Google Auth services. | - The network failure triggers the display of a “Login Error” dialog.<br>- Wait until a UI element with the text `Login Error` appears, confirming the error condition. |
-    | 2a1. Display the following: “Login Error: Network Error during Registration”. | - Assert that the error dialog containing `Login Error` is displayed (as verified by the presence of the text on screen). |
+    | 2a. Network error while contacting Google Auth services. | - The network failure triggers the display of a "Login Error" dialog.<br>- Wait until a UI element with the text `Login Error` appears, confirming the error condition. |
+    | 2a1. Display the following: "Login Error: Network Error during Registration". | - Assert that the error dialog containing `Login Error` is displayed (as verified by the presence of the text on screen). |
     | 2a2. When the OK button is clicked, user is redirected back to the login page. | - Click on the button labeled `OK` in the error dialog.<br>- Wait until the UI element with tag `login_button` reappears, confirming that the app navigated back to the login page. |
 
   - **Test Logs:**
@@ -238,7 +284,7 @@ _(Placeholder for Jest coverage screenshot without mocks)_
     | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
     | 1. User clicks the friends button to access the friend page | - Login with test account `guanhua.qiao2020@gmail.com` (using `login(testAccountEmail1)`).<br>- Wait until the UI element with tag `friends_button` exists and perform a click. |
     | 2. User clicks the add friend button                        | - Wait until the UI element with tag `addFriends_button` exists and perform a click to open the add friend dialog.                                                              |
-    | 3. User enters friend’s email address in dialog box         | - Wait until the UI element with tag `friendEmail_Input` exists and perform text input with email `omiduckai@gmail.com`.                                                        |
+    | 3. User enters friend's email address in dialog box         | - Wait until the UI element with tag `friendEmail_Input` exists and perform text input with email `omiduckai@gmail.com`.                                                        |
     | 4. User clicks Send Request                                 | - Click the UI element with tag `submitFriendEmail_button`.<br>- Verify that `friendEmail_Input` no longer exists, confirming the request was sent.                             |
 
   - **Test Logs:**
@@ -281,14 +327,14 @@ _(Placeholder for Jest coverage screenshot without mocks)_
     | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
     | 1. User clicks the friends button to access the friend page                         | - Login with test account `omiduckai@gmail.com` (using `login(testAccountEmail2)`).<br>- Wait until the UI element with tag `friends_button` exists and perform a click.                                                                            |
     | 2. User clicks the add friend button                                                | - Wait until the UI element with tag `addFriends_button` exists and perform a click.                                                                                                                                                                |
-    | 3. User enters friend’s email address in dialog box                                 | - For branch 4b: Enter an invalid email (`invalidEmail@invalid.com`) in the UI element with tag `friendEmail_Input`.<br>- For branch 4a: (later) re-enter a valid email after disabling network.                                                    |
+    | 3. User enters friend's email address in dialog box                                 | - For branch 4b: Enter an invalid email (`invalidEmail@invalid.com`) in the UI element with tag `friendEmail_Input`.<br>- For branch 4a: (later) re-enter a valid email after disabling network.                                                    |
     | 4. User clicks Send Request                                                         | - Click the UI element with tag `submitFriendEmail_button`.<br>- Wait until an error dialog with text `Error` appears.                                                                                                                              |
     | 4b. Friend has never registered in the app                                          | - Error is triggered by entering an invalid email.                                                                                                                                                                                                  |
-    | 4b1. Display “Failed to send friend request: 404”                                   | - Verify the error dialog displays “Error” (interpreting it as a 404 error).                                                                                                                                                                        |
-    | 4b2. User clicks the only option “ok”                                               | - Click the button with text `OK` on the error dialog.                                                                                                                                                                                              |
+    | 4b1. Display "Failed to send friend request: 404"                                   | - Verify the error dialog displays "Error" (interpreting it as a 404 error).                                                                                                                                                                        |
+    | 4b2. User clicks the only option "ok"                                               | - Click the button with text `OK` on the error dialog.                                                                                                                                                                                              |
     | 4a. Sending friend request fails due to a network error.                            | - Disable network connectivity by executing shell commands to turn off WiFi and mobile data.<br>- Wait until the UI element `friendEmail_Input` reappears, then enter a valid email (`omiduckai@gmail.com`).<br>- Click `submitFriendEmail_button`. |
-    | 4a1. Display the error message: “Error: Network error while sending friend request” | - Verify that an error dialog with text `Error` is displayed.                                                                                                                                                                                       |
-    | 4a2. User clicks the only option “ok”                                               | - Click the `OK` button on the error dialog.                                                                                                                                                                                                        |
+    | 4a1. Display the error message: "Error: Network error while sending friend request" | - Verify that an error dialog with text `Error` is displayed.                                                                                                                                                                                       |
+    | 4a2. User clicks the only option "ok"                                               | - Click the `OK` button on the error dialog.                                                                                                                                                                                                        |
     | 4a3. User redirected back to friend request dialog box                              | - Verify that the add friend dialog (i.e. `friendEmail_Input`) is present again for reattempt.                                                                                                                                                      |
 
   - **Test Logs:**
@@ -338,10 +384,10 @@ _(Placeholder for Jest coverage screenshot without mocks)_
     | 2. User navigates to friends page                                                                     | - Login with test account `omiduckai@gmail.com`.<br>- Click the UI element with tag `friends_button`.                                                                  |
     | 3. User clicks the friend requests icon                                                               | - Click the UI element with tag `friendRequests_button` to display the friend requests.                                                                                |
     | 4. Friend requests to the User are displayed                                                          | - Verify that one or more UI elements with tag `acceptFriend_button` are present in the friend requests dialog.                                                        |
-    | 5. If the user accepts, that friend is added to their friend list and the friend’s list adds the user | - (Success branch not exercised here.)                                                                                                                                 |
+    | 5. If the user accepts, that friend is added to their friend list and the friend's list adds the user | - (Success branch not exercised here.)                                                                                                                                 |
     | 5a. Network error when accepting or declining friend requests.                                        | - Disable network connectivity by executing shell commands to turn off WiFi and mobile data.<br>- Click the first available UI element with tag `acceptFriend_button`. |
-    | 5a1. Display the error message: “Network error while accepting/declining friend request”              | - Wait until an error dialog with text `Error` is displayed.                                                                                                           |
-    | 5a2. User clicks the only option “ok”                                                                 | - Click the button with text `OK` on the error dialog.                                                                                                                 |
+    | 5a1. Display the error message: "Network error while accepting/declining friend request"              | - Wait until an error dialog with text `Error` is displayed.                                                                                                           |
+    | 5a2. User clicks the only option "ok"                                                                 | - Click the button with text `OK` on the error dialog.                                                                                                                 |
     | 5a3. User is redirected back to friend requests dialog box                                            | - Verify that the friend requests dialog remains accessible for retry.                                                                                                 |
 
   - **Test Logs:**
@@ -386,7 +432,7 @@ _(Placeholder for Jest coverage screenshot without mocks)_
     | 2. User navigates to friends page                                                                     | - Login with test account `omiduckai@gmail.com`.<br>- Click the UI element with tag `friends_button`.                                                         |
     | 3. User clicks the friend requests icon                                                               | - Click the UI element with tag `friendRequests_button` to display friend requests.                                                                           |
     | 4. Friend requests to the User are displayed                                                          | - Verify that one or more UI elements with tag `acceptFriend_button` are present.                                                                             |
-    | 5. If the user accepts, that friend is added to their friend list and the friend’s list adds the user | - Click the first available UI element with tag `acceptFriend_button`.<br>- Verify that no error dialog appears, confirming the friend is added successfully. |
+    | 5. If the user accepts, that friend is added to their friend list and the friend's list adds the user | - Click the first available UI element with tag `acceptFriend_button`.<br>- Verify that no error dialog appears, confirming the friend is added successfully. |
     | 6a. If the user declines, the friend request is cleared.                                              | - (Decline action is not explicitly implemented in the test code, but would clear the request if performed.)                                                  |
 
   - **Test Logs:**
@@ -427,8 +473,8 @@ _(Placeholder for Jest coverage screenshot without mocks)_
     | 1. User navigates to friends page                                        | - Login with test account `omiduckai@gmail.com`.<br>- Wait until the UI element with tag `friends_button` exists and click it.                                               |
     | 2. User clicks on the button beside the friend to remove them.           | - Verify that at least one UI element with tag `removeFriend_button` exists (using onAllNodes with `removeFriend_button` and selecting the first one), then perform a click. |
     | 2a. Network error when removing friends.                                 | - Disable network connectivity by executing shell commands to turn off WiFi and mobile data.                                                                                 |
-    | 2a1. Display the error message “Network error: failed to remove friend”. | - Wait until an error dialog with text `Error` is displayed.                                                                                                                 |
-    | 2a2. User clicks the only option “ok”.                                   | - Click the button with text `OK` on the error dialog.                                                                                                                       |
+    | 2a1. Display the error message "Network error: failed to remove friend". | - Wait until an error dialog with text `Error` is displayed.                                                                                                                 |
+    | 2a2. User clicks the only option "ok".                                   | - Click the button with text `OK` on the error dialog.                                                                                                                       |
     | 2a3. User is redirected back to friends page.                            | - Verify that the friends page (UI element `friends_button`) is visible again.                                                                                               |
 
   - **Test Logs:**
@@ -470,8 +516,8 @@ _(Placeholder for Jest coverage screenshot without mocks)_
     | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
     | 1. User navigates to friends page                              | - Login with test account `omiduckai@gmail.com`.<br>- Wait until the UI element with tag `friends_button` exists and click it.                                               |
     | 2. User clicks on the button beside the friend to remove them. | - Verify that at least one UI element with tag `removeFriend_button` exists (using onAllNodes with `removeFriend_button` and selecting the first one), then perform a click. |
-    | 3. The friend is removed from the user’s friend list.          | - Implicitly verify that no error dialog appears after the removal action, confirming the friend has been removed.                                                           |
-    | 4. The user is also removed from the friend’s friends list     | - (Success is assumed to update both lists; further UI verifications can be added as needed.)                                                                                |
+    | 3. The friend is removed from the user's friend list.          | - Implicitly verify that no error dialog appears after the removal action, confirming the friend has been removed.                                                           |
+    | 4. The user is also removed from the friend's friends list     | - (Success is assumed to update both lists; further UI verifications can be added as needed.)                                                                                |
 
   - **Test Logs:**
 
@@ -507,7 +553,7 @@ _(Placeholder for Jest coverage screenshot without mocks)_
 
     | **Scenario Steps**                                                           | **Test Case Steps**                                                                                                                                                                |
     | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-    | 1. The user switches to the “Activity Logs” page                             | - Login with test account `guanhua.qiao2020@gmail.com` (performed in setup).<br>- Click the UI element with tag `log_button` to navigate to the Activity Logs page.                |
+    | 1. The user switches to the "Activity Logs" page                             | - Login with test account `guanhua.qiao2020@gmail.com` (performed in setup).<br>- Click the UI element with tag `log_button` to navigate to the Activity Logs page.                |
     | 2. The user can scroll up and down the log to see all received activity logs | - Wait until a log entry (e.g., a UI element with text `Test`) appears within the Activity Logs, confirming that log entries are available and visible.                            |
     | 3. The logs are sorted from most recent to least recent                      | - Implicitly verify that the expected log entry (with text `Test`) is displayed, indicating that the logs are loaded (sorting is assumed by the display order of the log content). |
 
@@ -545,9 +591,9 @@ _(Placeholder for Jest coverage screenshot without mocks)_
 
     | **Scenario Steps**                                                             | **Test Case Steps**                                                                                                                                                 |
     | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-    | 1. The user switches to the “Activity Logs” page                               | - Login with test account `guanhua.qiao2020@gmail.com` (performed in setup).<br>- Click the UI element with tag `log_button` to navigate to the Activity Logs page. |
+    | 1. The user switches to the "Activity Logs" page                               | - Login with test account `guanhua.qiao2020@gmail.com` (performed in setup).<br>- Click the UI element with tag `log_button` to navigate to the Activity Logs page. |
     | 1a. Network error while fetching activity log                                  | - Execute shell commands to disable WiFi and mobile data, simulating a network error.<br>- Wait until the Activity Logs page displays an error message.             |
-    | 1a1. Display the “Sync Problem” Alert to ask user to check internet connection | - Verify that a UI element with text `Sync Problem` exists, indicating that the app has detected a network problem while fetching the logs.                         |
+    | 1a1. Display the "Sync Problem" Alert to ask user to check internet connection | - Verify that a UI element with text `Sync Problem` exists, indicating that the app has detected a network problem while fetching the logs.                         |
 
   - **Test Logs:**
 
@@ -588,11 +634,11 @@ _(Placeholder for Jest coverage screenshot without mocks)_
 
 ### 5.2. Unfixed Issues per Codacy Category
 
-_(Placeholder for screenshots of Codacyâ€™s Category Breakdown table in Overview)_
+_(Placeholder for screenshots of Codacy's Category Breakdown table in Overview)_
 
 ### 5.3. Unfixed Issues per Codacy Code Pattern
 
-_(Placeholder for screenshots of Codacyâ€™s Issues page)_
+_(Placeholder for screenshots of Codacy's Issues page)_
 
 ### 5.4. Justifications for Unfixed Issues
 
