@@ -154,8 +154,8 @@ export class FriendController {
             }   
 
             // Remove friend from users' friend lists
-            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friends: friendID } } as any);
-            await client.db("cmiyc").collection("users").updateOne({ userID: friendID }, { $pull: { friends: userID } } as any);
+            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friends: friendID } } as unknown as UpdateFilter<Document>);
+            await client.db("cmiyc").collection("users").updateOne({ userID: friendID }, { $pull: { friends: userID } } as unknown as UpdateFilter<Document>);
             
             res.status(200).send("Friend deleted successfully");
 
