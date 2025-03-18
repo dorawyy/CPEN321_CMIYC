@@ -87,49 +87,57 @@ The GitHub Actions workflow is configured to run all tests in a CI environment b
 > cmiyc@1.0.0 test:mocks
 > jest tests/withMocks
 
+ PASS  tests/withMocks/controllers/NotificationQuadtreeIntegration.test.ts
+  NotificationController - Integration with Quadtree
+    ✓ should call findNearbyFriendsWithQuadtree with user and friends (2 ms)
+    ✓ should handle error when user not found
+    ✓ should handle error when user location not set (1 ms)
+    ✓ should update logList and send FCM notifications for nearby friends (1 ms)
+    ✓ should handle friends without FCM tokens (line 136) (1 ms)
+
  PASS  tests/withMocks/routes/FriendRoutes.test.ts
   FriendRoutes API - With Mocks
     GET /friends/:userID - Get Friends
-      ✓ should return friends for user (32 ms)
-      ✓ should return empty array for user with no friends (5 ms)
-      ✓ should return 404 for non-existent user (3 ms)
+      ✓ should return friends for user (37 ms)
+      ✓ should return empty array for user with no friends (16 ms)
+      ✓ should return 404 for non-existent user (7 ms)
     POST /friends/:userID/sendRequest/:friendEmail - Send Friend Request
-      ✓ should send friend request successfully (6 ms)
-      ✓ should return 400 when sending request to yourself (3 ms)
+      ✓ should send friend request successfully (4 ms)
+      ✓ should return 400 when sending request to yourself (7 ms)
       ✓ should return 400 when already friends (5 ms)
-      ✓ should return 200 when request already sent (3 ms)
+      ✓ should return 200 when request already sent (7 ms)
       ✓ should return 404 for non-existent friend (4 ms)
-      ✓ should handle case when user is null during friends check (5 ms)
+      ✓ should handle case when user is null during friends check (6 ms)
     GET /friends/:userID/friendRequests - Get Friend Requests
-      ✓ should return friend requests for user (3 ms)
-      ✓ should return empty array for user with no friend requests (4 ms)
-      ✓ should return 404 for non-existent user (2 ms)
+      ✓ should return friend requests for user (6 ms)
+      ✓ should return empty array for user with no friend requests (3 ms)
+      ✓ should return 404 for non-existent user (3 ms)
     POST /friends/:userID/acceptRequest/:friendID - Accept Friend Request
-      ✓ should accept friend request successfully (3 ms)
+      ✓ should accept friend request successfully (4 ms)
       ✓ should return 400 for non-existent friend request (3 ms)
       ✓ should return 404 for non-existent user or friend (3 ms)
-      ✓ should handle database error when accepting friend request (3 ms)
+      ✓ should handle database error when accepting friend request (5 ms)
     POST /friends/:userID/declineRequest/:friendID - Decline Friend Request
-      ✓ should decline friend request successfully (3 ms)
+      ✓ should decline friend request successfully (4 ms)
       ✓ should return 404 for non-existent user (2 ms)
       ✓ should handle database error when declining friend request (3 ms)
     PUT /friends/:userID/deleteFriend/:friendID - Delete Friend
-      ✓ should delete friend successfully (3 ms)
+      ✓ should delete friend successfully (2 ms)
       ✓ should return 404 for non-existent user or friend (2 ms)
-      ✓ should handle database error when deleting friend (2 ms)
+      ✓ should handle database error when deleting friend (3 ms)
 
  PASS  tests/withMocks/routes/NotificationRoutes.test.ts
   NotificationRoutes API - With Mocks
     PUT /fcm/:userID - Set FCM Token
-      ✓ should update FCM token for existing user (10 ms)
-      ✓ should return 404 for non-existent user (3 ms)
-      ✓ should return 404 if update fails (5 ms)
-      ✓ should return validation errors for missing FCM token (4 ms)
+      ✓ should update FCM token for existing user (11 ms)
+      ✓ should return 404 for non-existent user (4 ms)
+      ✓ should return 404 if update fails (3 ms)
+      ✓ should return validation errors for missing FCM token (3 ms)
     GET /notifications/:userID - Get Notifications
-      ✓ should return notifications for existing user (5 ms)
+      ✓ should return notifications for existing user (4 ms)
       ✓ should return 404 for non-existent user (2 ms)
-      ✓ should handle user without logList property (2 ms)
-      ✓ should return empty array for user with empty logList (4 ms)
+      ✓ should handle user without logList property (4 ms)
+      ✓ should return empty array for user with empty logList (3 ms)
     POST /send-event/:userID - Send Event Notification
       ✓ should send notification to nearby friends (3 ms)
       ✓ should return 404 for non-existent user (4 ms)
@@ -140,10 +148,10 @@ The GitHub Actions workflow is configured to run all tests in a CI environment b
  PASS  tests/withMocks/routes/LocationRoutes.test.ts
   LocationRoutes API - With Mocks
     PUT /location/:userID - Update User Location
-      ✓ should update location for existing user (6 ms)
-      ✓ should return 404 for non-existent user (3 ms)
+      ✓ should update location for existing user (7 ms)
+      ✓ should return 404 for non-existent user (2 ms)
       ✓ should return validation errors for missing location data (4 ms)
-      ✓ should return validation errors for invalid location format (3 ms)
+      ✓ should return validation errors for invalid location format (2 ms)
 
  PASS  tests/withMocks/routes/UserRoutes.test.ts
   UserRoutes API - With Mocks
@@ -152,27 +160,19 @@ The GitHub Actions workflow is configured to run all tests in a CI environment b
       ✓ should return existing user when user already exists (5 ms)
       ✓ should return banned status for banned user (4 ms)
     GET /user/:userID - Get All Users
-      ✓ should return all users except the requesting user (3 ms)
+      ✓ should return all users except the requesting user (4 ms)
     POST /user/ban/:userID - Ban User
-      ✓ should ban a user (4 ms)
-      ✓ should return 404 for non-existent user (3 ms)
+      ✓ should ban a user (3 ms)
+      ✓ should return 404 for non-existent user (2 ms)
 
  PASS  tests/withMocks/controllers/NotificationController.test.ts
   NotificationController - Quadtree Implementation
     findNearbyFriendsWithQuadtree
-      ✓ should initialize quadtree with world boundary
+      ✓ should initialize quadtree with world boundary (1 ms)
       ✓ should insert friends with location into quadtree
       ✓ should calculate search range and query quadtree
-      ✓ should return nearby friends from query results (1 ms)
-      ✓ should correctly map and return points data as nearby friends (line 136)
-
- PASS  tests/withMocks/controllers/NotificationQuadtreeIntegration.test.ts
-  NotificationController - Integration with Quadtree
-    ✓ should call findNearbyFriendsWithQuadtree with user and friends (1 ms)
-    ✓ should handle error when user not found
-    ✓ should handle error when user location not set (1 ms)
-    ✓ should update logList and send FCM notifications for nearby friends
-    ✓ should handle friends without FCM tokens (line 136) (1 ms)
+      ✓ should return nearby friends from query results
+      ✓ should correctly map and return points data as nearby friends (line 136) (2 ms)
 
 ----------------------------|---------|----------|---------|---------|-------------------
 File                        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
@@ -192,7 +192,7 @@ All files                   |     100 |      100 |     100 |     100 |
 Test Suites: 6 passed, 6 total
 Tests:       55 passed, 55 total
 Snapshots:   0 total
-Time:        1.351 s, estimated 2 s
+Time:        1.363 s
 Ran all test suites matching /tests\/withMocks/i.
 ```
 
@@ -206,64 +206,72 @@ Ran all test suites matching /tests\/withMocks/i.
  PASS  tests/withoutMocks/routes/FriendRoutes.test.ts
   FriendRoutes API - No Mocks
     GET /friends/:userID - Get Friends
-      ✓ should return empty array for user with no friends (18 ms)
+      ✓ should return empty array for user with no friends (20 ms)
       ✓ should return friend info for user with friends (covers lines 12-16) (12 ms)
-      ✓ should return 404 for non-existent user (5 ms)
+      ✓ should return 404 for non-existent user (4 ms)
     POST /friends/:userID/sendRequest/:friendEmail - Send Friend Request
       ✓ should send friend request successfully (12 ms)
-      ✓ should return 400 when sending request to yourself (6 ms)
-      ✓ should return 400 when already friends (7 ms)
-      ✓ should return 200 when request already sent (6 ms)
-      ✓ should return 404 for non-existent friend (5 ms)
+      ✓ should return 400 when sending request to yourself (7 ms)
+      ✓ should return 400 when already friends (10 ms)
+      ✓ should return 200 when request already sent (9 ms)
+      ✓ should return 404 for non-existent friend (4 ms)
     GET /friends/:userID/friendRequests - Get Friend Requests
-      ✓ should return friend requests for user (7 ms)
-      ✓ should return 404 for non-existent user (3 ms)
+      ✓ should return friend requests for user (8 ms)
+      ✓ should return 404 for non-existent user (4 ms)
     POST /friends/:userID/acceptRequest/:friendID - Accept Friend Request
-      ✓ should accept friend request successfully (12 ms)
+      ✓ should accept friend request successfully (13 ms)
       ✓ should return 400 for non-existent friend request (5 ms)
       ✓ should return 404 for non-existent user (5 ms)
-      ✓ should handle database errors gracefully in acceptFriendRequest (6 ms)
+      ✓ should handle database errors gracefully in acceptFriendRequest (5 ms)
     PUT /friends/:userID/deleteFriend/:friendID - Delete Friend
-      ✓ should delete friend successfully (11 ms)
+      ✓ should delete friend successfully (10 ms)
       ✓ should return 404 for non-existent user or friend (4 ms)
       ✓ should handle database errors gracefully in deleteFriend (6 ms)
     POST /friends/:userID/declineRequest/:friendID - Decline Friend Request
-      ✓ should decline friend request successfully (7 ms)
-      ✓ should return 404 for non-existent user (3 ms)
+      ✓ should decline friend request successfully (6 ms)
+      ✓ should return 404 for non-existent user (2 ms)
       ✓ should handle database errors gracefully in declineFriendRequest (3 ms)
 
  PASS  tests/withoutMocks/routes/PerformanceTests.test.ts
   Performance Tests - Non-functional Requirements
-    ✓ updateUserLocation should respond in under 0.5 seconds on average (54 ms)
+    ✓ updateUserLocation should respond in under 0.5 seconds on average (52 ms)
     ✓ getFriends should respond in under 0.5 seconds on average (29 ms)
-    ✓ getNotifications should respond in under 0.5 seconds on average (30 ms)
+    ✓ getNotifications should respond in under 0.5 seconds on average (31 ms)
 
  PASS  tests/withoutMocks/routes/NotificationRoutes.test.ts
   NotificationRoutes API - No Mocks
     PUT /fcm/:userID - Update FCM Token
       ✓ should update FCM token successfully (7 ms)
-      ✓ should return 404 for non-existent user (4 ms)
+      ✓ should return 404 for non-existent user (3 ms)
       ✓ should return 400 when FCM token is missing (2 ms)
     GET /notifications/:userID - Get Notifications
-      ✓ should return notification log for user (6 ms)
-      ✓ should return 404 for non-existent user (3 ms)
-    POST /send-event/:userID - Send Event Notification
-      ✓ should send event notification to nearby friends (8 ms)
+      ✓ should return notification log for user (4 ms)
       ✓ should return 404 for non-existent user (4 ms)
+    POST /send-event/:userID - Send Event Notification
+      ✓ should send event notification to nearby friends (7 ms)
+      ✓ should return 404 for non-existent user (5 ms)
       ✓ should return 400 when user has no location set (5 ms)
-      ✓ should handle errors gracefully in sendEventNotification (9 ms)
+      ✓ should handle errors gracefully in sendEventNotification (7 ms)
+
+ PASS  tests/withoutMocks/routes/LocationRoutes.test.ts
+  LocationRoutes API - No Mocks
+    PUT /location/:userID - Update User Location
+      ✓ should update location for existing user (8 ms)
+      ✓ should return 404 for non-existent user (3 ms)
+      ✓ should return validation errors for missing location data (2 ms)
+      ✓ should return validation errors for invalid location format (3 ms)
 
  PASS  tests/withoutMocks/routes/UserRoutes.test.ts
   UserRoutes API - No Mocks
     POST /user - Create User Profile
-      ✓ should create a new user profile (11 ms)
+      ✓ should create a new user profile (10 ms)
       ✓ should handle banned user appropriately (5 ms)
-      ✓ should return existing user profile if userID exists (7 ms)
-      ✓ should return validation errors for missing fields (4 ms)
+      ✓ should return existing user profile if userID exists (5 ms)
+      ✓ should return validation errors for missing fields (3 ms)
     GET /user/:userID - Get All Users
-      ✓ should return all users except the requesting user (6 ms)
+      ✓ should return all users except the requesting user (5 ms)
     POST /user/ban/:userID - Ban User
-      ✓ should ban a user successfully (7 ms)
+      ✓ should ban a user successfully (6 ms)
       ✓ should return 404 for non-existent user (4 ms)
 
  PASS  tests/withoutMocks/routes/FriendErrorCoverage.test.ts
@@ -275,14 +283,6 @@ Ran all test suites matching /tests\/withMocks/i.
     deleteFriend error handling (line 159)
       ✓ should handle errors in the catch block when database throws error (6 ms)
 
- PASS  tests/withoutMocks/routes/LocationRoutes.test.ts
-  LocationRoutes API - No Mocks
-    PUT /location/:userID - Update User Location
-      ✓ should update location for existing user (9 ms)
-      ✓ should return 404 for non-existent user (3 ms)
-      ✓ should return validation errors for missing location data (3 ms)
-      ✓ should return validation errors for invalid location format (4 ms)
-
  PASS  tests/withoutMocks/routes/NotificationErrorCoverage.test.ts
   NotificationController Error Path Coverage
     ✓ Line 25 in NotificationController is difficult to cover directly (1 ms)
@@ -292,11 +292,11 @@ Ran all test suites matching /tests\/withMocks/i.
 ----------------------------|---------|----------|---------|---------|-------------------
 File                        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
 ----------------------------|---------|----------|---------|---------|-------------------
-All files                   |   96.23 |    86.48 |     100 |   97.22 |                   
- controllers                |    95.9 |    86.48 |     100 |   96.96 |                   
-  FriendController.ts       |    96.1 |    95.83 |     100 |      96 | 122,143,166       
+All files                   |   96.44 |    86.48 |     100 |   97.42 |                   
+ controllers                |   95.85 |    86.48 |     100 |   96.98 |                   
+  FriendController.ts       |   96.05 |    95.83 |     100 |   96.05 | 124,145,168       
   LocationController.ts     |     100 |      100 |     100 |     100 |                   
-  NotificationController.ts |   92.59 |    55.55 |     100 |   96.07 | 27,154            
+  NotificationController.ts |   92.59 |    55.55 |     100 |   96.07 | 27,156            
   UserController.ts         |     100 |      100 |     100 |     100 |                   
  routes                     |     100 |      100 |     100 |     100 |                   
   FriendRoutes.ts           |     100 |      100 |     100 |     100 |                   
@@ -307,24 +307,24 @@ All files                   |   96.23 |    86.48 |     100 |   97.22 |
 Test Suites: 7 passed, 7 total
 Tests:       48 passed, 48 total
 Snapshots:   0 total
-Time:        1.748 s, estimated 2 s
+Time:        1.74 s, estimated 2 s
 Ran all test suites matching /tests\/withoutMocks/i.
 ```
 ## Justification for Lines with No Coverage
 
-### NotificationController.ts (lines 27, 154)
+### NotificationController.ts (lines 27, 156)
 - **Line 25**: The conditional block in `updateFCMToken` when `result.matchedCount === 0`
 - **Line 152**: The catch block in `sendEventNotification`
 
 #### Why these are challenging to cover:
 - **Result Conditioning**: For line 27, we would need to have a scenario where a user exists (to pass initial validation) but then somehow doesn't match the update criteria. This is nearly impossible in a real database scenario without race conditions.
-- **External Dependencies**: Line 154 involves Firebase messaging, which is an external service. Forcing it to throw errors in a controlled way is challenging without mocks.
+- **External Dependencies**: Line 156 involves Firebase messaging, which is an external service. Forcing it to throw errors in a controlled way is challenging without mocks.
 
-### FriendController.ts (lines 122, 143, 166)
+### FriendController.ts (lines 124, 145, 168)
 These are the error catch blocks in the following methods:
-- **Line 122**: Catch block in the `acceptFriendRequest` method
-- **Line 143**: Catch block in the `declineFriendRequest` method
-- **Line 166**: Catch block in the `deleteFriend` method
+- **Line 124**: Catch block in the `acceptFriendRequest` method
+- **Line 145**: Catch block in the `declineFriendRequest` method
+- **Line 168**: Catch block in the `deleteFriend` method
 
 #### Why these are challenging to cover:
 - **Database Error Simulation**: In a non-mocked environment, it's difficult to force the database to throw errors at specific points in the code. When we tried to use invalid IDs, the MongoDB driver handled them by returning null rather than throwing exceptions.
