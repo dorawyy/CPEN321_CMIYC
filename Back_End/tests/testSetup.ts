@@ -76,7 +76,7 @@ export function setupTestApp(): Express {
       route.route,
       ...route.validation,
       validationMiddleware,
-      (req: any, res: any, next: any) => {
+      (req: Request, res: Response, next: NextFunction) => {
         const result = route.action(req, res);
         if (result instanceof Promise) {
           result.catch(err => next(err));
