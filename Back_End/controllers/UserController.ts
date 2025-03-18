@@ -33,11 +33,11 @@ export class UserController {
 
     async banUser(req: Request, res: Response) {
         const userID = req.params.userID;
-        const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
+        const user = await client.db("cmiyc").collection("users").findOne({ userID });
         if (!user) {
             return res.status(404).send("User not found");
         }
-        await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $set: { isBanned: true } });
+        await client.db("cmiyc").collection("users").updateOne({ userID }, { $set: { isBanned: true } });
         res.status(200).send("User banned");
     }
 }

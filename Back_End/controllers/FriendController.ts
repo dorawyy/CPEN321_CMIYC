@@ -32,7 +32,7 @@ export class FriendController {
     async sendFriendRequest(req: Request, res: Response) {
         const { userID, friendEmail } = req.params;
 
-        const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
+        const user = await client.db("cmiyc").collection("users").findOne({ userID });
         
         if (user && user.email === friendEmail) {
             res.status(400).send("Cannot send friend request to yourself");
@@ -67,7 +67,7 @@ export class FriendController {
     // Used to get a user's friend requests. GET request.
     async getFriendRequests(req: Request, res: Response) {
         const { userID } = req.params;
-        const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
+        const user = await client.db("cmiyc").collection("users").findOne({ userID });
         if (user) {
             // Get the full user objects for each friend request
             const friendRequests = await Promise.all(
@@ -93,7 +93,7 @@ export class FriendController {
         const { userID, friendID } = req.params;
 
         try {
-            const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
+            const user = await client.db("cmiyc").collection("users").findOne({ userID });
             const friend = await client.db("cmiyc").collection("users").findOne({ userID: friendID });
 
             if (!user || !friend) {
@@ -106,12 +106,12 @@ export class FriendController {
             }
 
             // Accept friend request - adds friend to both users' friend lists
-            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $push: { friends: friendID } } as PushOperator<User>);
+            await client.db("cmiyc").collection("users").updateOne({ userID }, { $push: { friends: friendID } } as PushOperator<User>);
             await client.db("cmiyc").collection("users").updateOne({ userID: friendID }, { $push: { friends: userID } } as PushOperator<User>);
             
 
             // Remove friend request
-            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friendRequests: friendID } } as PullOperator<User> ) ;
+            await client.db("cmiyc").collection("users").updateOne({ userID }, { $pull: { friendRequests: friendID } } as PullOperator<User> ) ;
             
             res.status(200).send("Friend request responded to successfully");
 
@@ -125,14 +125,14 @@ export class FriendController {
         const { userID, friendID } = req.params;
 
         try {
-            const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
+            const user = await client.db("cmiyc").collection("users").findOne({ userID });
 
             if (!user) {
                 return res.status(404).send("User not found");
             }
 
             // Remove friend request
-            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friendRequests: friendID } } as PullOperator<User>);
+            await client.db("cmiyc").collection("users").updateOne({ userID }, { $pull: { friendRequests: friendID } } as PullOperator<User>);
             
             res.status(200).send("Friend request declined successfully");
 
@@ -146,7 +146,7 @@ export class FriendController {
         const { userID, friendID } = req.params;
 
         try {
-            const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
+            const user = await client.db("cmiyc").collection("users").findOne({ userID });
             const friend = await client.db("cmiyc").collection("users").findOne({ userID: friendID });
 
             if (!user || !friend) {
@@ -154,7 +154,7 @@ export class FriendController {
             }   
 
             // Remove friend from users' friend lists
-            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friends: friendID } } as PullOperator<User>);
+            await client.db("cmiyc").collection("users").updateOne({ userID }, { $pull: { friends: friendID } } as PullOperator<User>);
             await client.db("cmiyc").collection("users").updateOne({ userID: friendID }, { $pull: { friends: userID } } as PullOperator<User>);
             
             res.status(200).send("Friend deleted successfully");
