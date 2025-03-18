@@ -27,7 +27,7 @@ export class UserController {
         const usersWithoutLists = users
             .filter(user => user.userID !== userID)
             .map((user) => {
-                const { friends: _, friendRequests, ...userWithoutLists } = user;
+                const { friendRequests, ...userWithoutLists } = user;
                 // Ensure these properties are undefined rather than empty arrays
                 delete userWithoutLists.friends;
                 delete userWithoutLists.friendRequests;

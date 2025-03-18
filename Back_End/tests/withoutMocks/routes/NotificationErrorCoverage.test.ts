@@ -1,4 +1,4 @@
-import express, { Express } from 'express';
+import { Express } from 'express';
 import { setupTestApp } from '../../testSetup';
 import { client } from '../../../services';
 import '../../setupFirebaseMock'; // Import Firebase mocking
@@ -11,7 +11,7 @@ dotenv.config();
 jest.setTimeout(10000);
 
 beforeAll(async () => {
-  const app = setupTestApp();
+  setupTestApp(); // Call the function but don't store the return value
   
   // Connect to the actual database for non-mocked tests
   try {

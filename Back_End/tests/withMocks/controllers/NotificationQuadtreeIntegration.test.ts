@@ -1,5 +1,5 @@
 import { NotificationController } from '../../../controllers/NotificationController';
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { client, messaging } from '../../../services';
 
 // Mock the client and messaging from services

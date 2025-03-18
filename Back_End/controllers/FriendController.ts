@@ -14,9 +14,9 @@ export class FriendController {
                 const friend = await client.db("cmiyc").collection("users").findOne({ userID: friendID });
                 if (friend) {
                     // Create a new object without friends and friendRequests
-                    const { friends: _, friendRequests, ...friendWithoutLists } = friend;
+                    const { friendRequests, ...friendWithoutLists } = friend;
                     // Delete friendRequests property to ensure it's undefined rather than an empty array
-                    delete friendWithoutLists.friendRequests;
+                    delete friendWithoutLists.friends;
                     friends.push(friendWithoutLists);
                 }
             }
@@ -74,7 +74,7 @@ export class FriendController {
                 user.friendRequests.map(async (requestID: string) => {
                     const friend = await client.db("cmiyc").collection("users").findOne({ userID: requestID });
                     if (friend) {
-                        const { friends: _, friendRequests, ...friendWithoutLists } = friend;
+                        const { friendRequests, ...friendWithoutLists } = friend;
                         // Ensure these properties are undefined rather than empty arrays
                         delete friendWithoutLists.friends;
                         delete friendWithoutLists.friendRequests;
