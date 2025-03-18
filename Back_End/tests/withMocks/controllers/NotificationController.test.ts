@@ -55,7 +55,7 @@ describe('NotificationController - Quadtree Implementation', () => {
 
       // Get the private method via type casting and reflection
       const findNearbyFriendsWithQuadtree = 
-        (NotificationController as any)['findNearbyFriendsWithQuadtree'];
+        (NotificationController as any).findNearbyFriendsWithQuadtree;
       
       // Call the method
       findNearbyFriendsWithQuadtree(mockUser, mockFriends);

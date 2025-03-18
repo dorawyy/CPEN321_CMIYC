@@ -1,5 +1,4 @@
-import express from 'express';
-import { Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import { client } from './services';
 import { LocationRoutes } from './routes/LocationRoutes';
 import { UserRoutes } from './routes/UserRoutes';

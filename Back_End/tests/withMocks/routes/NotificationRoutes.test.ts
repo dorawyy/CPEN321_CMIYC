@@ -2,6 +2,7 @@ import { Express } from 'express';
 import { ObjectId } from 'mongodb';
 import { setupTestApp, createTestRequest, testUserData } from '../../testSetup';
 import '../../setupFirebaseMock'; // Import Firebase mocking
+import { client, messaging } from '../../../services';
 
 // Set a long timeout for the entire test suite
 jest.setTimeout(3000);
@@ -31,8 +32,6 @@ jest.mock('../../../services', () => {
   };
 });
 
-// Import and extract the mocked services
-import { client, messaging } from '../../../services';
 const mockDb = client.db('cmiyc');
 const mockCollection = mockDb.collection('users');
 

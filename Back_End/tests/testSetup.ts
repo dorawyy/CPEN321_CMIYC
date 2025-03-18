@@ -1,7 +1,5 @@
-import { Express } from 'express';
 import request from 'supertest';
-import express from 'express';
-import { json } from 'express';
+import express, { Express, json } from 'express';
 import { validationResult } from 'express-validator';
 import { UserRoutes } from '../routes/UserRoutes';
 import { NotificationRoutes } from '../routes/NotificationRoutes';
@@ -28,7 +26,7 @@ export function setupTestApp(): Express {
 
   // Register UserRoutes
   UserRoutes.forEach(route => {
-    (app as any)[route.method](
+    (app[route.method as keyof typeof app])(
       route.route,
       ...route.validation,
       validationMiddleware,
@@ -63,7 +61,7 @@ export function setupTestApp(): Express {
       ...route.validation,
       validationMiddleware,
       (req: any, res: any, next: any) => {
-        const result = route.action(req, res, next);
+        const result = route.action(req, res);
         if (result instanceof Promise) {
           result.catch(err => next(err));
         }

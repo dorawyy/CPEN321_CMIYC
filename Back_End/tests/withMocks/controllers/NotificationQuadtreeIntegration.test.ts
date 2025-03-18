@@ -1,5 +1,6 @@
 import { NotificationController } from '../../../controllers/NotificationController';
 import { Request, Response, NextFunction } from 'express';
+import { client, messaging } from '../../../services';
 
 // Mock the client and messaging from services
 jest.mock('../../../services', () => {
@@ -26,8 +27,6 @@ jest.mock('../../../services', () => {
   };
 });
 
-// Import and extract the mocked services
-import { client, messaging } from '../../../services';
 const mockDb = client.db('cmiyc');
 const mockCollection = mockDb.collection('users');
 
