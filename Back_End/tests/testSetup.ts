@@ -34,7 +34,7 @@ export function setupTestApp(): Express {
       (req: Request, res: Response, next: NextFunction) => {
         const result = route.action(req, res);
         if (result instanceof Promise) {
-          result.catch(err => next(err));
+          result.catch((err: unknown) => { next(err); });
         }
       }
     );
@@ -49,7 +49,7 @@ export function setupTestApp(): Express {
       (req: Request, res: Response, next: NextFunction) => {
         const result = route.action(req, res);
         if (result instanceof Promise) {
-          result.catch(err => next(err));
+          result.catch((err: unknown) => { next(err); });
         }
       }
     );
@@ -64,7 +64,7 @@ export function setupTestApp(): Express {
       (req: Request, res: Response, next: NextFunction) => {
         const result = route.action(req, res);
         if (result instanceof Promise) {
-          result.catch(err => next(err));
+          result.catch((err: unknown) => { next(err); });
         }
       }
     );
@@ -79,7 +79,7 @@ export function setupTestApp(): Express {
       (req: Request, res: Response, next: NextFunction) => {
         const result = route.action(req, res);
         if (result instanceof Promise) {
-          result.catch(err => next(err));
+          result.catch((err: unknown) => { next(err); });
         }
       }
     );

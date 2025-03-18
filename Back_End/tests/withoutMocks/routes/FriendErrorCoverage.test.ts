@@ -78,7 +78,7 @@ describe('FriendController Error Path Coverage', () => {
   
   // Test for line 136 in FriendController - Error path in declineFriendRequest
   describe('declineFriendRequest error handling (line 136)', () => {
-    test('Note: Line 136 is difficult to test directly in a non-mocked environment', async () => {
+    test('Note: Line 136 is difficult to test directly in a non-mocked environment', () => {
       // We need to explain why this line is difficult to cover directly
       //
       // Line 136 in FriendController.ts is:

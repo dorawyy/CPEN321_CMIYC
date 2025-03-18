@@ -1,4 +1,3 @@
-import { Express } from 'express';
 import { setupTestApp } from '../../testSetup';
 import { client } from '../../../services';
 import '../../setupFirebaseMock'; // Import Firebase mocking
@@ -37,7 +36,7 @@ afterAll(async () => {
 describe('NotificationController Error Path Coverage', () => {
   
   // Since we couldn't directly cover line 25 with a mocked updateOne, I'll explain why this is challenging:
-  test('Line 25 in NotificationController is difficult to cover directly', async () => {
+  test('Line 25 in NotificationController is difficult to cover directly', () => {
     // Line 25 is: return res.status(404).send({ message: "Failed to update FCM token" });
     // This code executes when result.matchedCount === 0 after an updateOne operation
     // 
@@ -64,7 +63,7 @@ describe('NotificationController Error Path Coverage', () => {
   
   // Test for line 152 in NotificationController - Error path in sendEventNotification
   describe('sendEventNotification error handling (line 152)', () => {
-    test('Error handling in sendEventNotification is challenging in non-mocked tests', async () => {
+    test('Error handling in sendEventNotification is challenging in non-mocked tests', () => {
       // Line 152 is: res.status(500).send("Error sending notification");
       // within the catch block of sendEventNotification
       //

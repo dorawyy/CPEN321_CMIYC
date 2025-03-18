@@ -56,10 +56,10 @@ describe('NotificationController - Quadtree Implementation', () => {
 
       // Get the private method via type casting and reflection
       const findNearbyFriendsWithQuadtree = 
-        (NotificationController as any).findNearbyFriendsWithQuadtree;
+        (NotificationController as {findNearbyFriendsWithQuadtree: typeof NotificationController.findNearbyFriendsWithQuadtree}).findNearbyFriendsWithQuadtree;
       
       // Call the method
-      findNearbyFriendsWithQuadtree(mockUser, mockFriends);
+      findNearbyFriendsWithQuadtree(mockUser as User, mockFriends);
 
       // Verify Quadtree was initialized with correct parameters
       expect(mockedQuadtree).toHaveBeenCalledWith({
@@ -103,10 +103,10 @@ describe('NotificationController - Quadtree Implementation', () => {
 
       // Get the private method via type casting and reflection
       const findNearbyFriendsWithQuadtree = 
-        (NotificationController as any)['findNearbyFriendsWithQuadtree'];
+        (NotificationController as {findNearbyFriendsWithQuadtree: typeof NotificationController.findNearbyFriendsWithQuadtree}).findNearbyFriendsWithQuadtree;
       
       // Call the method
-      findNearbyFriendsWithQuadtree(mockUser, mockFriends);
+      findNearbyFriendsWithQuadtree(mockUser as User, mockFriends);
 
       // Get the mock instance
       const mockQuadtreeInstance = mockedQuadtree.mock.results[0].value;
@@ -173,10 +173,10 @@ describe('NotificationController - Quadtree Implementation', () => {
 
       // Get the private method via type casting and reflection
       const findNearbyFriendsWithQuadtree = 
-        (NotificationController as any)['findNearbyFriendsWithQuadtree'];
+        (NotificationController as {findNearbyFriendsWithQuadtree: typeof NotificationController.findNearbyFriendsWithQuadtree}).findNearbyFriendsWithQuadtree;
       
       // Call the method
-      findNearbyFriendsWithQuadtree(mockUser, mockFriends);
+      findNearbyFriendsWithQuadtree(mockUser as User, mockFriends);
 
       // Get the mock instance
       const mockQuadtreeInstance = mockedQuadtree.mock.results[0].value;
@@ -247,10 +247,10 @@ describe('NotificationController - Quadtree Implementation', () => {
 
       // Get the private method via type casting and reflection
       const findNearbyFriendsWithQuadtree = 
-        (NotificationController as any)['findNearbyFriendsWithQuadtree'];
+        (NotificationController as {findNearbyFriendsWithQuadtree: typeof NotificationController.findNearbyFriendsWithQuadtree}).findNearbyFriendsWithQuadtree;
       
       // Call the method and get result
-      const result = findNearbyFriendsWithQuadtree(mockUser, mockFriends);
+      const result = findNearbyFriendsWithQuadtree(mockUser as User, mockFriends);
 
       // Verify result contains the nearby friends
       expect(result).toEqual([mockFriends[0]]);
@@ -336,10 +336,10 @@ describe('NotificationController - Quadtree Implementation', () => {
 
       // Get the private method via type casting and reflection
       const findNearbyFriendsWithQuadtree = 
-        (NotificationController as any)['findNearbyFriendsWithQuadtree'];
+        (NotificationController as {findNearbyFriendsWithQuadtree: typeof NotificationController.findNearbyFriendsWithQuadtree}).findNearbyFriendsWithQuadtree;
       
       // Call the method and get result
-      const result = findNearbyFriendsWithQuadtree(mockUser, mockFriends);
+      const result = findNearbyFriendsWithQuadtree(mockUser as User, mockFriends);
 
       // Verify result contains ALL nearby friends in the same order as the points
       expect(result).toEqual([mockFriends[0], mockFriends[1], mockFriends[2]]);
@@ -360,7 +360,7 @@ describe('NotificationController - Quadtree Implementation', () => {
       mockedQuadtree.mockImplementationOnce(() => emptyQuadtreeInstance as unknown as Quadtree);
       
       // Call again with empty results
-      const emptyResult = findNearbyFriendsWithQuadtree(mockUser, mockFriends);
+      const emptyResult = findNearbyFriendsWithQuadtree(mockUser as User, mockFriends);
       
       // Verify empty array is returned when no nearby friends
       expect(emptyResult).toEqual([]);

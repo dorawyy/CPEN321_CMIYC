@@ -61,8 +61,8 @@ describe('Performance Tests - Non-functional Requirements', () => {
     for (let i = 0; i < iterations; i++) {
       const updateData = {
         currentLocation: {
-          latitude: 49.2827 + (Math.random() * 0.01),
-          longitude: -123.1207 + (Math.random() * 0.01),
+          latitude: 49.2827 + (0.005 * (i % 10)), // Use iteration index for deterministic values
+          longitude: -123.1207 + (0.005 * (i % 10)), // Use iteration index for deterministic values
           timestamp: Date.now()
         }
       };

@@ -33,6 +33,8 @@ export class NotificationController {
     }
 
     // Find nearby friends using quadtree
+    // Using any[] here as it needs to work with various types of friend objects
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public static findNearbyFriendsWithQuadtree(user: User, friends: any[]): any[] {
         // Create a quadtree covering the entire world
         // Using longitude (-180 to 180) and latitude (-90 to 90)
