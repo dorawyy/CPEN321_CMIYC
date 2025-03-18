@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { client } from "../services";
-import { UpdateFilter, Document } from "mongodb";
+import { UpdateFilter, Document, PullOperator } from "mongodb";
 import { User } from "../types/user.types";
 
 interface UserDocument extends User, Document {}
@@ -111,7 +111,7 @@ export class FriendController {
             
 
             // Remove friend request
-            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friendRequests: friendID } } as any);
+            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friendRequests: friendID } } as unknown as PullOperator<Document> ) ;
             
             res.status(200).send("Friend request responded to successfully");
 
