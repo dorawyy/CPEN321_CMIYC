@@ -1,5 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { client } from "../services";
+import { UpdateFilter, Document } from "mongodb";
+import { User } from "../types/user.types";
+
+interface UserDocument extends User, Document {}
 
 export class FriendController {
 
@@ -55,13 +59,13 @@ export class FriendController {
 
         await client.db("cmiyc").collection("users").updateOne(
             { userID: friend.userID }, 
-            { $push: { friendRequests: userID } } as any
+            { $push: { friendRequests: userID } } as unknown as UpdateFilter<UserDocument>
         );
         res.status(200).send("Friend request sent successfully");
     }
 
     // Used to get a user's friend requests. GET request.
-    async getFriendRequests(req: Request, res: Response, nextFunction: NextFunction) {
+    async getFriendRequests(req: Request, res: Response) {
         const { userID } = req.params;
         const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
         if (user) {

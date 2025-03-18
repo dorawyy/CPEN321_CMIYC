@@ -1,5 +1,4 @@
 import { Express } from 'express';
-import { ObjectId } from 'mongodb';
 import { setupTestApp, createTestRequest, testUserData } from '../../testSetup';
 import { client } from '../../../services';
 import '../../setupFirebaseMock'; // Import Firebase mocking
@@ -155,7 +154,7 @@ describe('NotificationRoutes API - No Mocks', () => {
       
       await client.db("cmiyc").collection("users").updateOne(
         { userID: TEST_USER_ID },
-        { $push: { notificationLog: notificationEntry } as any }
+        { $push: { notificationLog: notificationEntry as any }}
       );
       
       const response = await createTestRequest(app)

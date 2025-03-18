@@ -17,7 +17,7 @@ app.use(morgan('tiny'));
 const Routes = [...LocationRoutes, ...UserRoutes, ...FriendRoutes, ...NotificationRoutes];
 
 Routes.forEach((route) => { 
-  (app as any)[route.method](
+  (app[route.method as keyof typeof app])(
     route.route,
     route.validation,
     async (req: Request, res: Response, next: NextFunction) => {
