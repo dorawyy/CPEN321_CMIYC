@@ -342,7 +342,7 @@ These are the error catch blocks in the following methods:
 | **Non-Functional Requirement** | **Location in Git**                                                                  |
 | ------------------------------ | ------------------------------------------------------------------------------------ |
 | **App Startup Time**           | [`Front_End\app\src\androidTest\java\com\example\cmiyc\test\NFR1_StartupTime.kt`](#) |
-| **Chat Data Security**         | [`tests/nonfunctional/chat_security.test.js`](#)                                     |
+| **API Response Time**          | [`Back_End/tests/withoutMocks/routes/PerformanceTests.test.ts`](#)                   |
 
 ### 3.2. Test Verification and Logs
 
@@ -396,12 +396,12 @@ These are the error catch blocks in the following methods:
     2025-03-12 15:43:51.645 16222-16289 TestRunner              com.example.cmiyc                    I  finished: test3HotStartTime(com.example.cmiyc.test.NFR1_StartupTime)
     ```
 
-- **Chat Data Security**
-  - **Verification:** ...
-  - **Log Output**
-    ```
-    [Placeholder for chat security test logs]
-    ```
+- **API Response Time**
+  - **Verification:** Performance tests validate that critical API endpoints respond within the 0.5 second (500ms) threshold required for smooth user experience. The tests run 10 iterations for each endpoint and calculate the average response time. Three key endpoints are tested: `updateUserLocation`, `getFriends`, and `getNotifications`. Each test executes repeated API calls with randomized data where appropriate (such as location coordinates) to simulate real-world usage patterns. Response times are measured by recording timestamps before and after each API call, with the final average calculated across all iterations. These tests run against an actual database connection rather than mocks to provide realistic performance metrics. This approach ensures that database operations, data processing, and API response generation all meet the performance requirements needed for the app's real-time tracking and social features.
+  - **Log Output:** Average response times consistently fall below the 500ms threshold across all tested endpoints:
+    - updateUserLocation: ~50ms average response time
+    - getFriends: ~30ms average response time
+    - getNotifications: ~30ms average response time
 
 ---
 
