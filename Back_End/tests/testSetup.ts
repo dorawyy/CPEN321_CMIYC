@@ -57,11 +57,11 @@ export function setupTestApp(): Express {
 
   // Register FriendRoutes
   FriendRoutes.forEach(route => {
-    (app as any)[route.method](
+    (app[route.method as keyof typeof app])(
       route.route,
       ...route.validation,
       validationMiddleware,
-      (req: any, res: any, next: any) => {
+      (req: Request, res: Response, next: NextFunction) => {
         const result = route.action(req, res);
         if (result instanceof Promise) {
           result.catch(err => next(err));
@@ -72,7 +72,7 @@ export function setupTestApp(): Express {
 
   // Register LocationRoutes
   LocationRoutes.forEach(route => {
-    (app as any)[route.method](
+    (app[route.method as keyof typeof app])(
       route.route,
       ...route.validation,
       validationMiddleware,

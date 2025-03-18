@@ -347,11 +347,11 @@ describe('FriendRoutes API - No Mocks', () => {
       // Clean up - remove the friend relationship for other tests
       await client.db("cmiyc").collection("users").updateOne(
         { userID: TEST_USER_ID },
-        { $pull: { friends: TEST_FRIEND_ID } as any }
+        { $pull: { friends: TEST_FRIEND_ID } } as PullOperator<Document>
       );
       await client.db("cmiyc").collection("users").updateOne(
         { userID: TEST_FRIEND_ID },
-        { $pull: { friends: TEST_USER_ID } as any }
+        { $pull: { friends: TEST_USER_ID } } as PullOperator<Document>
       );
     });
     
@@ -417,11 +417,11 @@ describe('FriendRoutes API - No Mocks', () => {
       // Add each other as friends first
       await client.db("cmiyc").collection("users").updateOne(
         { userID: TEST_USER_ID },
-        { $push: { friends: TEST_FRIEND_ID } as any }
+        { $push: { friends: TEST_FRIEND_ID } } as PushOperator<Document>
       );
       await client.db("cmiyc").collection("users").updateOne(
         { userID: TEST_FRIEND_ID },
-        { $push: { friends: TEST_USER_ID } as any }
+        { $push: { friends: TEST_USER_ID } } as PushOperator<Document>
       );
       
       const response = await createTestRequest(app)
