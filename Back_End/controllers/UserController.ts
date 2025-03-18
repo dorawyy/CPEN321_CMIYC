@@ -13,8 +13,6 @@ export class UserController {
             }
             return res.status(200).send({ message: "User profile already exists", isAdmin: body.isAdmin, isBanned: false });
         }
-        body.friends = [];
-        body.friendRequests = [];
         body.logList = [];
         body.isBanned = false;        
         const createdUserProfile = await client.db("cmiyc").collection("users").insertOne(body);
@@ -27,7 +25,7 @@ export class UserController {
         const usersWithoutLists = users
             .filter(user => user.userID !== userID)
             .map((user) => {
-                const { friends, friendRequests, ...userWithoutLists } = user;
+                const { ...userWithoutLists } = user;
                 return userWithoutLists;
             });
         res.status(200).send(usersWithoutLists);
@@ -42,17 +40,4 @@ export class UserController {
         await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $set: { isBanned: true } });
         res.status(200).send("User banned");
     }
-
-
-
-    // Used to delete a user profile.
-    // async deleteUserProfile(req: Request, res: Response, nextFunction: NextFunction) {
-    //     const deletedUser = await client.db("cmiyc").collection("users").deleteOne({ userID: req.params.userID });
-        
-    //     if (!deletedUser.acknowledged || deletedUser.deletedCount == 0) {
-    //         res.status(404).send("User not found");
-    //     } else {
-    //         res.send("User deleted");
-    //     }
-    // }
 }

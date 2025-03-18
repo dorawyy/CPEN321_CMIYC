@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { client } from "../services";
 import { UpdateFilter, Document, PullOperator } from "mongodb";
 import { User } from "../types/user.types";
@@ -74,7 +74,7 @@ export class FriendController {
                 user.friendRequests.map(async (requestID: string) => {
                     const friend = await client.db("cmiyc").collection("users").findOne({ userID: requestID });
                     if (friend) {
-                        const { friends: _, friendRequests: __, ...friendWithoutLists } = friend;
+                        const { friends, friendRequests, ...friendWithoutLists } = friend;
                         return friendWithoutLists;
                     }
                     // return null;

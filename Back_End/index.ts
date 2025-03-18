@@ -1,4 +1,4 @@
-import express, { NextFunction } from 'express';
+import express from 'express';
 import { Request, Response } from 'express';
 import { client } from './services';
 import { LocationRoutes } from './routes/LocationRoutes';
@@ -20,7 +20,7 @@ Routes.forEach((route) => {
   (app[route.method as keyof typeof app])(
     route.route,
     route.validation,
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: Request, res: Response) => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         /* If there are validation errors, send a response with the error messages */
