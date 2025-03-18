@@ -114,17 +114,26 @@ describe('NotificationController - Quadtree Implementation', () => {
       // Verify insert was called for each friend with location
       expect(mockQuadtreeInstance.insert).toHaveBeenCalledTimes(2); // Only 2 friends have location
       
-      // Use type assertions to fix TypeScript errors
-      expect(mockQuadtreeInstance.insert).toHaveBeenCalledWith({
-        x: mockFriends[0].currentLocation!.longitude,
-        y: mockFriends[0].currentLocation!.latitude,
-        data: mockFriends[0]
-      });
-      expect(mockQuadtreeInstance.insert).toHaveBeenCalledWith({
-        x: mockFriends[1].currentLocation!.longitude,
-        y: mockFriends[1].currentLocation!.latitude,
-        data: mockFriends[1]
-      });
+      // Use proper null checks instead of non-null assertions
+      const friend0Location = mockFriends[0].currentLocation;
+      const friend1Location = mockFriends[1].currentLocation;
+      
+      // Make sure location exists before checking
+      if (friend0Location) {
+        expect(mockQuadtreeInstance.insert).toHaveBeenCalledWith({
+          x: friend0Location.longitude,
+          y: friend0Location.latitude,
+          data: mockFriends[0]
+        });
+      }
+      
+      if (friend1Location) {
+        expect(mockQuadtreeInstance.insert).toHaveBeenCalledWith({
+          x: friend1Location.longitude,
+          y: friend1Location.latitude,
+          data: mockFriends[1]
+        });
+      }
     });
 
     // Test for lines 115-136: calculating search range and querying

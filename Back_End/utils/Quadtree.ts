@@ -71,12 +71,20 @@ export class Quadtree {
       this.subdivide();
     }
 
-    return (
-      this.northwest!.insert(point) ||
-      this.northeast!.insert(point) ||
-      this.southwest!.insert(point) ||
-      this.southeast!.insert(point)
-    );
+    // We can safely assume that after subdivide() all quadrants are initialized
+    let inserted = false;
+    
+    if (this.northwest && this.northwest.insert(point)) {
+      inserted = true;
+    } else if (this.northeast && this.northeast.insert(point)) {
+      inserted = true;
+    } else if (this.southwest && this.southwest.insert(point)) {
+      inserted = true;
+    } else if (this.southeast && this.southeast.insert(point)) {
+      inserted = true;
+    }
+    
+    return inserted;
   }
 
   // Query points within a range
@@ -105,10 +113,10 @@ export class Quadtree {
 
     // If this quad is divided, check children
     if (this.divided) {
-      this.northwest!.query(range, found);
-      this.northeast!.query(range, found);
-      this.southwest!.query(range, found);
-      this.southeast!.query(range, found);
+      if (this.northwest) this.northwest.query(range, found);
+      if (this.northeast) this.northeast.query(range, found);
+      if (this.southwest) this.southwest.query(range, found);
+      if (this.southeast) this.southeast.query(range, found);
     }
 
     return found;
