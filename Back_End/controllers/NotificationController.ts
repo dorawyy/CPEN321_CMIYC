@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { client, messaging } from "../services";
 import { Quadtree, Point, Rectangle } from "../utils/Quadtree";
 

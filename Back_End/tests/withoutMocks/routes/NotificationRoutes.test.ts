@@ -1,18 +1,18 @@
-import { Express } from 'express';
+import express, { Express } from 'express';
 import { setupTestApp, createTestRequest, testUserData } from '../../testSetup';
 import { client } from '../../../services';
 import '../../setupFirebaseMock'; // Import Firebase mocking
 
 // Make sure environment variables are loaded before Firebase is initialized
 import dotenv from 'dotenv';
-import { PushOperator, UpdateFilter } from 'mongodb';
+import { PushOperator } from 'mongodb';
 dotenv.config();
 
 // Set a long timeout for the entire test suite
 jest.setTimeout(10000);
 
 // Setup the test app
-let app: Express;
+let app: Express = express();
 
 // Define test users and friend for location-based proximity testing
 const TEST_USER_ID = testUserData.userID;

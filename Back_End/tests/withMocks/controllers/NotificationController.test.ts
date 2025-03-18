@@ -1,5 +1,5 @@
 import { NotificationController } from '../../../controllers/NotificationController';
-import { Quadtree, Point, Rectangle } from '../../../utils/Quadtree';
+import { Quadtree } from '../../../utils/Quadtree';
 
 // Mock the quadtree module
 jest.mock('../../../utils/Quadtree', () => {

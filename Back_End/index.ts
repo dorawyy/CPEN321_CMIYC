@@ -27,7 +27,7 @@ Routes.forEach((route) => {
         return res.status(400).send({ errors: errors.array() });
       }
       try {
-        await route.action(req, res, next);
+        await route.action(req, res);
       } catch (err) {
         console.log(err);
         return res.sendStatus(500); // Don't expose internal server workings

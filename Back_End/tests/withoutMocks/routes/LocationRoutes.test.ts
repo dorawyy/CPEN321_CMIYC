@@ -1,5 +1,4 @@
 import { Express } from 'express';
-import { ObjectId } from 'mongodb';
 import { setupTestApp, createTestRequest, testUserData } from '../../testSetup';
 import { client } from '../../../services';
 import '../../setupFirebaseMock'; // Import Firebase mocking

@@ -1,5 +1,4 @@
 import { Express } from 'express';
-import { ObjectId } from 'mongodb';
 import { setupTestApp, createTestRequest, testUserData } from '../../testSetup';
 import { client } from '../../../services';
 import '../../setupFirebaseMock'; // Import Firebase mocking
@@ -21,7 +20,6 @@ const TEST_FRIEND_EMAIL = "friend@example.com";
 const TEST_FRIEND_2_ID = "test-friend-456";
 const TEST_FRIEND_2_EMAIL = "friend2@example.com";
 // Special ID for error testing - this ID will be used to trigger errors
-const ERROR_TRIGGER_ID = "error-trigger-999"; 
 
 beforeAll(async () => {
   app = setupTestApp();

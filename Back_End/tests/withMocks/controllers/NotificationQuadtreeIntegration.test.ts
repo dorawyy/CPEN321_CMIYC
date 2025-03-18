@@ -1,6 +1,5 @@
 import { NotificationController } from '../../../controllers/NotificationController';
 import { Request, Response, NextFunction } from 'express';
-import { ObjectId } from 'mongodb';
 
 // Mock the client and messaging from services
 jest.mock('../../../services', () => {
@@ -39,7 +38,7 @@ describe('NotificationController - Integration with Quadtree', () => {
   let notificationController: NotificationController;
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
-  let mockNext: NextFunction;
+  let mockNext: NextFunction = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();

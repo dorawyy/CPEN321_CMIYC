@@ -1,5 +1,5 @@
 import { Express } from 'express';
-import { setupTestApp, createTestRequest, testUserData } from '../../testSetup';
+import { setupTestApp, createTestRequest } from '../../testSetup';
 import { client } from '../../../services';
 import '../../setupFirebaseMock'; // Import Firebase mocking
 

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { client } from "../services";
 
 export class UserController {
@@ -27,7 +27,7 @@ export class UserController {
         const usersWithoutLists = users
             .filter(user => user.userID !== userID)
             .map((user) => {
-                const { friends: _, friendRequests: __, ...userWithoutLists } = user;
+                const { friends, friendRequests, ...userWithoutLists } = user;
                 return userWithoutLists;
             });
         res.status(200).send(usersWithoutLists);

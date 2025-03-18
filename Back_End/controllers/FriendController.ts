@@ -16,7 +16,7 @@ export class FriendController {
                 const friend = await client.db("cmiyc").collection("users").findOne({ userID: friendID });
                 if (friend) {
                     // Create a new object without friends and friendRequests
-                    const { friends: _, friendRequests: __, ...friendWithoutLists } = friend;
+                    const { friends: friendRequests, ...friendWithoutLists } = friend;
                     friends.push(friendWithoutLists);
                 }
             }
@@ -142,7 +142,7 @@ export class FriendController {
     }
 
     // Used to remove a friend. POST request.
-    async deleteFriend(req: Request, res: Response, nextFunction: NextFunction) {
+    async deleteFriend(req: Request, res: Response) {
         const { userID, friendID } = req.params;
 
         try {
