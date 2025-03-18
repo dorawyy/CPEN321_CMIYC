@@ -14,6 +14,8 @@ export class UserController {
             return res.status(200).send({ message: "User profile already exists", isAdmin: body.isAdmin, isBanned: false });
         }
         body.logList = [];
+        body.friends = [];
+        body.friendRequests = [];
         body.isBanned = false;        
         const createdUserProfile = await client.db("cmiyc").collection("users").insertOne(body);
         res.status(200).send({ message: "User profile created: " + createdUserProfile.insertedId, isAdmin: body.isAdmin, isBanned: false});
@@ -25,7 +27,10 @@ export class UserController {
         const usersWithoutLists = users
             .filter(user => user.userID !== userID)
             .map((user) => {
-                const { ...userWithoutLists } = user;
+                const { friends, friendRequests, ...userWithoutLists } = user;
+                // Ensure these properties are undefined rather than empty arrays
+                delete userWithoutLists.friends;
+                delete userWithoutLists.friendRequests;
                 return userWithoutLists;
             });
         res.status(200).send(usersWithoutLists);

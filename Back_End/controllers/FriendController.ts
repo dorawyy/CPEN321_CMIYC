@@ -3,8 +3,6 @@ import { client } from "../services";
 import { Document, PullOperator, PushOperator } from "mongodb";
 import { User } from "../types/user.types";
 
-interface UserDocument extends User, Document {}
-
 export class FriendController {
 
     async getFriends(req: Request, res: Response) {
@@ -16,7 +14,9 @@ export class FriendController {
                 const friend = await client.db("cmiyc").collection("users").findOne({ userID: friendID });
                 if (friend) {
                     // Create a new object without friends and friendRequests
-                    const { friends: friendRequests, ...friendWithoutLists } = friend;
+                    const { friends: _, friendRequests, ...friendWithoutLists } = friend;
+                    // Delete friendRequests property to ensure it's undefined rather than an empty array
+                    delete friendWithoutLists.friendRequests;
                     friends.push(friendWithoutLists);
                 }
             }
@@ -47,7 +47,7 @@ export class FriendController {
         }
 
         // Check if already friends
-        if (user && user.friends.includes(friend.userID)) {
+        if (user?.friends.includes(friend.userID)) {
             res.status(400).send("You are already friends");
             return;
         }
@@ -75,6 +75,9 @@ export class FriendController {
                     const friend = await client.db("cmiyc").collection("users").findOne({ userID: requestID });
                     if (friend) {
                         const { friends, friendRequests, ...friendWithoutLists } = friend;
+                        // Ensure these properties are undefined rather than empty arrays
+                        delete friendWithoutLists.friends;
+                        delete friendWithoutLists.friendRequests;
                         return friendWithoutLists;
                     }
                     // return null;

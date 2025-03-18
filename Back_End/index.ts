@@ -28,7 +28,8 @@ Routes.forEach((route) => {
       try {
         await route.action(req, res);
       } catch (err) {
-        console.log(err);
+        // Avoid logging the full error object for security reasons
+        console.log('Server error occurred');
         return res.sendStatus(500); // Don't expose internal server workings
       }
     }
@@ -39,10 +40,11 @@ Routes.forEach((route) => {
 client.connect().then(() => {
     console.log("Connected to MongoDB");
     app.listen(port, '0.0.0.0', () => {
-      console.log(`Server started at http://localhost:${port}`);
+      // Use a static message without exposing port in logs
+      console.log("Server started successfully");
     });
   }
   ).catch((err) => {
-      console.log(err);
+      console.log('Database connection error');
       client.close();
   });
