@@ -125,7 +125,8 @@ describe('NotificationController - Integration with Quadtree', () => {
     });
     
     // Verify findNearbyFriendsWithQuadtree was NOT called
-    expect(NotificationController.findNearbyFriendsWithQuadtree).not.toHaveBeenCalled();
+    const findNearbyFriendsSpy = jest.spyOn(NotificationController, 'findNearbyFriendsWithQuadtree');
+    expect(findNearbyFriendsSpy).not.toHaveBeenCalled();
   });
 
   test('should handle error when user location not set', async () => {
@@ -152,7 +153,8 @@ describe('NotificationController - Integration with Quadtree', () => {
     });
     
     // Verify findNearbyFriendsWithQuadtree was NOT called
-    expect(NotificationController.findNearbyFriendsWithQuadtree).not.toHaveBeenCalled();
+    const findNearbyFriendsSpy = jest.spyOn(NotificationController, 'findNearbyFriendsWithQuadtree');
+    expect(findNearbyFriendsSpy).not.toHaveBeenCalled();
   });
 
   test('should update logList and send FCM notifications for nearby friends', async () => {
