@@ -1,7 +1,7 @@
 export interface Point {
   x: number;
   y: number;
-  data: any;
+  data: number | string | object | null;
 }
 
 export interface Rectangle {
@@ -15,13 +15,13 @@ export class Quadtree {
   private capacity: number;
   private boundary: Rectangle;
   private points: Point[] = [];
-  private divided: boolean = false;
+  private divided = false;
   private northwest?: Quadtree;
   private northeast?: Quadtree;
   private southwest?: Quadtree;
   private southeast?: Quadtree;
 
-  constructor(boundary: Rectangle, capacity: number = 4) {
+  constructor(boundary: Rectangle, capacity = 4) {
     this.boundary = boundary;
     this.capacity = capacity;
   }

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { client } from "../services";
 
 export class UserController {
@@ -13,8 +13,6 @@ export class UserController {
             }
             return res.status(200).send({ message: "User profile already exists", isAdmin: body.isAdmin, isBanned: false });
         }
-        body.friends = [];
-        body.friendRequests = [];
         body.logList = [];
         body.isBanned = false;        
         const createdUserProfile = await client.db("cmiyc").collection("users").insertOne(body);
@@ -27,7 +25,7 @@ export class UserController {
         const usersWithoutLists = users
             .filter(user => user.userID !== userID)
             .map((user) => {
-                const { friends: _, friendRequests: __, ...userWithoutLists } = user;
+                const { ...userWithoutLists } = user;
                 return userWithoutLists;
             });
         res.status(200).send(usersWithoutLists);
@@ -35,24 +33,11 @@ export class UserController {
 
     async banUser(req: Request, res: Response) {
         const userID = req.params.userID;
-        const user = await client.db("cmiyc").collection("users").findOne({ userID: userID });
+        const user = await client.db("cmiyc").collection("users").findOne({ userID });
         if (!user) {
             return res.status(404).send("User not found");
         }
-        await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $set: { isBanned: true } });
+        await client.db("cmiyc").collection("users").updateOne({ userID }, { $set: { isBanned: true } });
         res.status(200).send("User banned");
     }
-
-
-
-    // Used to delete a user profile.
-    // async deleteUserProfile(req: Request, res: Response, nextFunction: NextFunction) {
-    //     const deletedUser = await client.db("cmiyc").collection("users").deleteOne({ userID: req.params.userID });
-        
-    //     if (!deletedUser.acknowledged || deletedUser.deletedCount == 0) {
-    //         res.status(404).send("User not found");
-    //     } else {
-    //         res.send("User deleted");
-    //     }
-    // }
 }

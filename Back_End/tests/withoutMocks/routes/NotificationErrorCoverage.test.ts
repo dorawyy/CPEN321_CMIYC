@@ -1,5 +1,5 @@
-import { Express } from 'express';
-import { setupTestApp, createTestRequest, testUserData } from '../../testSetup';
+import express, { Express } from 'express';
+import { setupTestApp } from '../../testSetup';
 import { client } from '../../../services';
 import '../../setupFirebaseMock'; // Import Firebase mocking
 
@@ -11,7 +11,7 @@ dotenv.config();
 jest.setTimeout(10000);
 
 // Setup the test app
-let app: Express;
+let app: Express = express();
 
 beforeAll(async () => {
   app = setupTestApp();

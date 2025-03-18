@@ -1,5 +1,6 @@
 import { NotificationController } from '../../../controllers/NotificationController';
-import { Quadtree, Point, Rectangle } from '../../../utils/Quadtree';
+import { User } from '../../../types/user.types';
+import { Quadtree } from '../../../utils/Quadtree';
 
 // Mock the quadtree module
 jest.mock('../../../utils/Quadtree', () => {
@@ -51,11 +52,11 @@ describe('NotificationController - Quadtree Implementation', () => {
           longitude: -123.1207
         }
       };
-      const mockFriends: any[] = [];
+      const mockFriends: User[] = [];
 
       // Get the private method via type casting and reflection
       const findNearbyFriendsWithQuadtree = 
-        (NotificationController as any)['findNearbyFriendsWithQuadtree'];
+        (NotificationController as any).findNearbyFriendsWithQuadtree;
       
       // Call the method
       findNearbyFriendsWithQuadtree(mockUser, mockFriends);

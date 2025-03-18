@@ -1,6 +1,8 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { client, messaging } from "../services";
 import { Quadtree, Point, Rectangle } from "../utils/Quadtree";
+import { User } from "../types/user.types";
+import { PushOperator } from "mongodb";
 
 export class NotificationController {
     async setFCMToken(req: Request, res: Response) {
@@ -31,7 +33,7 @@ export class NotificationController {
     }
 
     // Find nearby friends using quadtree
-    private static findNearbyFriendsWithQuadtree(user: any, friends: any[]): any[] {
+    public static findNearbyFriendsWithQuadtree(user: User, friends: any[]): any[] {
         // Create a quadtree covering the entire world
         // Using longitude (-180 to 180) and latitude (-90 to 90)
         const worldBoundary: Rectangle = {
@@ -106,7 +108,7 @@ export class NotificationController {
             }).toArray();
 
             // Use quadtree to find nearby friends
-            const nearbyFriends = NotificationController.findNearbyFriendsWithQuadtree(user, friends);
+            const nearbyFriends = NotificationController.findNearbyFriendsWithQuadtree(user as unknown as User, friends);
 
             for (const friend of nearbyFriends) {
                 // First, ensure the logList exists (using $set with empty array if it doesn't)
@@ -126,7 +128,7 @@ export class NotificationController {
                                 location: user.currentLocation,
                             }
                         } 
-                    } as any
+                    } as PushOperator<User>
                 );
             }
 

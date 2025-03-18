@@ -1,6 +1,6 @@
 import { NotificationController } from '../../../controllers/NotificationController';
 import { Request, Response, NextFunction } from 'express';
-import { ObjectId } from 'mongodb';
+import { client, messaging } from '../../../services';
 
 // Mock the client and messaging from services
 jest.mock('../../../services', () => {
@@ -27,8 +27,6 @@ jest.mock('../../../services', () => {
   };
 });
 
-// Import and extract the mocked services
-import { client, messaging } from '../../../services';
 const mockDb = client.db('cmiyc');
 const mockCollection = mockDb.collection('users');
 
@@ -39,7 +37,7 @@ describe('NotificationController - Integration with Quadtree', () => {
   let notificationController: NotificationController;
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
-  let mockNext: NextFunction;
+  let mockNext: NextFunction = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -59,7 +57,7 @@ describe('NotificationController - Integration with Quadtree', () => {
     mockNext = jest.fn();
     
     // Mock the static findNearbyFriendsWithQuadtree method
-    jest.spyOn(NotificationController as any, 'findNearbyFriendsWithQuadtree')
+    jest.spyOn(NotificationController, 'findNearbyFriendsWithQuadtree')
       .mockImplementation(() => []); // Default to empty array
   });
 
@@ -94,7 +92,7 @@ describe('NotificationController - Integration with Quadtree', () => {
     });
     
     // Mock findNearbyFriendsWithQuadtree to return our friend
-    const findNearbyFriendsSpy = jest.spyOn(NotificationController as any, 'findNearbyFriendsWithQuadtree')
+    const findNearbyFriendsSpy = jest.spyOn(NotificationController, 'findNearbyFriendsWithQuadtree')
       .mockImplementation(() => mockFriends);
     
     // Call the method
@@ -200,7 +198,7 @@ describe('NotificationController - Integration with Quadtree', () => {
     });
     
     // Mock findNearbyFriendsWithQuadtree to return our friends
-    jest.spyOn(NotificationController as any, 'findNearbyFriendsWithQuadtree')
+    jest.spyOn(NotificationController, 'findNearbyFriendsWithQuadtree')
       .mockImplementation(() => mockFriends);
     
     // Call the method
@@ -323,7 +321,7 @@ describe('NotificationController - Integration with Quadtree', () => {
     });
     
     // Mock findNearbyFriendsWithQuadtree to return our mix of friends
-    jest.spyOn(NotificationController as any, 'findNearbyFriendsWithQuadtree')
+    jest.spyOn(NotificationController, 'findNearbyFriendsWithQuadtree')
       .mockImplementation(() => mockFriends);
     
     // Call the method

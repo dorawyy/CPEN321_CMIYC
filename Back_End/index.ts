@@ -1,5 +1,4 @@
-import express, { NextFunction } from 'express';
-import { Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import { client } from './services';
 import { LocationRoutes } from './routes/LocationRoutes';
 import { UserRoutes } from './routes/UserRoutes';
@@ -17,17 +16,17 @@ app.use(morgan('tiny'));
 const Routes = [...LocationRoutes, ...UserRoutes, ...FriendRoutes, ...NotificationRoutes];
 
 Routes.forEach((route) => { 
-  (app as any)[route.method](
+  (app[route.method as keyof typeof app])(
     route.route,
     route.validation,
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: Request, res: Response) => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         /* If there are validation errors, send a response with the error messages */
         return res.status(400).send({ errors: errors.array() });
       }
       try {
-        await route.action(req, res, next);
+        await route.action(req, res);
       } catch (err) {
         console.log(err);
         return res.sendStatus(500); // Don't expose internal server workings
