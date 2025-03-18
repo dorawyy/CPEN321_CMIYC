@@ -14,21 +14,21 @@
 
 #### 2.1.1. Tests
 
-| **Interface**                 | **Describe Group Location, No Mocks**                | **Describe Group Location, With Mocks**            | **Mocked Components**              |
-| ----------------------------- | ---------------------------------------------------- | -------------------------------------------------- | ---------------------------------- |
-| **POST /user**                | `tests/withoutMocks/routes/UserRoutes.test.ts#L47`   | `tests/withMocks/routes/UserRoutes.test.ts#L60`    | MongoDB, Firebase |
-| **GET /user/:userID**         | `tests/withoutMocks/routes/UserRoutes.test.ts#L117`  | `tests/withMocks/routes/UserRoutes.test.ts#L168`   | MongoDB, Firebase |
-| **POST /user/ban/:userID**    | `tests/withoutMocks/routes/UserRoutes.test.ts#L149`  | `tests/withMocks/routes/UserRoutes.test.ts#L230`   | MongoDB, Firebase |
-| **PUT /fcm/:userID**          | `tests/withoutMocks/routes/NotificationRoutes.test.ts#L59` | `tests/withMocks/routes/NotificationRoutes.test.ts#L60` | MongoDB, Firebase |
-| **GET /notifications/:userID**| `tests/withoutMocks/routes/NotificationRoutes.test.ts#L122` | `tests/withMocks/routes/NotificationRoutes.test.ts#L175` | MongoDB, Firebase |
-| **POST /send-event/:userID**  | `tests/withoutMocks/routes/NotificationRoutes.test.ts#L166` | `tests/withMocks/routes/NotificationRoutes.test.ts#L290` | MongoDB, Firebase |
-| **PUT /location/:userID**     | `tests/withoutMocks/routes/LocationRoutes.test.ts#L58` | `tests/withMocks/routes/LocationRoutes.test.ts#L57` | MongoDB, Firebase |
-| **GET /friends/:userID**      | `tests/withoutMocks/routes/FriendRoutes.test.ts#L73` | `tests/withMocks/routes/FriendRoutes.test.ts#L62`  | MongoDB, Firebase |
-| **POST /friends/:userID/sendRequest/:friendEmail** | `tests/withoutMocks/routes/FriendRoutes.test.ts#L113` | `tests/withMocks/routes/FriendRoutes.test.ts#L163` | MongoDB, Firebase |
-| **GET /friends/:userID/friendRequests** | `tests/withoutMocks/routes/FriendRoutes.test.ts#L184` | `tests/withMocks/routes/FriendRoutes.test.ts#L359` | MongoDB, Firebase |
-| **POST /friends/:userID/acceptRequest/:friendID** | `tests/withoutMocks/routes/FriendRoutes.test.ts#L229` | `tests/withMocks/routes/FriendRoutes.test.ts#L455` | MongoDB, Firebase |
-| **POST /friends/:userID/declineRequest/:friendID** | `tests/withoutMocks/routes/FriendRoutes.test.ts#L341` | `tests/withMocks/routes/FriendRoutes.test.ts#L634` | MongoDB, Firebase |
-| **PUT /friends/:userID/deleteFriend/:friendID** | `tests/withoutMocks/routes/FriendRoutes.test.ts#L294` | `tests/withMocks/routes/FriendRoutes.test.ts#L730` | MongoDB, Firebase |
+| **Interface**                                      | **Describe Group Location, No Mocks**                       | **Describe Group Location, With Mocks**                  | **Mocked Components** |
+| -------------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------- | --------------------- |
+| **POST /user**                                     | `tests/withoutMocks/routes/UserRoutes.test.ts#L47`          | `tests/withMocks/routes/UserRoutes.test.ts#L60`          | MongoDB, Firebase     |
+| **GET /user/:userID**                              | `tests/withoutMocks/routes/UserRoutes.test.ts#L117`         | `tests/withMocks/routes/UserRoutes.test.ts#L168`         | MongoDB, Firebase     |
+| **POST /user/ban/:userID**                         | `tests/withoutMocks/routes/UserRoutes.test.ts#L149`         | `tests/withMocks/routes/UserRoutes.test.ts#L230`         | MongoDB, Firebase     |
+| **PUT /fcm/:userID**                               | `tests/withoutMocks/routes/NotificationRoutes.test.ts#L59`  | `tests/withMocks/routes/NotificationRoutes.test.ts#L60`  | MongoDB, Firebase     |
+| **GET /notifications/:userID**                     | `tests/withoutMocks/routes/NotificationRoutes.test.ts#L122` | `tests/withMocks/routes/NotificationRoutes.test.ts#L175` | MongoDB, Firebase     |
+| **POST /send-event/:userID**                       | `tests/withoutMocks/routes/NotificationRoutes.test.ts#L166` | `tests/withMocks/routes/NotificationRoutes.test.ts#L290` | MongoDB, Firebase     |
+| **PUT /location/:userID**                          | `tests/withoutMocks/routes/LocationRoutes.test.ts#L58`      | `tests/withMocks/routes/LocationRoutes.test.ts#L57`      | MongoDB, Firebase     |
+| **GET /friends/:userID**                           | `tests/withoutMocks/routes/FriendRoutes.test.ts#L73`        | `tests/withMocks/routes/FriendRoutes.test.ts#L62`        | MongoDB, Firebase     |
+| **POST /friends/:userID/sendRequest/:friendEmail** | `tests/withoutMocks/routes/FriendRoutes.test.ts#L113`       | `tests/withMocks/routes/FriendRoutes.test.ts#L163`       | MongoDB, Firebase     |
+| **GET /friends/:userID/friendRequests**            | `tests/withoutMocks/routes/FriendRoutes.test.ts#L184`       | `tests/withMocks/routes/FriendRoutes.test.ts#L359`       | MongoDB, Firebase     |
+| **POST /friends/:userID/acceptRequest/:friendID**  | `tests/withoutMocks/routes/FriendRoutes.test.ts#L229`       | `tests/withMocks/routes/FriendRoutes.test.ts#L455`       | MongoDB, Firebase     |
+| **POST /friends/:userID/declineRequest/:friendID** | `tests/withoutMocks/routes/FriendRoutes.test.ts#L341`       | `tests/withMocks/routes/FriendRoutes.test.ts#L634`       | MongoDB, Firebase     |
+| **PUT /friends/:userID/deleteFriend/:friendID**    | `tests/withoutMocks/routes/FriendRoutes.test.ts#L294`       | `tests/withMocks/routes/FriendRoutes.test.ts#L730`       | MongoDB, Firebase     |
 
 #### 2.1.2. Commit Hash Where Tests Run
 
@@ -37,31 +37,37 @@
 #### 2.1.3. Explanation on How to Run the Tests
 
 1. **Clone the Repository**:
+
    ```
    git clone [repository URL]
    cd CPEN321_CMIYC
    ```
 
 2. **Install Dependencies**:
+
    ```
    cd Back_End
    npm install
    ```
 
 3. **Environment Setup**:
+
    - Since we push our enviorment variables, you do not have to do this.
-     
 
 4. **Run Tests Without Mocks**:
+
    ```
    npm run test:nomocks
    ```
+
    This will run tests using an actual MongoDB instance. Make sure MongoDB is running locally.
 
 5. **Run Tests With Mocks**:
+
    ```
    npm run test:mocks
    ```
+
    This will run tests with mocked MongoDB and Firebase dependencies.
 
 6. **Run All Tests**:
@@ -75,6 +81,7 @@
 `.github/workflows/deploy.yml`
 
 The GitHub Actions workflow is configured to run all tests in a CI environment before deployment. Key points:
+
 - Tests run on push to the main branch
 - MongoDB is set up as a service container for the tests
 - Environment variables are configured from repository secrets
@@ -175,19 +182,19 @@ The GitHub Actions workflow is configured to run all tests in a CI environment b
       ✓ should correctly map and return points data as nearby friends (line 136) (2 ms)
 
 ----------------------------|---------|----------|---------|---------|-------------------
-File                        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+File                        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
 ----------------------------|---------|----------|---------|---------|-------------------
-All files                   |     100 |      100 |     100 |     100 |                   
- controllers                |     100 |      100 |     100 |     100 |                   
-  FriendController.ts       |     100 |      100 |     100 |     100 |                   
-  LocationController.ts     |     100 |      100 |     100 |     100 |                   
-  NotificationController.ts |     100 |      100 |     100 |     100 |                   
-  UserController.ts         |     100 |      100 |     100 |     100 |                   
- routes                     |     100 |      100 |     100 |     100 |                   
-  FriendRoutes.ts           |     100 |      100 |     100 |     100 |                   
-  LocationRoutes.ts         |     100 |      100 |     100 |     100 |                   
-  NotificationRoutes.ts     |     100 |      100 |     100 |     100 |                   
-  UserRoutes.ts             |     100 |      100 |     100 |     100 |                   
+All files                   |     100 |      100 |     100 |     100 |
+ controllers                |     100 |      100 |     100 |     100 |
+  FriendController.ts       |     100 |      100 |     100 |     100 |
+  LocationController.ts     |     100 |      100 |     100 |     100 |
+  NotificationController.ts |     100 |      100 |     100 |     100 |
+  UserController.ts         |     100 |      100 |     100 |     100 |
+ routes                     |     100 |      100 |     100 |     100 |
+  FriendRoutes.ts           |     100 |      100 |     100 |     100 |
+  LocationRoutes.ts         |     100 |      100 |     100 |     100 |
+  NotificationRoutes.ts     |     100 |      100 |     100 |     100 |
+  UserRoutes.ts             |     100 |      100 |     100 |     100 |
 ----------------------------|---------|----------|---------|---------|-------------------
 Test Suites: 6 passed, 6 total
 Tests:       55 passed, 55 total
@@ -290,19 +297,19 @@ Ran all test suites matching /tests\/withMocks/i.
       ✓ Error handling in sendEventNotification is challenging in non-mocked tests
 
 ----------------------------|---------|----------|---------|---------|-------------------
-File                        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+File                        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
 ----------------------------|---------|----------|---------|---------|-------------------
-All files                   |   96.44 |    86.48 |     100 |   97.42 |                   
- controllers                |   95.85 |    86.48 |     100 |   96.98 |                   
-  FriendController.ts       |   96.05 |    95.83 |     100 |   96.05 | 124,145,168       
-  LocationController.ts     |     100 |      100 |     100 |     100 |                   
-  NotificationController.ts |   92.59 |    55.55 |     100 |   96.07 | 27,156            
-  UserController.ts         |     100 |      100 |     100 |     100 |                   
- routes                     |     100 |      100 |     100 |     100 |                   
-  FriendRoutes.ts           |     100 |      100 |     100 |     100 |                   
-  LocationRoutes.ts         |     100 |      100 |     100 |     100 |                   
-  NotificationRoutes.ts     |     100 |      100 |     100 |     100 |                   
-  UserRoutes.ts             |     100 |      100 |     100 |     100 |                   
+All files                   |   96.44 |    86.48 |     100 |   97.42 |
+ controllers                |   95.85 |    86.48 |     100 |   96.98 |
+  FriendController.ts       |   96.05 |    95.83 |     100 |   96.05 | 124,145,168
+  LocationController.ts     |     100 |      100 |     100 |     100 |
+  NotificationController.ts |   92.59 |    55.55 |     100 |   96.07 | 27,156
+  UserController.ts         |     100 |      100 |     100 |     100 |
+ routes                     |     100 |      100 |     100 |     100 |
+  FriendRoutes.ts           |     100 |      100 |     100 |     100 |
+  LocationRoutes.ts         |     100 |      100 |     100 |     100 |
+  NotificationRoutes.ts     |     100 |      100 |     100 |     100 |
+  UserRoutes.ts             |     100 |      100 |     100 |     100 |
 ----------------------------|---------|----------|---------|---------|-------------------
 Test Suites: 7 passed, 7 total
 Tests:       48 passed, 48 total
@@ -310,29 +317,34 @@ Snapshots:   0 total
 Time:        1.74 s, estimated 2 s
 Ran all test suites matching /tests\/withoutMocks/i.
 ```
+
 ## Justification for Lines with No Coverage
 
 ### NotificationController.ts (lines 27, 156)
+
 - **Line 25**: The conditional block in `updateFCMToken` when `result.matchedCount === 0`
 - **Line 152**: The catch block in `sendEventNotification`
 
 #### Why these are challenging to cover:
+
 - **Result Conditioning**: For line 27, we would need to have a scenario where a user exists (to pass initial validation) but then somehow doesn't match the update criteria. This is nearly impossible in a real database scenario without race conditions.
 - **External Dependencies**: Line 156 involves Firebase messaging, which is an external service. Forcing it to throw errors in a controlled way is challenging without mocks.
 
 ### FriendController.ts (lines 124, 145, 168)
+
 These are the error catch blocks in the following methods:
+
 - **Line 124**: Catch block in the `acceptFriendRequest` method
 - **Line 145**: Catch block in the `declineFriendRequest` method
 - **Line 168**: Catch block in the `deleteFriend` method
 
 #### Why these are challenging to cover:
+
 - **Database Error Simulation**: In a non-mocked environment, it's difficult to force the database to throw errors at specific points in the code. When we tried to use invalid IDs, the MongoDB driver handled them by returning null rather than throwing exceptions.
 - **Error Path Interception**: When using Express, errors are often caught at the middleware level before they reach the specific catch blocks in the controllers.
 - **Race Conditions**: These error paths would typically be executed in real-world situations like database connection failures, timeouts, or when concurrent operations cause data inconsistencies.
 
 ### These lines are covered in Mocked Tests as it is the best approach to test because I can explicitly mock the database methods to throw exceptions.
-
 
 ---
 
@@ -398,32 +410,34 @@ These are the error catch blocks in the following methods:
     ```
 
 - **API Response Time**
+
   - **Verification:** Performance tests validate that critical API endpoints respond within the 0.5 second (500ms) threshold required for smooth user experience. The tests run 10 iterations for each endpoint and calculate the average response time. Three key endpoints are tested: `updateUserLocation`, `getFriends`, and `getNotifications`. Each test executes repeated API calls with randomized data where appropriate (such as location coordinates) to simulate real-world usage patterns. Response times are measured by recording timestamps before and after each API call, with the final average calculated across all iterations. These tests run against an actual database connection rather than mocks to provide realistic performance metrics. This approach ensures that database operations, data processing, and API response generation all meet the performance requirements needed for the app's real-time tracking and social features.
   - **Log Output:** Average response times consistently fall below the 500ms threshold across all tested endpoints:
-     ``` > cmiyc@1.0.0 test
-      > jest tests/withoutMocks/routes/PerformanceTests.test.ts
-      
-        console.log
-          Average response time for updateUserLocation: 7.3 ms
-      
-            at tests/withoutMocks/routes/PerformanceTests.test.ts:83:13
-      
-        console.log
-          Average response time for getFriends: 3.5 ms
-      
-            at tests/withoutMocks/routes/PerformanceTests.test.ts:107:13
-      
-        console.log
-          Average response time for getNotifications: 3.3 ms
-      
-            at tests/withoutMocks/routes/PerformanceTests.test.ts:131:13
-      
-       PASS  tests/withoutMocks/routes/PerformanceTests.test.ts
-        Performance Tests - Non-functional Requirements
-          ✓ updateUserLocation should respond in under 0.5 seconds on average (80 ms)
-          ✓ getFriends should respond in under 0.5 seconds on average (35 ms)
-          ✓ getNotifications should respond in under 0.5 seconds on average (33 ms)
-     ```
+
+    ```> cmiyc@1.0.0 test
+     > jest tests/withoutMocks/routes/PerformanceTests.test.ts
+
+       console.log
+         Average response time for updateUserLocation: 7.3 ms
+
+           at tests/withoutMocks/routes/PerformanceTests.test.ts:83:13
+
+       console.log
+         Average response time for getFriends: 3.5 ms
+
+           at tests/withoutMocks/routes/PerformanceTests.test.ts:107:13
+
+       console.log
+         Average response time for getNotifications: 3.3 ms
+
+           at tests/withoutMocks/routes/PerformanceTests.test.ts:131:13
+
+      PASS  tests/withoutMocks/routes/PerformanceTests.test.ts
+       Performance Tests - Non-functional Requirements
+         ✓ updateUserLocation should respond in under 0.5 seconds on average (80 ms)
+         ✓ getFriends should respond in under 0.5 seconds on average (35 ms)
+         ✓ getNotifications should respond in under 0.5 seconds on average (33 ms)
+    ```
 
 ---
 
@@ -891,25 +905,16 @@ These are the error catch blocks in the following methods:
 
 ### 5.1. Commit Hash Where Codacy Ran
 
-`[Insert Commit SHA here]`
+`4b1f18d2d0454b6a1a6d72d7473ba73a5a5fd63e`
 
 ### 5.2. Unfixed Issues per Codacy Category
 
-_(Placeholder for screenshots of Codacy's Category Breakdown table in Overview)_
+<img src="./images/M5/codacy.png" alt="My Image" width="100%"/>
 
 ### 5.3. Unfixed Issues per Codacy Code Pattern
 
-_(Placeholder for screenshots of Codacy's Issues page)_
+All issues are fixed
 
 ### 5.4. Justifications for Unfixed Issues
 
-- **Code Pattern: [Usage of Deprecated Modules](#)**
-
-  1. **Issue**
-
-     - **Location in Git:** [`src/services/chatService.js#L31`](#)
-     - **Justification:** ...
-
-  2. ...
-
-- ...
+All issues are fixed
