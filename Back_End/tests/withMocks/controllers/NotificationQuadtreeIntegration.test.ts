@@ -37,7 +37,6 @@ describe('NotificationController - Integration with Quadtree', () => {
   let notificationController: NotificationController;
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
-  let mockNext: NextFunction = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -53,8 +52,6 @@ describe('NotificationController - Integration with Quadtree', () => {
       status: jest.fn().mockReturnThis(),
       send: jest.fn()
     };
-    
-    mockNext = jest.fn();
     
     // Mock the static findNearbyFriendsWithQuadtree method
     jest.spyOn(NotificationController, 'findNearbyFriendsWithQuadtree')

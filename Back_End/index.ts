@@ -44,7 +44,7 @@ client.connect().then(() => {
       console.log("Server started successfully");
     });
   }
-  ).catch((err) => {
+  ).catch((_) => {
       console.log('Database connection error');
       client.close();
   });

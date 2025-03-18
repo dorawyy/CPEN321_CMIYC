@@ -10,11 +10,8 @@ dotenv.config();
 // Set a long timeout for the entire test suite
 jest.setTimeout(10000);
 
-// Setup the test app
-let app: Express = express();
-
 beforeAll(async () => {
-  app = setupTestApp();
+  const app = setupTestApp();
   
   // Connect to the actual database for non-mocked tests
   try {
