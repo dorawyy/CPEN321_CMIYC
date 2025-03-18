@@ -32,14 +32,14 @@
 
 #### 2.1.2. Commit Hash Where Tests Run
 
-`[Insert Commit SHA here]`
+`4b1f18d2d0454b6a1a6d72d7473ba73a5a5fd63e`
 
 #### 2.1.3. Explanation on How to Run the Tests
 
 1. **Clone the Repository**:
 
    ```
-   git clone [repository URL]
+   git clone https://github.com/jamesleeyk/CPEN321_CMIYC.git
    cd CPEN321_CMIYC
    ```
 
