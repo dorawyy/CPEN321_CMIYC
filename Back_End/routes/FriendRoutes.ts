@@ -1,4 +1,5 @@
 import { FriendController } from "../controllers/FriendController";
+import { Request, Response } from "express";
 
 const controller = new FriendController();
 
@@ -6,14 +7,14 @@ export const FriendRoutes = [
     {
         method: "get",
         route: "/friends/:userID",
-        action: controller.getFriends,
+        action: (req: Request, res: Response) => controller.getFriends(req, res),
         validation: []
     },
 
     {
         method: "post",
         route: "/friends/:userID/sendRequest/:friendEmail",
-        action: controller.sendFriendRequest,
+        action: (req: Request, res: Response) => controller.sendFriendRequest(req, res),
         validation: []
     },
 
@@ -21,28 +22,28 @@ export const FriendRoutes = [
     {
         method: "get",
         route: "/friends/:userID/friendRequests",
-        action: controller.getFriendRequests,
+        action: (req: Request, res: Response) => controller.getFriendRequests(req, res),
         validation: []
     },
 
     {
         method: "post",
         route: "/friends/:userID/acceptRequest/:friendID",
-        action: controller.acceptFriendRequest,
+        action: (req: Request, res: Response) => controller.acceptFriendRequest(req, res),
         validation: []
     },
 
     {
         method: "post",
         route: "/friends/:userID/declineRequest/:friendID",
-        action: controller.declineFriendRequest,
+        action: (req: Request, res: Response) => controller.declineFriendRequest(req, res),
         validation: []
     },
 
     {
         method: "put",
         route: "/friends/:userID/deleteFriend/:friendID",
-        action: controller.deleteFriend,
+        action: (req: Request, res: Response) => controller.deleteFriend(req, res),
         validation: []
     },
     

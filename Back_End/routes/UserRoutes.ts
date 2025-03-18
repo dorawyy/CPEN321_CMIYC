@@ -1,5 +1,6 @@
 import { UserController } from "../controllers/UserController";
 import { body } from "express-validator";
+import { Request, Response } from "express";
 
 const controller = new UserController();
 
@@ -7,7 +8,7 @@ export const UserRoutes = [
     {
         method: "post",
         route: "/user",
-        action: controller.createUserProfile,
+        action: (req: Request, res: Response) => controller.createUserProfile(req, res),
         validation: [
             body("userID").notEmpty().isString(),
             body("displayName").notEmpty().isString(),
@@ -22,14 +23,14 @@ export const UserRoutes = [
     {
         method: "get",
         route: "/user/:userID",
-        action: controller.getAllUsers,
+        action: (req: Request, res: Response) => controller.getAllUsers(req, res),
         validation: []
     },
 
     {
         method: "post",
         route: "/user/ban/:userID",
-        action: controller.banUser,
+        action: (req: Request, res: Response) => controller.banUser(req, res),
         validation: []
     }
 ]
