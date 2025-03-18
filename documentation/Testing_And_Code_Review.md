@@ -399,7 +399,7 @@ These are the error catch blocks in the following methods:
 - **API Response Time**
   - **Verification:** Performance tests validate that critical API endpoints respond within the 0.5 second (500ms) threshold required for smooth user experience. The tests run 10 iterations for each endpoint and calculate the average response time. Three key endpoints are tested: `updateUserLocation`, `getFriends`, and `getNotifications`. Each test executes repeated API calls with randomized data where appropriate (such as location coordinates) to simulate real-world usage patterns. Response times are measured by recording timestamps before and after each API call, with the final average calculated across all iterations. These tests run against an actual database connection rather than mocks to provide realistic performance metrics. This approach ensures that database operations, data processing, and API response generation all meet the performance requirements needed for the app's real-time tracking and social features.
   - **Log Output:** Average response times consistently fall below the 500ms threshold across all tested endpoints:
-      > cmiyc@1.0.0 test
+     ``` > cmiyc@1.0.0 test
       > jest tests/withoutMocks/routes/PerformanceTests.test.ts
       
         console.log
@@ -422,6 +422,7 @@ These are the error catch blocks in the following methods:
           ✓ updateUserLocation should respond in under 0.5 seconds on average (80 ms)
           ✓ getFriends should respond in under 0.5 seconds on average (35 ms)
           ✓ getNotifications should respond in under 0.5 seconds on average (33 ms)
+     ```
 
 ---
 
