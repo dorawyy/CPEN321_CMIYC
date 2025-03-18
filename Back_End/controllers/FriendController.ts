@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { client } from "../services";
-import { UpdateFilter, Document, PullOperator } from "mongodb";
+import { Document, PullOperator, PushOperator } from "mongodb";
 import { User } from "../types/user.types";
 
 interface UserDocument extends User, Document {}
@@ -59,7 +59,7 @@ export class FriendController {
 
         await client.db("cmiyc").collection("users").updateOne(
             { userID: friend.userID }, 
-            { $push: { friendRequests: userID } } as unknown as UpdateFilter<UserDocument>
+            { $push: { friendRequests: userID } } as PushOperator<User>
         );
         res.status(200).send("Friend request sent successfully");
     }
@@ -106,12 +106,12 @@ export class FriendController {
             }
 
             // Accept friend request - adds friend to both users' friend lists
-            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $push: { friends: friendID } } as any);
-            await client.db("cmiyc").collection("users").updateOne({ userID: friendID }, { $push: { friends: userID } } as any);
+            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $push: { friends: friendID } } as PushOperator<User>);
+            await client.db("cmiyc").collection("users").updateOne({ userID: friendID }, { $push: { friends: userID } } as PushOperator<User>);
             
 
             // Remove friend request
-            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friendRequests: friendID } } as unknown as PullOperator<Document> ) ;
+            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friendRequests: friendID } } as PullOperator<User> ) ;
             
             res.status(200).send("Friend request responded to successfully");
 
@@ -132,7 +132,7 @@ export class FriendController {
             }
 
             // Remove friend request
-            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friendRequests: friendID } } as any);
+            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friendRequests: friendID } } as PullOperator<User>);
             
             res.status(200).send("Friend request declined successfully");
 
@@ -154,8 +154,8 @@ export class FriendController {
             }   
 
             // Remove friend from users' friend lists
-            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friends: friendID } } as unknown as UpdateFilter<Document>);
-            await client.db("cmiyc").collection("users").updateOne({ userID: friendID }, { $pull: { friends: userID } } as unknown as UpdateFilter<Document>);
+            await client.db("cmiyc").collection("users").updateOne({ userID: userID }, { $pull: { friends: friendID } } as PullOperator<User>);
+            await client.db("cmiyc").collection("users").updateOne({ userID: friendID }, { $pull: { friends: userID } } as PullOperator<User>);
             
             res.status(200).send("Friend deleted successfully");
 

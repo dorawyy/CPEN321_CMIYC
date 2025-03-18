@@ -1,7 +1,7 @@
 export interface Point {
   x: number;
   y: number;
-  data: any;
+  data: number | string | object | null;
 }
 
 export interface Rectangle {

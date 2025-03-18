@@ -6,6 +6,7 @@ import { NotificationRoutes } from '../routes/NotificationRoutes';
 import { FriendRoutes } from '../routes/FriendRoutes';
 import { LocationRoutes } from '../routes/LocationRoutes';
 import dotenv from 'dotenv';
+import { NextFunction, Request, Response } from 'express-serve-static-core';
 
 // Load environment variables from .env file for tests
 dotenv.config();
@@ -16,7 +17,7 @@ export function setupTestApp(): Express {
   app.use(json());
   
   // Middleware to handle validation
-  const validationMiddleware = (req: any, res: any, next: any) => {
+  const validationMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -30,7 +31,7 @@ export function setupTestApp(): Express {
       route.route,
       ...route.validation,
       validationMiddleware,
-      (req: any, res: any, next: any) => {
+      (req: Request, res: Response, next: NextFunction) => {
         const result = route.action(req, res);
         if (result instanceof Promise) {
           result.catch(err => next(err));
@@ -41,11 +42,11 @@ export function setupTestApp(): Express {
 
   // Register NotificationRoutes
   NotificationRoutes.forEach(route => {
-    (app as any)[route.method](
+    (app[route.method as keyof typeof app])(
       route.route,
       ...route.validation,
       validationMiddleware,
-      (req: any, res: any, next: any) => {
+      (req: Request, res: Response, next: NextFunction) => {
         const result = route.action(req, res);
         if (result instanceof Promise) {
           result.catch(err => next(err));

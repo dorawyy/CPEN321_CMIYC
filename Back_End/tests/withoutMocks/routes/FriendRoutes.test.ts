@@ -5,6 +5,7 @@ import '../../setupFirebaseMock'; // Import Firebase mocking
 
 // Make sure environment variables are loaded before Firebase is initialized
 import dotenv from 'dotenv';
+import { PullOperator, PushOperator } from 'mongodb';
 dotenv.config();
 
 // Set a long timeout for the entire test suite
@@ -114,7 +115,7 @@ describe('FriendRoutes API - No Mocks', () => {
       // Add TEST_FRIEND_ID to TEST_USER_ID's friends
       await client.db("cmiyc").collection("users").updateOne(
         { userID: TEST_USER_ID },
-        { $push: { friends: TEST_FRIEND_ID } as any }
+        { $push: { friends: TEST_FRIEND_ID } } as PushOperator<Document>
       );
 
       const response = await createTestRequest(app)
@@ -132,7 +133,7 @@ describe('FriendRoutes API - No Mocks', () => {
       // After test, remove the friend to keep tests isolated
       await client.db("cmiyc").collection("users").updateOne(
         { userID: TEST_USER_ID },
-        { $pull: { friends: TEST_FRIEND_ID } as any }
+        { $pull: { friends: TEST_FRIEND_ID } } as PullOperator<Document>
       );
     });
     
