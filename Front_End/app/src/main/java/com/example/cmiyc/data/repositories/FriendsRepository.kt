@@ -112,11 +112,7 @@ object FriendsRepository {
         friendsPollingJob = null
     }
 
-    /**
-     * Converts a FriendDTO from the API to the domain Friend model.
-     *
-     * @return A Friend domain object mapped from this DTO.
-     */
+
     private fun FriendDTO.toFriend(): Friend = Friend(
         userId = userID,
         name = displayName,
