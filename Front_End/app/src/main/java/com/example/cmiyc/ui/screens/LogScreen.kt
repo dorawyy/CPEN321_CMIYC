@@ -173,23 +173,10 @@ fun LogItem(
     }
 }
 
-/**
- * Extension function to format a Double with specified number of decimal places.
- *
- * @param digits The number of decimal places to include.
- * @return A String representation of the Double with the specified precision.
- */
+
 private fun Double.format(digits: Int) = "%.${digits}f".format(this)
 
-/**
- * Formats a timestamp into a human-readable date and time string.
- *
- * Converts a Unix timestamp (milliseconds since epoch) to a formatted date
- * string in the pattern "MMM dd, yyyy HH:mm" (e.g., "Jan 15, 2023 14:30").
- *
- * @param timestamp The timestamp in milliseconds to format.
- * @return A human-readable date and time string.
- */
+
 private fun formatTimestamp(timestamp: Long): String {
     val date = Date(timestamp)
     val format = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())

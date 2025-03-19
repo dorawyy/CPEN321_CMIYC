@@ -280,12 +280,7 @@ class LocationManager(
         startLocationUpdateWorker()
     }
 
-    /**
-     * Starts the background worker that processes queued location updates.
-     *
-     * This worker handles sending updates to the server, implementing
-     * exponential backoff for retries, and updating the user's location state.
-     */
+
     private fun startLocationUpdateWorker() {
         scope.launch {
             while (isActive) {
@@ -384,11 +379,7 @@ class LogManager(
     private val _logs = MutableStateFlow<List<Log>>(emptyList())
     val logs: StateFlow<List<Log>> = _logs
 
-    /**
-     * Converts a LogDTO from the API to the domain Log model.
-     *
-     * @return A Log domain object mapped from this DTO.
-     */
+
     private fun LogDTO.toLog(): Log = Log(
         sender = fromName,
         activity = eventName,
@@ -456,11 +447,7 @@ class AdminManager(
     private val _currentUser: MutableStateFlow<User?>,
     private val _adminUsers: MutableStateFlow<List<AdminUserItem>>
 ) {
-    /**
-     * Converts a UserDTO from the API to the AdminUserItem model.
-     *
-     * @return An AdminUserItem domain object mapped from this DTO.
-     */
+
     private fun UserDTO.toAdminUserItem(): AdminUserItem = AdminUserItem(
         userId = userID,
         name = displayName,

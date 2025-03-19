@@ -127,15 +127,7 @@ object FriendsRepository {
         isBanned = isBanned
     )
 
-    /**
-     * Fetches friend requests from the API once (without ongoing polling).
-     *
-     * Updates the [friendRequests] StateFlow on success.
-     * Sets the [isRequestsLoading] flag during the operation.
-     *
-     * @return A Result containing a list of FriendRequest objects on success,
-     *         or an Exception on failure.
-     */
+
     suspend fun fetchFriendRequestsOnce(): Result<List<FriendRequest>> {
         fun FriendDTO.toFriendRequest(): FriendRequest = FriendRequest(
             userId = userID,
@@ -173,17 +165,7 @@ object FriendsRepository {
         }
     }
 
-    /**
-     * Internal method to fetch friends data from the API.
-     *
-     * Updates the [friends] StateFlow on success.
-     * Throws exceptions on failure, which are caught by the calling polling method.
-     *
-     * @throws IOException If a network error occurs.
-     * @throws HttpException If the server returns an error response.
-     * @throws CancellationException If the coroutine is canceled during the operation.
-     * @throws IllegalStateException If the API client is in an invalid state.
-     */
+
     private suspend fun fetchFriends() {
         try {
             val startTime = System.currentTimeMillis()

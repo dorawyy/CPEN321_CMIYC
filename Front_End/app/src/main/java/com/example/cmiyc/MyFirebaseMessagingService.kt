@@ -57,19 +57,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
     }
 
-    /**
-     * Generates and displays a local notification based on the received message.
-     *
-     * Features of the notification:
-     * - Sets a small icon using the app's launcher icon
-     * - Uses the message title and body for notification content
-     * - Plays default notification sound
-     * - Automatically cancels the notification when tapped
-     * - Creates a pending intent to navigate to MainActivity when notification is tapped
-     *
-     * @param messageTitle Title of the notification
-     * @param messageBody Body text of the notification
-     */
+
     private fun sendNotification(messageTitle: String, messageBody: String) {
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)

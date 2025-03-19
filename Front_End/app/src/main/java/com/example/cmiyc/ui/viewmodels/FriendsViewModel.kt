@@ -334,17 +334,7 @@ class FriendsViewModel : ViewModel() {
     }
 }
 
-/**
- * Filters a list of friends based on a search query.
- *
- * This helper function filters friends whose name or email contains
- * the search query (case-insensitive). If the query is empty, it returns
- * the original list unfiltered.
- *
- * @param friends The list of friends to filter.
- * @param query The search string to match against.
- * @return A filtered list of friends that match the query.
- */
+
 private fun filterFriendsWithQuery(friends: List<Friend>, query: String): List<Friend> {
     return if (query.isEmpty()) {
         friends

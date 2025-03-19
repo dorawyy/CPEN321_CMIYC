@@ -162,17 +162,7 @@ class AdminViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Filters a list of users based on a search query.
-     *
-     * This private helper method filters users whose name or email contains
-     * the search query (case-insensitive). If the query is empty, it returns
-     * the original list unfiltered.
-     *
-     * @param users The list of users to filter.
-     * @param query The search string to match against.
-     * @return A filtered list of users that match the query.
-     */
+
     private fun filterUsersWithQuery(users: List<AdminUserItem>, query: String): List<AdminUserItem> {
         return if (query.isEmpty()) {
             users

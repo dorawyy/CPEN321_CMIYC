@@ -64,13 +64,7 @@ class LogViewModel (
         observeLogs()
     }
 
-    /**
-     * Starts a periodic background job that refreshes activity logs.
-     *
-     * This method cancels any existing refresh job and starts a new one that
-     * refreshes logs every 30 seconds. It handles errors and tracks consecutive
-     * failures to provide appropriate feedback.
-     */
+
     private fun startPeriodicRefresh() {
         refreshJob?.cancel()
         refreshJob = viewModelScope.launch {
@@ -96,14 +90,7 @@ class LogViewModel (
         }
     }
 
-    /**
-     * Handles refresh operation failures.
-     *
-     * This method increments the failure counter and updates the UI with an error
-     * message after reaching the maximum number of consecutive failures.
-     *
-     * @param errorMessage The error message describing what went wrong.
-     */
+
     private fun handleRefreshFailure(errorMessage: String) {
         consecutiveRefreshFailures++
         println("Activity log refresh failed (${consecutiveRefreshFailures}/$maxRefreshFailures): $errorMessage")
@@ -118,12 +105,7 @@ class LogViewModel (
         }
     }
 
-    /**
-     * Sets up an observer for activity logs from the repository.
-     *
-     * This method collects updates from the logs flow and updates the UI state
-     * whenever new logs are available.
-     */
+
     private fun observeLogs() {
         viewModelScope.launch {
             userRepository.logManager.logs.collect { logs ->
