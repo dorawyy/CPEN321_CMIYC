@@ -14,7 +14,18 @@ import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException
 
-
+/**
+ * Repository for managing friend relationships and friend requests.
+ *
+ * This singleton object handles all friend-related operations including:
+ * - Fetching and caching friend data
+ * - Managing friend requests
+ * - Background polling for real-time updates
+ * - Error handling and retry logic
+ *
+ * The repository exposes state flows for UI components to observe changes in friends
+ * and friend requests data, as well as loading states.
+ */
 object FriendsRepository {
     private val api = ApiClient.apiService
 
@@ -46,7 +57,12 @@ object FriendsRepository {
     // Background polling jobs
     private var friendsPollingJob: Job? = null
 
-    // Update polling frequency for Home Screen (5 seconds)
+    /**
+     * Starts polling for friend data updates at a 5-second interval.
+     *
+     * This method is typically called when the home screen becomes active.
+     * It automatically cancels any existing polling job before starting a new one.
+     */
     fun startHomeScreenPolling() {
         stopHomeScreenPolling() // Cancel any existing job first
         friendsPollingJob = coroutineScope.launch {
@@ -85,11 +101,22 @@ object FriendsRepository {
         }
     }
 
+    /**
+     * Stops the background polling for friend data.
+     *
+     * This method is typically called when the home screen becomes inactive
+     * to conserve system resources and battery.
+     */
     fun stopHomeScreenPolling() {
         friendsPollingJob?.cancel()
         friendsPollingJob = null
     }
 
+    /**
+     * Converts a FriendDTO from the API to the domain Friend model.
+     *
+     * @return A Friend domain object mapped from this DTO.
+     */
     private fun FriendDTO.toFriend(): Friend = Friend(
         userId = userID,
         name = displayName,
@@ -100,7 +127,15 @@ object FriendsRepository {
         isBanned = isBanned
     )
 
-    // Fetch friend requests once
+    /**
+     * Fetches friend requests from the API once (without ongoing polling).
+     *
+     * Updates the [friendRequests] StateFlow on success.
+     * Sets the [isRequestsLoading] flag during the operation.
+     *
+     * @return A Result containing a list of FriendRequest objects on success,
+     *         or an Exception on failure.
+     */
     suspend fun fetchFriendRequestsOnce(): Result<List<FriendRequest>> {
         fun FriendDTO.toFriendRequest(): FriendRequest = FriendRequest(
             userId = userID,
@@ -138,7 +173,17 @@ object FriendsRepository {
         }
     }
 
-    // Fetch friends data
+    /**
+     * Internal method to fetch friends data from the API.
+     *
+     * Updates the [friends] StateFlow on success.
+     * Throws exceptions on failure, which are caught by the calling polling method.
+     *
+     * @throws IOException If a network error occurs.
+     * @throws HttpException If the server returns an error response.
+     * @throws CancellationException If the coroutine is canceled during the operation.
+     * @throws IllegalStateException If the API client is in an invalid state.
+     */
     private suspend fun fetchFriends() {
         try {
             val startTime = System.currentTimeMillis()
@@ -172,7 +217,15 @@ object FriendsRepository {
         }
     }
 
-    // Fetch friends once
+    /**
+     * Fetches friends data from the API once (without ongoing polling).
+     *
+     * Updates the [friends] StateFlow on success.
+     * Sets the [isFriendsLoading] flag during the operation.
+     *
+     * @return A Result containing a list of Friend objects on success,
+     *         or an Exception on failure.
+     */
     suspend fun fetchFriendsOnce(): Result<List<Friend>> {
         return try {
             _isFriendsLoading.value = true
@@ -205,6 +258,15 @@ object FriendsRepository {
         }
     }
 
+    /**
+     * Accepts a friend request.
+     *
+     * Calls the API to accept a pending friend request and refreshes both the friend
+     * requests list and friends list on success.
+     *
+     * @param friendId The ID of the user whose friend request is being accepted.
+     * @return A Result indicating success or containing an Exception on failure.
+     */
     suspend fun acceptFriendRequest(friendId: String): Result<Unit> {
         return try {
             val startTime = System.currentTimeMillis()
@@ -238,6 +300,15 @@ object FriendsRepository {
         }
     }
 
+    /**
+     * Denies a friend request.
+     *
+     * Calls the API to decline a pending friend request and refreshes the
+     * friend requests list on success.
+     *
+     * @param friendId The ID of the user whose friend request is being declined.
+     * @return A Result indicating success or containing an Exception on failure.
+     */
     suspend fun denyFriendRequest(friendId: String): Result<Unit> {
         return try {
             val startTime = System.currentTimeMillis()
@@ -269,6 +340,14 @@ object FriendsRepository {
         }
     }
 
+    /**
+     * Sends a friend request to another user.
+     *
+     * Calls the API to send a friend request to a user specified by their email address.
+     *
+     * @param friendEmail The email address of the user to whom the friend request will be sent.
+     * @return A Result indicating success or containing an Exception on failure.
+     */
     suspend fun sendFriendRequest(friendEmail: String): Result<Unit> {
         return try {
             val startTime = System.currentTimeMillis()
@@ -298,6 +377,14 @@ object FriendsRepository {
         }
     }
 
+    /**
+     * Removes a friend from the user's friend list.
+     *
+     * Calls the API to terminate a friendship and refreshes the friends list on success.
+     *
+     * @param friendId The ID of the user to be removed from the friend list.
+     * @return A Result indicating success or containing an Exception on failure.
+     */
     suspend fun removeFriend(friendId: String): Result<Unit> {
         return try {
             val startTime = System.currentTimeMillis()

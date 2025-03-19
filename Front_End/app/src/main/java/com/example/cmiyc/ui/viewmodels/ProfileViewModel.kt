@@ -13,6 +13,15 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
+/**
+ * Factory class for creating instances of ProfileViewModel with dependencies.
+ *
+ * This factory follows the ViewModelProvider.Factory pattern to facilitate
+ * dependency injection for the ProfileViewModel. It ensures that the
+ * ViewModel is created with the necessary UserRepository dependency.
+ *
+ * @property userRepository The repository responsible for user data and operations.
+ */
 class ProfileViewModelFactory (
     private val userRepository: UserRepository
 ) : ViewModelProvider.Factory {
@@ -24,6 +33,15 @@ class ProfileViewModelFactory (
     }
 }
 
+/**
+ * ViewModel for the Profile screen.
+ *
+ * This ViewModel manages the state and business logic for the user profile interface,
+ * including retrieving user information and handling the sign-out process.
+ * It observes the current user data from the repository and maintains the UI state.
+ *
+ * @property userRepository The repository responsible for user data and operations.
+ */
 class ProfileViewModel (
     private val userRepository: UserRepository
 ) : ViewModel() {
@@ -44,6 +62,13 @@ class ProfileViewModel (
         }
     }
 
+    /**
+     * Initiates the sign-out process.
+     *
+     * This method calls the repository to sign out the current user
+     * and handles various error conditions that might occur during
+     * the process.
+     */
     fun signOut() {
         viewModelScope.launch {
             try {
@@ -77,11 +102,27 @@ class ProfileViewModel (
         }
     }
 
+    /**
+     * Clears any error message from the state.
+     *
+     * This method is typically called after an error has been displayed to the user
+     * and acknowledged.
+     */
     fun clearError() {
         _state.update { it.copy(error = null) }
     }
 }
 
+/**
+ * Data class representing the state of the Profile screen.
+ *
+ * This immutable state container holds all the data needed to render the
+ * profile UI, including the user information, loading state, and error messages.
+ *
+ * @property user The current user information, or null if no user is authenticated.
+ * @property isLoading Flag indicating whether a loading operation is in progress.
+ * @property error Optional error message if an operation failed.
+ */
 data class ProfileScreenState(
     val user: User? = null,
     val isLoading: Boolean = true,

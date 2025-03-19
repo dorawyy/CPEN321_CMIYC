@@ -18,6 +18,16 @@ import com.example.cmiyc.ui.viewmodels.AdminScreenState
 import com.example.cmiyc.ui.viewmodels.AdminViewModel
 import com.example.cmiyc.ui.viewmodels.AdminViewModelFactory
 
+/**
+ * Administrative panel screen for user management.
+ *
+ * This screen provides administrative capabilities for monitoring and moderating users
+ * in the system. It displays a searchable list of all users with options to ban users
+ * who violate platform rules. The screen is only accessible to users with administrative
+ * privileges.
+ *
+ * @param onNavigateBack Callback to navigate back to the previous screen.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminScreen(
@@ -72,6 +82,18 @@ fun AdminScreen(
     }
 }
 
+/**
+ * Displays confirmation and error dialogs for admin actions.
+ *
+ * This composable handles two types of dialogs:
+ * 1. Ban confirmation dialog - Confirms before banning a user
+ * 2. Error dialog - Displays any errors that occur during admin operations
+ *
+ * @param state The current state of the admin screen.
+ * @param userToBan The user selected for banning.
+ * @param viewModel The view model handling admin operations.
+ * @param onDismiss Callback when the ban dialog is dismissed.
+ */
 @Composable
 fun AdminDialog(state: AdminScreenState, userToBan: AdminUserItem, viewModel: AdminViewModel, onDismiss: () -> Unit) {
     // Ban confirmation dialog
@@ -118,6 +140,16 @@ fun AdminDialog(state: AdminScreenState, userToBan: AdminUserItem, viewModel: Ad
     }
 }
 
+/**
+ * Item component that displays user information in the admin panel.
+ *
+ * This card displays user details with appropriate styling and provides
+ * a ban button for non-banned users. Banned users are displayed with a
+ * banned status indicator and no ban option.
+ *
+ * @param user The user data to display.
+ * @param onBanClick Callback when the ban button is clicked.
+ */
 @Composable
 fun AdminUserItem(
     user: AdminUserItem,

@@ -21,6 +21,22 @@ import com.example.cmiyc.ui.viewmodels.HomeViewModelFactory
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import kotlinx.coroutines.delay
 
+/**
+ * Main home screen of the application.
+ *
+ * This screen displays a map with the user's location and nearby friends.
+ * It provides navigation to other major sections of the app (profile, logs,
+ * friends, admin panel) and allows users to broadcast their current activity
+ * to friends.
+ *
+ * The screen manages background polling for real-time updates and handles
+ * various error states with appropriate feedback.
+ *
+ * @param onNavigateToProfile Callback to navigate to the user profile screen.
+ * @param onNavigateToLog Callback to navigate to the activity log screen.
+ * @param onNavigateToFriends Callback to navigate to the friends management screen.
+ * @param onNavigateToAdmin Callback to navigate to the admin panel (only shown to admins).
+ */
 @Composable
 fun HomeScreen(
     onNavigateToProfile: () -> Unit,
@@ -73,7 +89,20 @@ fun HomeScreen(
     }
 }
 
-
+/**
+ * Top application bar for the home screen.
+ *
+ * This component displays navigation icons to different sections of the app.
+ * It shows different navigation options based on user privileges (admin users
+ * get access to the admin panel). The bar provides quick access to logs, friends,
+ * admin panel (if applicable), and user profile.
+ *
+ * @param onNavigateToLog Callback to navigate to the activity log screen.
+ * @param onNavigateToFriends Callback to navigate to the friends management screen.
+ * @param onNavigateToAdmin Callback to navigate to the admin panel.
+ * @param onNavigateToProfile Callback to navigate to the user profile screen.
+ * @param isAdmin Boolean flag indicating if the current user has admin privileges.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(
@@ -106,7 +135,19 @@ fun TopBar(
     )
 }
 
-
+/**
+ * Dialog for broadcasting user activity updates.
+ *
+ * This dialog allows users to share their current activity with friends.
+ * It provides a text input field for entering the activity description
+ * and buttons to submit or cancel the broadcast.
+ *
+ * @param showDialog Boolean flag controlling the visibility of the dialog.
+ * @param userInput Current text value of the activity input field.
+ * @param onUserInputChange Callback invoked when the user edits the activity text.
+ * @param onBroadcastConfirm Callback invoked when the broadcast is confirmed.
+ * @param onDialogDismiss Callback invoked when the dialog is dismissed.
+ */
 @Composable
 fun BroadcastDialog(
     showDialog: Boolean,
@@ -136,7 +177,20 @@ fun BroadcastDialog(
     }
 }
 
-
+/**
+ * Component for handling error and success messages.
+ *
+ * This component manages three types of feedback:
+ * 1. Success snackbars for successful broadcasts
+ * 2. Error dialogs for general operation failures
+ * 3. Polling error dialogs for network connection issues
+ *
+ * Each type of message includes appropriate actions and visual styling.
+ *
+ * @param state The current state of the home screen.
+ * @param viewModel The view model for the home screen.
+ * @param snackbarHostState The snackbar host state for displaying snackbars.
+ */
 @Composable
 fun ErrorSnackbar(state: HomeScreenState, viewModel: HomeViewModel, snackbarHostState: SnackbarHostState) {
     LaunchedEffect(state.broadcastSuccess) {

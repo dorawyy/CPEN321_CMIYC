@@ -52,6 +52,16 @@ import com.example.cmiyc.ui.viewmodels.ProfileViewModelFactory
 import coil.compose.SubcomposeAsyncImage
 import com.example.cmiyc.data.User
 
+/**
+ * Screen for displaying and managing user profile information.
+ *
+ * This screen shows the user's profile information including their profile picture,
+ * display name, and email. It also provides a sign-out option. The screen handles
+ * loading states, auth state changes, and error conditions with appropriate UI feedback.
+ *
+ * @param onNavigateBack Callback to navigate back to the previous screen.
+ * @param onSignedOut Callback invoked when the user signs out.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -108,7 +118,16 @@ fun ProfileScreen(
     }
 }
 
-
+/**
+ * Component that displays a labeled information row with an icon.
+ *
+ * This component is used to display profile information fields with a
+ * consistent layout including an icon, label, and value.
+ *
+ * @param icon The vector icon to display before the information.
+ * @param label The label text describing what the value represents.
+ * @param value The actual information value to display.
+ */
 @Composable
 fun ProfileInfoRow(
     icon: ImageVector,
@@ -139,6 +158,14 @@ fun ProfileInfoRow(
     }
 }
 
+/**
+ * Button component for signing out of the application.
+ *
+ * This button uses error colors to indicate its destructive action and
+ * includes an icon for visual clarity.
+ *
+ * @param onSignOut Callback invoked when the user clicks the sign-out button.
+ */
 @Composable
 fun SignOutButton(onSignOut: () -> Unit) {
     Button(
@@ -155,7 +182,14 @@ fun SignOutButton(onSignOut: () -> Unit) {
     }
 }
 
-
+/**
+ * Card component that displays user profile information.
+ *
+ * This component presents the user's personal information, such as
+ * name and email, in a structured card layout with icons and labels.
+ *
+ * @param user The User object containing profile information to display.
+ */
 @Composable
 fun ProfileInfo(user: User) {
     Card(
@@ -185,7 +219,15 @@ fun ProfileInfo(user: User) {
     }
 }
 
-
+/**
+ * Component that displays the user's profile picture.
+ *
+ * This component asynchronously loads and displays the user's profile picture
+ * from a URL. It handles loading states and errors by displaying appropriate
+ * placeholders. The image is displayed in a circular shape with a border.
+ *
+ * @param photoUrl The URL of the user's profile photo, may be null.
+ */
 @Composable
 fun ProfilePicture(photoUrl: String?) {
     SubcomposeAsyncImage(

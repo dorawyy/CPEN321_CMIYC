@@ -11,6 +11,17 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.cmiyc.data.Friend
 
+/**
+ * A reusable search bar component with an icon and customizable placeholder.
+ *
+ * This component provides a standard search input field with Material Design styling.
+ * It includes a search icon and supports a customizable placeholder text.
+ *
+ * @param query The current search query string.
+ * @param onQueryChange Callback invoked when the search query changes.
+ * @param placeholder Text displayed when the search field is empty, defaults to "Search by name or email".
+ * @param modifier Optional modifier for customizing the component layout.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(
@@ -29,6 +40,17 @@ fun SearchBar(
     )
 }
 
+/**
+ * A composable that displays information about a friend with removal capability.
+ *
+ * This card-based component shows a friend's name, email, and a delete button
+ * to remove the friendship. It uses Material Design styling with appropriate spacing
+ * and elevation.
+ *
+ * @param friend The Friend data object containing details to display.
+ * @param onRemoveFriend Callback invoked when the remove friend button is clicked.
+ * @param modifier Optional modifier for customizing the component layout.
+ */
 @Composable
 fun FriendItem(
     friend: Friend,

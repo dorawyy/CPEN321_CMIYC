@@ -15,6 +15,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 
+/**
+ * Composable that handles navigation logic based on authentication state and permissions.
+ *
+ * This component manages several key navigation aspects:
+ * 1. Requests location permissions if not already granted
+ * 2. Redirects authenticated users to home screen and unauthenticated users to login
+ * 3. Handles deep linking from notifications by checking intent extras
+ *
+ * @param navController The navigation controller to manage app navigation.
+ * @param isFullyAuthenticated Boolean indicating whether the user is fully authenticated.
+ */
 @Composable
 fun NavigationHandler(
     navController: NavController,

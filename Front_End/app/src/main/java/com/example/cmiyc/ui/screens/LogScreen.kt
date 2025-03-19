@@ -48,6 +48,16 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Screen that displays activity logs.
+ *
+ * This screen shows a chronological list of activities from friends and system events.
+ * Each log entry includes the activity description, sender information, location details,
+ * and timestamp. The screen handles loading states, empty states, and error conditions
+ * with appropriate UI feedback.
+ *
+ * @param onNavigateBack Callback to navigate back to the previous screen.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogScreen(onNavigateBack: () -> Unit) {
@@ -83,7 +93,22 @@ fun LogScreen(onNavigateBack: () -> Unit) {
     }
 }
 
-
+/**
+ * Card component that displays a single log entry.
+ *
+ * This component shows detailed information about an activity log, including:
+ * - The activity description
+ * - The sender's name
+ * - The location where the activity occurred (resolved to a human-readable address)
+ * - The timestamp of the activity
+ *
+ * It handles asynchronous address resolution with appropriate loading states.
+ *
+ * @param log The Log object containing activity details.
+ * @param address Optional pre-resolved address string. If null, the component will
+ *               asynchronously resolve the address from coordinates.
+ * @param onAddressLoaded Callback invoked when an address is resolved, allowing for caching.
+ */
 @Composable
 fun LogItem(
     log: Log,
@@ -148,14 +173,40 @@ fun LogItem(
     }
 }
 
+/**
+ * Extension function to format a Double with specified number of decimal places.
+ *
+ * @param digits The number of decimal places to include.
+ * @return A String representation of the Double with the specified precision.
+ */
 private fun Double.format(digits: Int) = "%.${digits}f".format(this)
 
+/**
+ * Formats a timestamp into a human-readable date and time string.
+ *
+ * Converts a Unix timestamp (milliseconds since epoch) to a formatted date
+ * string in the pattern "MMM dd, yyyy HH:mm" (e.g., "Jan 15, 2023 14:30").
+ *
+ * @param timestamp The timestamp in milliseconds to format.
+ * @return A human-readable date and time string.
+ */
 private fun formatTimestamp(timestamp: Long): String {
     val date = Date(timestamp)
     val format = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     return format.format(date)
 }
 
+/**
+ * Component that displays a scrollable list of log entries.
+ *
+ * This component renders a list of log entries sorted by timestamp (newest first),
+ * with appropriate spacing and padding. It passes resolved addresses to individual
+ * log items to prevent redundant geocoding operations.
+ *
+ * @param logs List of Log objects to display.
+ * @param logAddresses Map of log IDs to resolved address strings for caching.
+ * @param onAddressLoaded Callback invoked when an address is resolved, for updating the cache.
+ */
 @Composable
 fun LogList(logs: List<Log>, logAddresses: Map<String, String>, onAddressLoaded: (String, String) -> Unit) {
     LazyColumn(
@@ -170,6 +221,16 @@ fun LogList(logs: List<Log>, logAddresses: Map<String, String>, onAddressLoaded:
     }
 }
 
+/**
+ * Dialog component for displaying error messages.
+ *
+ * This reusable dialog shows error messages with a title and dismiss button.
+ * It's conditionally displayed only when an error is present.
+ *
+ * @param error The error message to display, or null if no error is present.
+ * @param title The title for the error dialog.
+ * @param onDismiss Callback invoked when the dialog is dismissed.
+ */
 @Composable
 fun ErrorDialog(error: String?, title: String, onDismiss: () -> Unit) {
     error?.let {

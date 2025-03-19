@@ -32,6 +32,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 
+/**
+ * Main map component that displays a Mapbox map with user location and friend markers.
+ *
+ * This composable integrates real-time location tracking, friend position visualization,
+ * and map interaction capabilities. It displays the current user's location as a puck
+ * and shows friend locations as custom markers with their profile pictures.
+ *
+ * @param context Android context used for Toast messages and image loading.
+ * @param mapViewportState State object that controls the map's camera position and zoom level.
+ * @param friends List of Friend objects to display on the map.
+ * @param modifier Optional modifier for customizing the component layout.
+ */
 @Composable
 fun MapComponent(
     context: Context,
@@ -90,10 +102,32 @@ fun MapComponent(
     }
 }
 
+/**
+ * Calculates the distance between two geographical points in meters.
+ *
+ * Uses the Turf library's distance calculation and converts from kilometers to meters.
+ *
+ * @param from The starting point.
+ * @param to The destination point.
+ * @return The distance between the points in meters.
+ */
 fun calculateDistance(from: Point, to: Point): Double {
     return TurfMeasurement.distance(from, to) * 1000 // Convert km to meters
 }
 
+/**
+ * Handler for user location updates on the map.
+ *
+ * This composable sets up the location puck (user position indicator) and manages
+ * location update events. It implements a threshold-based approach to reduce
+ * unnecessary updates, only triggering when the user moves a significant distance.
+ *
+ * @param mapViewportState State object that controls the map's camera.
+ * @param lastUpdatedLocation The last location that triggered an update.
+ * @param thresholdDistance The minimum distance in meters required to trigger a new update.
+ * @param isFirstUpdate Flag indicating if this is the first location update.
+ * @param onLocationUpdated Callback invoked when the location is updated.
+ */
 @Composable
 fun LocationUpdateHandler(
     mapViewportState: MapViewportState,
@@ -127,7 +161,16 @@ fun LocationUpdateHandler(
     }
 }
 
-
+/**
+ * A floating action button that resets the map camera to the user's current location.
+ *
+ * This button allows users to quickly return to their current position on the map
+ * after panning or exploring other areas.
+ *
+ * @param context Android context used for Toast messages.
+ * @param lastUpdatedLocation The last known user location.
+ * @param mapViewportState State object that controls the map's camera.
+ */
 @Composable
 fun LocationResetButton(
     context: Context,

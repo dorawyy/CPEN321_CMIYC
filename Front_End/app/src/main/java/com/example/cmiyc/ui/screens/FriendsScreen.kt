@@ -33,6 +33,22 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlinx.coroutines.delay
 
+/**
+ * Screen for managing friend relationships.
+ *
+ * This screen provides functionality for viewing, searching, and managing friend relationships,
+ * including:
+ * - Viewing current friends
+ * - Searching friends by name or email
+ * - Sending friend requests
+ * - Responding to received friend requests
+ * - Removing existing friends
+ *
+ * The screen implements pull-to-refresh for updating friend data and displays
+ * feedback via snackbars for user actions.
+ *
+ * @param onNavigateBack Callback to navigate back to the previous screen.
+ */
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FriendsScreen(
@@ -106,7 +122,17 @@ fun FriendsScreen(
     }
 }
 
-
+/**
+ * Top app bar for the Friends screen.
+ *
+ * This component displays the screen title with navigation controls and action buttons
+ * for adding friends and viewing friend requests. It also shows a badge with the count
+ * of pending friend requests.
+ *
+ * @param onNavigateBack Callback to navigate back to the previous screen.
+ * @param viewModel View model for the Friends screen.
+ * @param state Current state of the Friends screen.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendsTopBar(
@@ -136,6 +162,16 @@ fun FriendsTopBar(
     )
 }
 
+/**
+ * Component for displaying success snackbars.
+ *
+ * This component shows a dismissable snackbar with a success message
+ * and provides buttons to dismiss the notification.
+ *
+ * @param showSuccessSnackbar Flag to control the visibility of the snackbar.
+ * @param successMessage Message to display in the snackbar.
+ * @param onClick Callback when the snackbar is dismissed.
+ */
 @Composable
 fun SnackbarHandler(showSuccessSnackbar: Boolean, successMessage: String, onClick: () -> Unit) {
     if (showSuccessSnackbar) {
@@ -157,6 +193,18 @@ fun SnackbarHandler(showSuccessSnackbar: Boolean, successMessage: String, onClic
     }
 }
 
+/**
+ * Component that manages all dialogs for the Friends screen.
+ *
+ * This component displays three types of dialogs:
+ * 1. Add Friend Dialog - For sending new friend requests
+ * 2. Friend Requests Dialog - For viewing and responding to friend requests
+ * 3. Error Dialog - For displaying error messages
+ *
+ * @param state Current state of the Friends screen.
+ * @param viewModel View model for the Friends screen.
+ * @param onDeny Callback when a friend request is denied.
+ */
 @Composable
 fun FriendsDialogs(state: FriendsScreenState, viewModel: FriendsViewModel, onDeny: (String) -> Unit) {
     // Add Friend Dialog
@@ -209,6 +257,17 @@ fun FriendsDialogs(state: FriendsScreenState, viewModel: FriendsViewModel, onDen
     }
 }
 
+/**
+ * Data class for passing parameters to the FriendsList component.
+ *
+ * This class encapsulates all the parameters needed for the friend list
+ * to avoid having too many individual parameters.
+ *
+ * @property padding The padding values from the Scaffold.
+ * @property pullRefreshState The state for pull-to-refresh functionality.
+ * @property state The current state of the Friends screen.
+ * @property isManualRefresh Flag indicating if a manual refresh is in progress.
+ */
 data class FriendsListParams @OptIn(ExperimentalMaterialApi::class) constructor(
     val padding: PaddingValues,
     val pullRefreshState: PullRefreshState,
@@ -216,6 +275,19 @@ data class FriendsListParams @OptIn(ExperimentalMaterialApi::class) constructor(
     val isManualRefresh: Boolean
 )
 
+/**
+ * Component that displays the list of friends with search and pull-to-refresh.
+ *
+ * This component shows a searchable list of friends and handles various display states:
+ * - Loading state with progress indicator
+ * - Empty state with appropriate messages
+ * - Friend list with removal capability
+ * - Pull-to-refresh functionality for manual updates
+ *
+ * @param params Encapsulated parameters for the friend list.
+ * @param viewModel View model for the Friends screen.
+ * @param onRemoveFriend Callback when a friend is removed.
+ */
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FriendsList(params: FriendsListParams, viewModel: FriendsViewModel, onRemoveFriend: (String) -> Unit) {
@@ -267,6 +339,17 @@ fun FriendsList(params: FriendsListParams, viewModel: FriendsViewModel, onRemove
     }
 }
 
+/**
+ * Dialog for adding a new friend by email.
+ *
+ * This dialog provides an input field for entering a friend's email address
+ * and buttons to send the request or cancel the operation.
+ *
+ * @param email The current email input value.
+ * @param onEmailChange Callback when the email input changes.
+ * @param onSendRequest Callback when the send request button is clicked.
+ * @param onDismiss Callback when the dialog is dismissed.
+ */
 @Composable
 fun AddFriendDialog(
     email: String,
@@ -310,6 +393,18 @@ fun AddFriendDialog(
     )
 }
 
+/**
+ * Dialog for displaying and responding to friend requests.
+ *
+ * This dialog shows a list of pending friend requests with options to accept
+ * or deny each request. It also handles loading and empty states appropriately.
+ *
+ * @param requests List of pending friend requests.
+ * @param isLoading Flag indicating if requests are currently loading.
+ * @param onAccept Callback when a request is accepted.
+ * @param onDeny Callback when a request is denied.
+ * @param onDismiss Callback when the dialog is dismissed.
+ */
 @Composable
 fun FriendRequestDialog(
     requests: List<FriendRequest>,
@@ -377,6 +472,16 @@ fun FriendRequestDialog(
     )
 }
 
+/**
+ * Item component that displays a single friend request.
+ *
+ * This card displays information about a pending friend request, including
+ * the sender's name, when it was sent, and buttons to accept or deny the request.
+ *
+ * @param request The friend request data to display.
+ * @param onAccept Callback when the accept button is clicked.
+ * @param onDeny Callback when the deny button is clicked.
+ */
 @Composable
 fun FriendRequestItem(
     request: FriendRequest,

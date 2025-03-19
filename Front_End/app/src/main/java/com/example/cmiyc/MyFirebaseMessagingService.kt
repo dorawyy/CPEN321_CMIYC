@@ -20,11 +20,35 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.firebase.messaging.messaging
 
+/**
+ * Firebase Cloud Messaging (FCM) Service for handling incoming push notifications.
+ *
+ * This service extends [FirebaseMessagingService] to provide custom handling of
+ * remote messages received from Firebase Cloud Messaging.
+ *
+ * Key Responsibilities:
+ * - Intercept and log incoming Firebase Cloud Messages
+ * - Create and display local notifications for received messages
+ * - Customize notification appearance and behavior
+ *
+ * @property TAG Constant used for logging Firebase messaging events
+ *
+ * @see FirebaseMessagingService
+ * @see RemoteMessage
+ */
 class MyFirebaseMessagingService : FirebaseMessagingService() {
     companion object {
         private const val TAG = "MyFirebaseMsgService"
     }
 
+    /**
+     * Called when a remote message is received.
+     *
+     * This method is triggered when a Firebase Cloud Message is received while the app is running.
+     * It logs the notification body and triggers the local notification display.
+     *
+     * @param remoteMessage The received remote message containing notification payload
+     */
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         // Check if message contains a notification payload.
         remoteMessage.notification?.let {
@@ -33,6 +57,19 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
     }
 
+    /**
+     * Generates and displays a local notification based on the received message.
+     *
+     * Features of the notification:
+     * - Sets a small icon using the app's launcher icon
+     * - Uses the message title and body for notification content
+     * - Plays default notification sound
+     * - Automatically cancels the notification when tapped
+     * - Creates a pending intent to navigate to MainActivity when notification is tapped
+     *
+     * @param messageTitle Title of the notification
+     * @param messageBody Body text of the notification
+     */
     private fun sendNotification(messageTitle: String, messageBody: String) {
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)

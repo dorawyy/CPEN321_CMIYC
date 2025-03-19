@@ -24,6 +24,17 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import java.io.IOException
 
+/**
+ * Authentication screen for user sign-in.
+ *
+ * This screen handles user authentication via Google Sign-In. It displays
+ * the application title, sign-in button, and manages the authentication flow.
+ * The screen also handles various authentication states including success,
+ * banned users, and errors.
+ *
+ * @param onLoginSuccess Callback invoked when authentication is successful,
+ *                      providing the user's email, display name, and ID token.
+ */
 @Composable
 fun LoginScreen(onLoginSuccess: (String, String, String) -> Unit) {
     val viewModel: LoginViewModel = viewModel(factory = LoginViewModelFactory(UserRepository))
@@ -66,7 +77,15 @@ fun LoginScreen(onLoginSuccess: (String, String, String) -> Unit) {
     if (showErrorDialog) ErrorDialog(errorMessage) { showErrorDialog = false; viewModel.resetState() }
 }
 
-
+/**
+ * Dialog displayed when a banned user attempts to sign in.
+ *
+ * This dialog informs the user that their account has been banned
+ * and provides an option to exit the application. The dialog cannot
+ * be dismissed by clicking outside its boundaries.
+ *
+ * @param onExit Callback invoked when the user clicks the exit button.
+ */
 @Composable
 fun BannedDialog(onExit: () -> Unit) {
     AlertDialog(
@@ -83,6 +102,15 @@ fun BannedDialog(onExit: () -> Unit) {
     )
 }
 
+/**
+ * Dialog displayed when an error occurs during authentication.
+ *
+ * This dialog shows the specific error message that occurred during
+ * the login process and provides an option to dismiss the dialog.
+ *
+ * @param errorMessage The error message to display.
+ * @param onDismiss Callback invoked when the user dismisses the dialog.
+ */
 @Composable
 fun ErrorDialog(errorMessage: String, onDismiss: () -> Unit) {
     AlertDialog(
@@ -99,6 +127,16 @@ fun ErrorDialog(errorMessage: String, onDismiss: () -> Unit) {
     )
 }
 
+/**
+ * Button component for Google Sign-In.
+ *
+ * This component displays a Google Sign-In button and a checkbox for
+ * requesting administrative privileges (for testing purposes). When clicked,
+ * it initiates the Google authentication flow.
+ *
+ * @param viewModel The login view model that handles authentication logic.
+ * @param launcher The activity result launcher that handles the sign-in intent.
+ */
 @Composable
 fun GoogleSignInButton(viewModel: LoginViewModel, launcher: ManagedActivityResultLauncher<Intent, ActivityResult>) {
     val context = LocalContext.current

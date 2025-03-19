@@ -22,6 +22,18 @@ object GeocodingUtil {
         fetchAddress(context, latitude, longitude)
     }
 
+    /**
+     * Gets the address for the given latitude and longitude.
+     *
+     * This suspending function performs reverse geocoding to convert coordinates
+     * into a human-readable address. It handles the operation on the IO dispatcher
+     * to avoid blocking the main thread.
+     *
+     * @param context The Android context required for geocoding operations.
+     * @param latitude The latitude coordinate.
+     * @param longitude The longitude coordinate.
+     * @return A formatted address string or coordinates string if geocoding fails.
+     */
     private suspend fun fetchAddress(context: Context, latitude: Double, longitude: Double): String {
         try {
             val geocoder = Geocoder(context, Locale.getDefault())
@@ -63,6 +75,18 @@ object GeocodingUtil {
         }
     }
 
+    /**
+     * Formats address components into a readable string.
+     *
+     * This method combines various address components (street, city, state, country)
+     * into a comma-separated string. It filters out null or empty components.
+     *
+     * @param street The street or thoroughfare component of the address.
+     * @param city The city or locality component of the address.
+     * @param state The state or administrative area component of the address.
+     * @param country The country component of the address.
+     * @return A formatted address string or "Unknown location" if no components are available.
+     */
     private fun formatAddress(
         street: String?,
         city: String?,
@@ -79,9 +103,25 @@ object GeocodingUtil {
         return if (parts.isNotEmpty()) parts.joinToString(", ") else "Unknown location"
     }
 
+    /**
+     * Formats coordinates into a readable string.
+     *
+     * This method is used as a fallback when geocoding fails, providing
+     * a formatted representation of the original coordinates.
+     *
+     * @param latitude The latitude coordinate.
+     * @param longitude The longitude coordinate.
+     * @return A formatted string representation of the coordinates.
+     */
     private fun formatCoordinates(latitude: Double, longitude: Double): String {
         return "(${latitude.format(6)}, ${longitude.format(6)})"
     }
 
+    /**
+     * Extension function to format a Double with specified number of decimal places.
+     *
+     * @param digits The number of decimal places to include.
+     * @return A String representation of the Double with the specified precision.
+     */
     private fun Double.format(digits: Int) = "%.${digits}f".format(this)
 }

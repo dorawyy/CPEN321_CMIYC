@@ -15,12 +15,30 @@ import com.google.gson.GsonBuilder
 import android.content.Context
 import java.io.File
 
+/**
+ * Singleton object that provides an optimized Retrofit client configuration.
+ *
+ * This object handles the creation and configuration of OkHttpClient with performance-optimized
+ * settings for network requests, including connection pooling, timeouts, caching,
+ * and protocol preferences.
+ *
+ * The client must be initialized with a context before use to configure caching.
+ */
 object RetrofitClient {
     private const val BASE_URL = "https://m32qmf20rf.execute-api.us-west-1.amazonaws.com/"
     private const val CACHE_SIZE = 10 * 1024 * 1024L // 10 MB
 
     private var okHttpClient: OkHttpClient? = null
 
+    /**
+     * Initializes the OkHttpClient with optimized settings.
+     *
+     * This method configures the HTTP client with connection pooling, timeouts, caching,
+     * and other performance optimizations. It should be called early in the application
+     * lifecycle, typically in Application.onCreate().
+     *
+     * @param context The application context used to locate the cache directory.
+     */
     fun initialize(context: Context) {
         if (okHttpClient != null) return
 
@@ -87,11 +105,25 @@ object RetrofitClient {
     }
 }
 
+/**
+ * Singleton object that provides access to the API service interface.
+ *
+ * This object acts as a facade for accessing the API services, providing
+ * a centralized point for making network requests to the backend.
+ */
 object ApiClient {
     val apiService: ApiService by lazy {
         RetrofitClient.retrofit.create(ApiService::class.java)
     }
 
+    /**
+     * Initializes the underlying RetrofitClient.
+     *
+     * This method must be called before attempting to use the apiService property.
+     * Typically called during application startup in Application.onCreate().
+     *
+     * @param context The application context used to initialize the RetrofitClient.
+     */
     fun initialize(context: Context) {
         RetrofitClient.initialize(context)
     }

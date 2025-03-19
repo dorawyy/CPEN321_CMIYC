@@ -12,6 +12,13 @@ import kotlinx.coroutines.flow.*
 import java.io.IOException
 import java.net.SocketTimeoutException
 
+/**
+ * Factory class for creating instances of FriendsViewModel.
+ *
+ * This factory follows the ViewModelProvider.Factory pattern to allow
+ * dependency injection for the FriendsViewModel class. It ensures that
+ * the appropriate ViewModel type is created.
+ */
 class FriendsViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FriendsViewModel::class.java)) {
@@ -22,44 +29,25 @@ class FriendsViewModelFactory : ViewModelProvider.Factory {
     }
 }
 
+/**
+ * ViewModel for the Friends screen.
+ *
+ * This ViewModel manages the state and business logic for the friends management interface,
+ * including:
+ * - Loading and displaying friends and friend requests
+ * - Filtering friends by search query
+ * - Sending and responding to friend requests
+ * - Removing existing friends
+ *
+ * It combines multiple data flows from the repository to maintain a consistent UI state
+ * and handles network operations with appropriate error handling.
+ */
 class FriendsViewModel : ViewModel() {
     // Internal state
     private val _uiState = MutableStateFlow(FriendsScreenState())
     val state: StateFlow<FriendsScreenState> = _uiState
 
     init {
-//        // Collect friends data from repository
-//        viewModelScope.launch {
-//            FriendsRepository.friends.collect { friends ->
-//                _uiState.update { currentState ->
-//                    currentState.copy(
-//                        friends = friends,
-//                        filteredFriends = filterFriendsWithQuery(friends, currentState.filterQuery)
-//                    )
-//                }
-//            }
-//        }
-//
-//        // Collect loading state
-//        viewModelScope.launch {
-//            FriendsRepository.isFriendsLoading.collect { isLoading ->
-//                _uiState.update { it.copy(isLoading = isLoading) }
-//            }
-//        }
-//
-//        // Collect friend requests data
-//        viewModelScope.launch {
-//            FriendsRepository.friendRequests.collect { requests ->
-//                _uiState.update { it.copy(friendRequests = requests) }
-//            }
-//        }
-//
-//        // Collect requests loading state
-//        viewModelScope.launch {
-//            FriendsRepository.isRequestsLoading.collect { isLoading ->
-//                _uiState.update { it.copy(isRequestsLoading = isLoading) }
-//            }
-//        }
         viewModelScope.launch {
             combine(
                 FriendsRepository.friends,
@@ -81,16 +69,30 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-    // Handle screen lifecycle
+    /**
+     * Called when the Friends screen is entered.
+     *
+     * Triggers an initial data refresh to ensure the friend list is up-to-date.
+     */
     fun onScreenEnter() {
         // Fetch friends once when entering screen
         refresh()
     }
 
+    /**
+     * Called when the Friends screen is exited.
+     *
+     * Currently doesn't perform any operations but is included for lifecycle completeness.
+     */
     fun onScreenExit() {
     }
 
-    // Load friend requests when button is clicked
+    /**
+     * Loads friend requests and displays the requests dialog.
+     *
+     * Fetches the latest friend requests from the repository and updates the UI state
+     * to show the requests dialog. Handles network errors with appropriate messages.
+     */
     fun loadFriendRequests() {
         viewModelScope.launch {
             try {
@@ -118,12 +120,24 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-    // Update UI state and handle simple state changes
+    /**
+     * Updates the UI state through a transformation function.
+     *
+     * Provides a generic way to update the state that allows UI components
+     * to trigger state changes without directly accessing the MutableStateFlow.
+     *
+     * @param update A transformation function that takes the current state and returns a new state.
+     */
     fun updateState(update: (FriendsScreenState) -> FriendsScreenState) {
         _uiState.update(update)
     }
 
-    // Pull to refresh functionality
+    /**
+     * Refreshes the friends list.
+     *
+     * Fetches the latest friend data from the repository, typically used for pull-to-refresh
+     * functionality. Handles network errors with appropriate user feedback.
+     */
     fun refresh() {
         viewModelScope.launch {
             try {
@@ -138,7 +152,14 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-    // Accept a friend request
+    /**
+     * Accepts a friend request.
+     *
+     * Processes a friend request acceptance, updates the friends list on success,
+     * and handles error cases with appropriate user feedback.
+     *
+     * @param userId The ID of the user whose friend request is being accepted.
+     */
     fun acceptRequest(userId: String) {
         viewModelScope.launch {
             try {
@@ -167,7 +188,14 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-    // Deny a friend request
+    /**
+     * Denies a friend request.
+     *
+     * Processes a friend request denial and handles error cases with
+     * appropriate user feedback.
+     *
+     * @param userId The ID of the user whose friend request is being denied.
+     */
     fun denyRequest(userId: String) {
         viewModelScope.launch {
             try {
@@ -197,7 +225,16 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-    // Filter friends by name or email and update email input
+    /**
+     * Updates input text for either friend filtering or email input.
+     *
+     * This method serves two purposes based on the isFilter parameter:
+     * 1. When isFilter is true, it updates the filter query and filtered friends list
+     * 2. When isFilter is false, it updates the email input for adding a friend
+     *
+     * @param input The text input from the user.
+     * @param isFilter Boolean flag indicating whether this is for filtering (true) or email input (false).
+     */
     fun updateInput(input: String, isFilter: Boolean = false) {
         if (isFilter) {
             _uiState.update { currentState ->
@@ -211,7 +248,12 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-    // Send a friend request
+    /**
+     * Sends a friend request to a user by email.
+     *
+     * Validates the email input, sends the request, and handles success/failure
+     * scenarios with appropriate UI updates and user feedback.
+     */
     fun sendFriendRequest() {
         viewModelScope.launch {
             try {
@@ -253,7 +295,15 @@ class FriendsViewModel : ViewModel() {
         }
     }
 
-    // Remove a friend
+    /**
+     * Removes a friend from the user's friend list.
+     *
+     * Processes the removal of a friendship connection and provides a callback
+     * for UI components to react to the successful removal.
+     *
+     * @param targetUserId The ID of the friend to remove.
+     * @param onSuccess Optional callback that will be invoked on successful removal.
+     */
     fun removeFriend(targetUserId: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             try {
@@ -284,7 +334,17 @@ class FriendsViewModel : ViewModel() {
     }
 }
 
-
+/**
+ * Filters a list of friends based on a search query.
+ *
+ * This helper function filters friends whose name or email contains
+ * the search query (case-insensitive). If the query is empty, it returns
+ * the original list unfiltered.
+ *
+ * @param friends The list of friends to filter.
+ * @param query The search string to match against.
+ * @return A filtered list of friends that match the query.
+ */
 private fun filterFriendsWithQuery(friends: List<Friend>, query: String): List<Friend> {
     return if (query.isEmpty()) {
         friends
@@ -296,6 +356,26 @@ private fun filterFriendsWithQuery(friends: List<Friend>, query: String): List<F
     }
 }
 
+/**
+ * Data class representing the state of the Friends screen.
+ *
+ * This immutable state container holds all the data needed to render the
+ * friends UI, including lists of friends and requests, dialog visibility,
+ * loading states, and error/success messages.
+ *
+ * @property friends The complete list of friends.
+ * @property filteredFriends The list of friends after applying search filters.
+ * @property friendRequests The list of pending friend requests.
+ * @property filterQuery The current search query string.
+ * @property isLoading Flag indicating whether the friends list is loading.
+ * @property isRequestsLoading Flag indicating whether friend requests are loading.
+ * @property error Optional error message if an operation failed.
+ * @property showRequestsDialog Flag controlling the visibility of the friend requests dialog.
+ * @property showAddFriendDialog Flag controlling the visibility of the add friend dialog.
+ * @property emailInput The current text in the email input field.
+ * @property requestSentSuccessful Flag indicating a successfully sent friend request.
+ * @property successMessage Optional success message to display.
+ */
 data class FriendsScreenState(
     val friends: List<Friend> = emptyList(),
     val filteredFriends: List<Friend> = emptyList(),

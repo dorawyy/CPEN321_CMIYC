@@ -13,6 +13,13 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 import java.net.SocketTimeoutException
 
+/**
+ * Factory class for creating instances of AdminViewModel.
+ *
+ * This factory follows the ViewModelProvider.Factory pattern to allow
+ * dependency injection for the AdminViewModel class. It ensures that
+ * the appropriate ViewModel type is created.
+ */
 class AdminViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AdminViewModel::class.java)) {
@@ -23,6 +30,14 @@ class AdminViewModelFactory : ViewModelProvider.Factory {
     }
 }
 
+/**
+ * ViewModel for the Admin Panel screen.
+ *
+ * This ViewModel manages the state and business logic for the admin panel,
+ * including loading users, filtering the user list, and performing administrative
+ * actions like banning users. It handles network operations and error states
+ * for administrative functions.
+ */
 class AdminViewModel : ViewModel() {
 
     private val _state = MutableStateFlow(AdminScreenState())
@@ -32,6 +47,12 @@ class AdminViewModel : ViewModel() {
         loadUsers()
     }
 
+    /**
+     * Loads all users from the repository.
+     *
+     * This method fetches the complete list of users for administrative management,
+     * handles loading states, and captures any errors that occur during the process.
+     */
     fun loadUsers() {
         viewModelScope.launch {
             try {
@@ -84,6 +105,15 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Bans a user from the system.
+     *
+     * This administrative action prevents the specified user from accessing
+     * the system. After a successful ban, the user list is refreshed to
+     * reflect the updated status.
+     *
+     * @param userId The unique identifier of the user to ban.
+     */
     fun banUser(userId: String) {
         viewModelScope.launch {
             try {
@@ -115,6 +145,14 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Filters the user list based on a search query.
+     *
+     * This method updates the state with a filter query and applies the
+     * filter to show only users matching the search criteria by name or email.
+     *
+     * @param query The search string used to filter users.
+     */
     fun filterUsers(query: String) {
         _state.update { currentState ->
             currentState.copy(
@@ -124,6 +162,17 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Filters a list of users based on a search query.
+     *
+     * This private helper method filters users whose name or email contains
+     * the search query (case-insensitive). If the query is empty, it returns
+     * the original list unfiltered.
+     *
+     * @param users The list of users to filter.
+     * @param query The search string to match against.
+     * @return A filtered list of users that match the query.
+     */
     private fun filterUsersWithQuery(users: List<AdminUserItem>, query: String): List<AdminUserItem> {
         return if (query.isEmpty()) {
             users
@@ -135,11 +184,30 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Clears any error message from the state.
+     *
+     * This method is typically called after an error has been displayed to the user
+     * and acknowledged.
+     */
     fun clearError() {
         _state.update { it.copy(error = null) }
     }
 }
 
+/**
+ * Data class representing the state of the Admin Panel screen.
+ *
+ * This immutable state container holds all the data needed to render the
+ * admin panel UI, including the user list, filter state, loading status,
+ * and error messages.
+ *
+ * @property users The complete list of users in the system.
+ * @property filteredUsers The list of users after applying search filters.
+ * @property filterQuery The current search query string.
+ * @property isLoading Flag indicating whether a loading operation is in progress.
+ * @property error Optional error message if an operation failed.
+ */
 data class AdminScreenState(
     val users: List<AdminUserItem> = emptyList(),
     val filteredUsers: List<AdminUserItem> = emptyList(),

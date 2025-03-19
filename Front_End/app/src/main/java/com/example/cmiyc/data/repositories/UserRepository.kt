@@ -15,6 +15,16 @@ import java.net.SocketTimeoutException
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * Central repository for managing user data and operations.
+ *
+ * This singleton object handles user authentication, registration, profile management,
+ * and coordinates with specialized managers for location updates, activity logs,
+ * and administrative functions.
+ *
+ * The repository exposes state flows for UI components to observe changes in user data,
+ * authentication status, and admin privileges.
+ */
 object UserRepository {
     private val api = ApiClient.apiService
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -35,15 +45,34 @@ object UserRepository {
     val logManager = LogManager(scope, api, _currentUser)
     val adminManager = AdminManager(scope, api, _currentUser, _adminUsers)
 
+    /**
+     * Checks if a user is currently authenticated.
+     *
+     * @return True if a user is authenticated and registration is complete, false otherwise.
+     */
     fun isAuthenticated(): Boolean {
         return isRegistrationComplete.value
     }
 
+    /**
+     * Gets the ID of the currently authenticated user.
+     *
+     * @return The user ID as a String.
+     * @throws IllegalStateException If no user is authenticated.
+     */
     fun getCurrentUserId(): String {
         return currentUser.value?.userId
             ?: throw IllegalStateException("User not authenticated")
     }
 
+    /**
+     * Sets the current user from authentication credentials.
+     *
+     * This method is typically called after successful authentication
+     * but before registration with the backend.
+     *
+     * @param credentials The user data obtained from authentication.
+     */
     fun setCurrentUser(credentials: User) {
         _currentUser.value = User(
             credentials.userId,
@@ -53,6 +82,14 @@ object UserRepository {
             credentials.photoUrl)
     }
 
+    /**
+     * Updates the Firebase Cloud Messaging token for the current user.
+     *
+     * This token is used for delivering push notifications to the user's device.
+     *
+     * @param fcmToken The new FCM token to register.
+     * @throws Various exceptions for network and server errors.
+     */
     suspend fun setFCMToken(fcmToken: String) {
         try {
             val userId = getCurrentUserId()
@@ -79,6 +116,15 @@ object UserRepository {
         }
     }
 
+    /**
+     * Registers the current user with the backend server.
+     *
+     * This method should be called after authentication and setting the current user.
+     * It synchronizes the user data with the backend and establishes the session.
+     *
+     * @return True if registration was successful, false if the user is banned.
+     * @throws Various exceptions for network and server errors.
+     */
     suspend fun registerUser(): Boolean {
         try {
             val userRegistrationRequest = UserRegistrationRequestDTO(
@@ -116,6 +162,15 @@ object UserRepository {
         }
     }
 
+    /**
+     * Broadcasts a system message or event to relevant users.
+     *
+     * This method is typically used for notifications about user activity
+     * or system-wide announcements.
+     *
+     * @param activity The activity or event name to broadcast.
+     * @throws Various exceptions for network and server errors.
+     */
     suspend fun broadcastMessage(activity: String) {
         try {
             val startTime = System.currentTimeMillis()
@@ -144,12 +199,22 @@ object UserRepository {
         }
     }
 
+    /**
+     * Clears the current user data and resets authentication state.
+     *
+     * This is used when logging out or when authentication is invalidated.
+     */
     fun clearCurrentUser() {
         _currentUser.value = null
         _isAdmin.value = false
         _isRegistrationComplete.value = false
     }
 
+    /**
+     * Signs out the current user.
+     *
+     * This method handles the sign-out process, clearing local user data.
+     */
     suspend fun signOut() {
         withContext(Dispatchers.IO) {
             try {
@@ -161,16 +226,39 @@ object UserRepository {
         }
     }
 
+    /**
+     * Sets whether the user is requesting administrative privileges.
+     *
+     * This is used during registration to indicate admin status request.
+     *
+     * @param requested True to request admin privileges, false otherwise.
+     */
     fun setAdminRequested(requested: Boolean) {
         _isAdmin.value = requested
     }
 
+    /**
+     * Cleans up resources used by the repository.
+     *
+     * Should be called when the application is terminating or the user is signing out.
+     */
     fun cleanup() {
         scope.cancel()
         locationManager.cleanup()
     }
 }
 
+/**
+ * Manager class for handling user location updates.
+ *
+ * This class manages the queueing, throttling, and error handling for
+ * user location updates. It implements exponential backoff for retries
+ * and maintains the user's current location state.
+ *
+ * @property scope The coroutine scope for background operations.
+ * @property api The API service for network requests.
+ * @property _currentUser Mutable state flow of the current user.
+ */
 class LocationManager(
     private val scope: CoroutineScope,
     private val api: ApiService,
@@ -192,6 +280,12 @@ class LocationManager(
         startLocationUpdateWorker()
     }
 
+    /**
+     * Starts the background worker that processes queued location updates.
+     *
+     * This worker handles sending updates to the server, implementing
+     * exponential backoff for retries, and updating the user's location state.
+     */
     private fun startLocationUpdateWorker() {
         scope.launch {
             while (isActive) {
@@ -251,6 +345,14 @@ class LocationManager(
         }
     }
 
+    /**
+     * Updates the user's location.
+     *
+     * This method adds a new location update to the queue for processing.
+     * The actual network request is handled by the background worker.
+     *
+     * @param location The new user location as a GeoJSON Point.
+     */
     fun updateUserLocation(location: Point) {
         val request = LocationDTO(
             longitude = location.longitude(),
@@ -264,6 +366,16 @@ class LocationManager(
     }
 }
 
+/**
+ * Manager class for handling activity logs.
+ *
+ * This class provides access to system and user activity logs,
+ * including events from friends and system notifications.
+ *
+ * @property scope The coroutine scope for background operations.
+ * @property api The API service for network requests.
+ * @property _currentUser Mutable state flow of the current user.
+ */
 class LogManager(
     private val scope: CoroutineScope,
     private val api: ApiService,
@@ -272,6 +384,11 @@ class LogManager(
     private val _logs = MutableStateFlow<List<Log>>(emptyList())
     val logs: StateFlow<List<Log>> = _logs
 
+    /**
+     * Converts a LogDTO from the API to the domain Log model.
+     *
+     * @return A Log domain object mapped from this DTO.
+     */
     private fun LogDTO.toLog(): Log = Log(
         sender = fromName,
         activity = eventName,
@@ -279,6 +396,13 @@ class LogManager(
         timestamp = location.timestamp
     )
 
+    /**
+     * Refreshes the activity logs from the server.
+     *
+     * Updates the [logs] StateFlow with the latest activity data.
+     *
+     * @throws Various exceptions for network and server errors.
+     */
     suspend fun refreshLogs() {
         try {
             val userId = _currentUser.value?.userId ?: return
@@ -305,17 +429,38 @@ class LogManager(
         }
     }
 
+    /**
+     * Gets the current list of activity logs.
+     *
+     * @return The current list of Log objects.
+     */
     fun getLogs(): List<Log> {
         return _logs.value
     }
 }
 
+/**
+ * Manager class for administrative functions.
+ *
+ * This class provides capabilities for user management and moderation,
+ * available only to users with administrative privileges.
+ *
+ * @property scope The coroutine scope for background operations.
+ * @property api The API service for network requests.
+ * @property _currentUser Mutable state flow of the current user.
+ * @property _adminUsers Mutable state flow of users for admin management.
+ */
 class AdminManager(
     private val scope: CoroutineScope,
     private val api: ApiService,
     private val _currentUser: MutableStateFlow<User?>,
     private val _adminUsers: MutableStateFlow<List<AdminUserItem>>
 ) {
+    /**
+     * Converts a UserDTO from the API to the AdminUserItem model.
+     *
+     * @return An AdminUserItem domain object mapped from this DTO.
+     */
     private fun UserDTO.toAdminUserItem(): AdminUserItem = AdminUserItem(
         userId = userID,
         name = displayName,
@@ -324,6 +469,14 @@ class AdminManager(
         isBanned = isBanned
     )
 
+    /**
+     * Retrieves all users in the system for administrative management.
+     *
+     * Updates the [adminUsers] StateFlow with the latest user data.
+     *
+     * @return A Result containing a list of AdminUserItem objects on success,
+     *         or an Exception on failure.
+     */
     suspend fun getAllUsers(): Result<List<AdminUserItem>> {
         return try {
             val userId = _currentUser.value?.userId ?:
@@ -344,6 +497,15 @@ class AdminManager(
         }
     }
 
+    /**
+     * Bans a user from the system.
+     *
+     * This administrative function prevents the targeted user from accessing the system.
+     * After banning, the user list is refreshed.
+     *
+     * @param targetUserId The ID of the user to ban.
+     * @return A Result indicating success or containing an Exception on failure.
+     */
     suspend fun banUser(targetUserId: String): Result<Unit> {
         return try {
             val userId = _currentUser.value?.userId ?:
