@@ -54,14 +54,13 @@ fun MapComponent(
     var lastUpdatedLocation by remember { mutableStateOf<Point?>(null) }
     val thresholdDistance = 25.0 // distance in meters
 
-    var isFirstUpdate = true
     val iconSizeDp = 64.dp
     val density = LocalDensity.current
     val iconSizePx = with(density) { iconSizeDp.roundToPx() }
 
     Box(modifier = modifier.fillMaxSize()) {
         MapboxMap(mapViewportState = mapViewportState, modifier = modifier) {
-            LocationUpdateHandler(mapViewportState = mapViewportState, lastUpdatedLocation = lastUpdatedLocation, thresholdDistance = thresholdDistance, isFirstUpdate = isFirstUpdate,
+            LocationUpdateHandler(mapViewportState = mapViewportState, lastUpdatedLocation = lastUpdatedLocation, thresholdDistance = thresholdDistance,
                 onLocationUpdated = { point ->
                     lastUpdatedLocation = point
                     UserRepository.locationManager.updateUserLocation(point)
@@ -133,7 +132,6 @@ fun LocationUpdateHandler(
     mapViewportState: MapViewportState,
     lastUpdatedLocation: Point?,
     thresholdDistance: Double,
-    isFirstUpdate: Boolean,
     onLocationUpdated: (Point) -> Unit
 ) {
     MapEffect(Unit) { mapView ->
@@ -143,6 +141,8 @@ fun LocationUpdateHandler(
             puckBearing = PuckBearing.COURSE
             puckBearingEnabled = true
         }
+
+        var isFirstUpdate = true
 
         mapView.location.addOnIndicatorPositionChangedListener { point ->
             val shouldUpdate = lastUpdatedLocation?.let {
@@ -154,6 +154,7 @@ fun LocationUpdateHandler(
                     mapViewportState.setCameraOptions(
                         cameraOptions { center(point); zoom(14.0) }
                     )
+                    isFirstUpdate = false
                 }
                 onLocationUpdated(point)
             }
