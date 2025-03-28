@@ -7,6 +7,25 @@ import '../../setupFirebaseMock'; // Import Firebase mocking
 import dotenv from 'dotenv';
 dotenv.config();
 
+// Define User interface for type safety
+interface User {
+  userID: string;
+  displayName: string;
+  email: string;
+  photoURL: string;
+  isAdmin?: boolean;
+  isBanned?: boolean;
+  friends?: string[];
+  friendRequests?: string[];
+  logList?: any[];
+  fcmToken?: string;
+  currentLocation?: {
+    latitude: number;
+    longitude: number;
+    timestamp: number;
+  };
+}
+
 // Set a long timeout for the entire test suite
 jest.setTimeout(10000);
 
@@ -247,7 +266,7 @@ describe('UserRoutes API - No Mocks', () => {
       expect(Array.isArray(response.body)).toBe(true);
       
       // Verify users are filtered correctly
-      response.body.forEach((user: any) => {
+      response.body.forEach((user: User) => {
         expect(user.userID).not.toBe(TEST_USER_ID);
         // No friend lists should be returned
         expect(user.friends).toBeUndefined();
@@ -255,7 +274,7 @@ describe('UserRoutes API - No Mocks', () => {
       });
       
       // The banned user should be in the results
-      const bannedUserInResults = response.body.some((user: any) => user.userID === BANNED_USER_ID);
+      const bannedUserInResults = response.body.some((user: User) => user.userID === BANNED_USER_ID);
       expect(bannedUserInResults).toBe(true);
     });
   });
