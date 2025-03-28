@@ -17,7 +17,7 @@ interface User {
   isBanned?: boolean;
   friends?: string[];
   friendRequests?: string[];
-  logList?: any[];
+  logList?: unknown[];
   fcmToken?: string;
   currentLocation?: {
     latitude: number;
